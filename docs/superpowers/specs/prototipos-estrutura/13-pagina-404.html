@@ -1,0 +1,101 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · página 404</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Inter+Tight:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--escuro:#121212;--azul:#002FA7;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1.t{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio-p{max-width:900px;font-size:18px;line-height:25px;margin-bottom:18px}
+.opcoes{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:1200px}
+@media(max-width:900px){.opcoes{grid-template-columns:1fr}}
+.opcao{border:1px solid var(--escuro);padding:14px;cursor:pointer}
+.opcao.selected{outline:3px solid var(--azul);outline-offset:3px}
+.letra{font-family:var(--mono);font-size:11px;text-transform:uppercase}
+.opcao h2{font-weight:500;text-transform:uppercase;font-size:20px;margin:4px 0 10px}
+.opcao p.d{font-size:14px;margin-top:10px}
+.moldura{position:relative;width:100%;aspect-ratio:1440/900;border:1px solid var(--c2);overflow:hidden}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;background:var(--claro)}
+.cab{position:absolute;top:12px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;text-transform:uppercase;z-index:5}
+.msg{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;z-index:3}
+.msg .c{font-family:var(--mono);font-size:15px;margin-bottom:18px}
+.msg .g{font-weight:500;text-transform:uppercase;font-size:53.3px;line-height:1;letter-spacing:-.01em;min-height:54px}
+.msg .links{margin-top:36px;font-family:var(--mono);font-size:15px;text-transform:uppercase;display:flex;gap:40px;justify-content:center}
+.msg .links a{color:var(--escuro);text-decoration:none;border-bottom:1px solid var(--azul);padding-bottom:2px}
+.v2 .msg{top:auto;bottom:120px;transform:none}
+#esfera{position:absolute;left:470px;top:70px;width:500px;height:500px;z-index:1}
+.nota{margin-top:18px;font-size:15px;max-width:1200px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · qualquer endereço fora do mapa</span><span>Página 404</span></div>
+<h1 class="t">Página 404</h1>
+<p class="apoio-p">A referência não desenha uma 404: um trabalho inexistente cai numa tela de erro do servidor. A Floway responde 404 de verdade, com a página da marca e fora dos buscadores. Clique num cartão para ver a mensagem se digitar de novo.</p>
+<div class="opcoes">
+ <div class="opcao" data-choice="404-simples" onclick="toggleSelect(this);digitar(0)"><div class="letra">A · como na 02-site</div><h2>Só a mensagem</h2>
+  <div class="moldura"><div class="tela"><div class="cab"><span>Voltar ao início</span><span>©FLOWAY</span><span>PT▾ &nbsp; TRABALHOS &nbsp; CONTATO</span></div>
+  <div class="msg"><p class="c">(404)</p><p class="g" data-g></p><div class="links"><a href="#">Voltar ao início</a><a href="#">Iniciar projeto</a></div></div></div></div>
+  <p class="d">"(404)" em mono e "Página não encontrada", que se digita no centro de uma tela clara. Embaixo, dois caminhos com o sublinhado azul.</p></div>
+ <div class="opcao" data-choice="404-esfera" onclick="toggleSelect(this);digitar(1);quebrar()"><div class="letra">B · recomendada</div><h2>404 que vira a esfera</h2>
+  <div class="moldura v2"><div class="tela"><div class="cab"><span>Voltar ao início</span><span>©FLOWAY</span><span>PT▾ &nbsp; TRABALHOS &nbsp; CONTATO</span></div>
+  <canvas id="esfera" width="500" height="500"></canvas>
+  <div class="msg"><p class="c">(404)</p><p class="g" data-g></p><div class="links"><a href="#">Voltar ao início</a><a href="#">Iniciar projeto</a></div></div></div></div>
+  <p class="d">As mesmas letras FLOWAY da esfera do contato formam o número 404. Depois de alguns segundos, elas se soltam e viram a esfera, e voltam a formar o 404, em ciclo. O cursor empurra as letras, como no contato.</p></div>
+</div>
+<div class="nota"><b>Nas duas</b>Os caminhos são "Voltar ao início" e "Iniciar projeto". "Ver trabalhos" fica de fora enquanto não houver cases. A resposta é HTTP 404, inclusive para /trabalhos/qualquer-coisa. O título da aba é "Página não encontrada · Floway", com noindex. Em movimento reduzido, a mensagem aparece pronta e a esfera fica parada. Em inglês: "Page not found", "Back to home", "Start a project".</div>
+<script>
+
+
+const cv=document.getElementById('esfera'),c=cv.getContext('2d');let W=cv.width,H=cv.height;
+const GL='FLOWAY'.split('');
+// sprites dos glifos
+const SP={};['#121212','#002FA7'].forEach(cor=>{SP[cor]=GL.map(g=>{const s=document.createElement('canvas');s.width=s.height=14;const x=s.getContext('2d');x.fillStyle=cor;x.font='800 11px Inter Tight, sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(g,7,7);return s;});});
+
+const PL=new Path2D("M275.586 0.260463C277.517 0.256723 279.449 0.25212 281.38 0.246732C286.672 0.234524 291.964 0.23476 297.257 0.237121C302.97 0.237529 308.683 0.226485 314.396 0.217006C325.58 0.200409 336.765 0.194897 347.949 0.193781C357.036 0.19283 366.124 0.188719 375.211 0.18238C396.78 0.167638 418.349 0.155329 439.918 0.156377C440.607 0.156408 441.296 0.156439 442.006 0.156471C445.499 0.156637 448.993 0.156835 452.486 0.15704C453.179 0.15708 453.873 0.15712 454.588 0.157161C455.991 0.157242 457.394 0.157326 458.796 0.157412C480.643 0.158639 502.49 0.143601 524.336 0.116267C548.886 0.0855634 573.436 0.0683586 597.986 0.0701935C610.983 0.0708583 623.981 0.0653236 636.978 0.0438374C648.038 0.0256719 659.097 0.0212404 670.157 0.0348562C675.802 0.0414078 681.447 0.0414239 687.092 0.0241497C692.255 0.00851192 697.418 0.0111868 702.582 0.028718C704.454 0.0318083 706.325 0.0280796 708.197 0.0169978C710.734 0.00296773 713.27 0.0133903 715.807 0.0301102C716.907 0.0152056 716.907 0.0152056 718.029 0C722.834 0.067332 725.333 1.08328 728.688 4.52789C730.516 12.482 724.493 22.6649 720.52 29.1724C712.284 42.1208 702.069 53.2383 691.606 64.3951C689.438 66.7116 687.319 69.0585 685.25 71.4654C681.84 75.423 678.261 79.2177 674.688 83.0279C670.531 87.4614 666.416 91.9102 662.45 96.5162C659.647 99.7167 656.755 102.836 653.875 105.966C650.226 109.934 646.615 113.936 643.016 117.95C641.306 119.844 639.588 121.729 637.86 123.606C637.374 124.133 636.889 124.66 636.389 125.204C635.016 126.693 633.641 128.181 632.266 129.669C630.53 131.594 628.847 133.569 627.219 135.586C612.335 152.883 585.772 164.018 563.427 165.698C557.375 165.972 551.321 165.931 545.264 165.909C543.228 165.912 541.192 165.917 539.156 165.923C533.597 165.935 528.039 165.929 522.48 165.92C516.472 165.913 510.464 165.924 504.456 165.932C493.382 165.945 482.308 165.943 471.234 165.935C461.01 165.928 450.785 165.926 440.56 165.929C439.541 165.93 439.541 165.93 438.502 165.93C435.745 165.931 432.987 165.932 430.23 165.933C404.398 165.942 378.565 165.934 352.733 165.918C329.778 165.903 306.823 165.905 283.868 165.919C258.064 165.935 232.26 165.941 206.455 165.932C203.707 165.931 200.958 165.93 198.21 165.929C197.533 165.929 196.856 165.929 196.159 165.929C185.932 165.925 175.705 165.929 165.478 165.937C153.861 165.945 142.243 165.943 130.626 165.927C124.696 165.919 118.765 165.916 112.835 165.926C107.414 165.935 101.992 165.93 96.571 165.914C94.6031 165.911 92.6351 165.912 90.6672 165.92C88.0056 165.929 85.3447 165.919 82.6832 165.905C81.9077 165.912 81.1321 165.919 80.333 165.927C75.2047 165.872 75.2047 165.872 72.7177 164.215C70.9112 161.255 71.2493 158.888 71.6879 155.528C73.6293 152.938 73.6293 152.938 76.2504 150.59C79.2981 147.812 82.1645 145.033 84.8402 141.899C89.9432 135.977 95.5826 130.575 101.145 125.091C102.578 123.677 104.008 122.259 105.438 120.84C106.278 120.012 107.119 119.183 107.985 118.329C110.006 116.234 111.903 114.132 113.791 111.924C118.175 106.873 122.914 102.189 127.659 97.4816C129.319 95.8345 130.976 94.1842 132.632 92.5331C136.742 88.436 140.858 84.3444 144.974 80.2526C148.463 76.7829 151.95 73.3112 155.435 69.8367C157.054 68.224 158.676 66.6143 160.299 65.0048C165.12 60.2076 169.831 55.3684 174.255 50.1964C184.844 37.8628 196.869 26.1681 210.688 17.5279C211.557 16.9807 211.557 16.9807 212.444 16.4224C223.002 9.94356 234.733 5.67083 246.688 2.52789C247.282 2.36268 247.875 2.19748 248.487 2.02726C257.4 -0.119624 266.482 0.243753 275.586 0.260463Z"),PB=new Path2D("M352.733 203.238C355.051 203.232 357.368 203.225 359.685 203.217C365.945 203.2 372.205 203.195 378.465 203.194C382.377 203.192 386.29 203.188 390.203 203.183C403.156 203.165 416.108 203.156 429.061 203.157C430.105 203.157 430.105 203.157 431.17 203.157C432.215 203.158 432.215 203.158 433.282 203.158C444.6 203.159 455.918 203.139 467.236 203.111C478.877 203.082 490.519 203.069 502.161 203.07C508.689 203.071 515.217 203.065 521.745 203.044C527.876 203.025 534.006 203.024 540.137 203.039C542.387 203.041 544.638 203.036 546.888 203.024C549.957 203.009 553.026 203.018 556.095 203.034C556.987 203.023 557.879 203.013 558.798 203.002C564.806 203.069 568.339 204.179 572.689 208.528C573.571 214.287 572.829 218.575 569.478 223.321C562.755 231.614 555.179 239.097 547.601 246.597C544.125 250.048 540.838 253.571 537.681 257.317C534.09 261.302 530.227 265.027 526.398 268.782C525.805 269.366 525.213 269.95 524.603 270.552C524.066 271.077 523.529 271.602 522.976 272.143C521.576 273.519 521.576 273.519 520.689 275.528C520.029 275.528 519.369 275.528 518.689 275.528C518.461 276.082 518.234 276.636 518 277.207C516.306 280.205 514.166 282.256 511.708 284.669C511.217 285.155 510.726 285.64 510.22 286.141C508.652 287.692 507.077 289.235 505.501 290.778C496.731 299.383 496.731 299.383 488.48 308.481C476.827 321.797 464.488 334.312 448.689 342.528C447.759 343.051 446.83 343.575 445.872 344.114C433.861 350.618 421.451 351.676 408.059 351.67C406.126 351.675 404.192 351.681 402.259 351.686C400.191 351.691 398.123 351.694 396.055 351.697C391.728 351.703 387.402 351.719 383.076 351.738C381.59 351.744 380.104 351.751 378.619 351.757C377.503 351.762 377.503 351.762 376.365 351.767C366.303 351.809 356.241 351.842 346.179 351.854C339.378 351.862 332.577 351.885 325.776 351.923C322.186 351.943 318.595 351.956 315.004 351.951C310.991 351.945 306.978 351.97 302.965 351.998C301.795 351.991 300.624 351.985 299.417 351.978C285.853 352.131 275.044 356.641 265.001 365.653C258.717 372.186 254.616 381.369 254.483 390.376C254.463 391.577 254.443 392.779 254.423 394.016C254.398 395.961 254.398 395.961 254.372 397.946C254.352 399.287 254.331 400.628 254.309 401.969C254.254 405.495 254.205 409.021 254.156 412.548C254.106 416.147 254.051 419.747 253.995 423.346C253.888 430.407 253.786 437.467 253.689 444.528C253.359 444.528 253.029 444.528 252.689 444.528C252.642 421.345 252.607 398.162 252.585 374.978C252.575 364.214 252.561 353.449 252.538 342.684C252.518 333.3 252.505 323.916 252.501 314.532C252.498 309.564 252.492 304.597 252.477 299.63C252.464 294.95 252.459 290.271 252.462 285.592C252.462 283.878 252.458 282.165 252.45 280.451C252.398 268.122 253.324 258.458 259.21 247.417C261.018 244.029 261.018 244.029 262.122 240.376C263.002 237.506 264.939 236.209 267.189 234.278C271.041 230.973 271.041 230.973 274.755 227.516C284.076 218.524 295.721 212.149 307.939 208.028C308.622 207.797 309.305 207.566 310.009 207.328C324.027 202.968 338.216 203.23 352.733 203.238Z"),PH=new Path2D("M261.687 240.529C261.687 243.641 261.319 244.526 259.875 247.154C255.551 255.479 253.535 263.666 253.549 273.035C253.547 273.782 253.544 274.529 253.541 275.299C253.533 277.798 253.531 280.297 253.53 282.797C253.525 284.591 253.52 286.385 253.514 288.179C253.503 292.041 253.495 295.904 253.488 299.767C253.478 305.882 253.457 311.998 253.435 318.114C253.373 335.504 253.319 352.894 253.286 370.285C253.268 379.89 253.239 389.496 253.198 399.101C253.177 404.18 253.162 409.258 253.159 414.337C253.157 419.12 253.141 423.902 253.115 428.685C253.108 430.433 253.106 432.181 253.109 433.929C253.146 456.27 246.769 475.557 231.184 492.115C214.342 508.402 196.062 511.839 173.45 511.803C171.612 511.808 169.775 511.813 167.938 511.819C162.973 511.832 158.009 511.833 153.045 511.83C148.896 511.829 144.748 511.834 140.6 511.839C130.819 511.85 121.039 511.851 111.258 511.845C101.166 511.838 91.0741 511.851 80.9822 511.872C72.3102 511.89 63.6383 511.896 54.9663 511.892C49.7896 511.891 44.6131 511.893 39.4364 511.907C34.5755 511.92 29.7149 511.918 24.8541 511.905C23.069 511.902 21.284 511.905 19.4989 511.913C17.0659 511.924 14.6335 511.916 12.2005 511.903C11.4913 511.91 10.7822 511.918 10.0516 511.925C7.02209 511.892 4.94132 511.667 2.26089 510.205C0.687487 508.529 0.6875 508.529 0 505.341C1.60838 496.422 11.7932 489.28 18.0098 483.077C19.0341 482.051 20.0583 481.026 21.0822 479.999C23.8422 477.235 26.6054 474.473 29.3693 471.713C32.273 468.812 35.1742 465.908 38.0758 463.005C42.946 458.133 47.8184 453.263 52.6919 448.394C58.3134 442.778 63.9313 437.158 69.5473 431.537C74.3847 426.695 79.2241 421.855 84.0651 417.016C86.9497 414.133 89.8336 411.25 92.7158 408.364C95.4255 405.652 98.1376 402.942 100.852 400.233C101.843 399.243 102.833 398.253 103.823 397.261C105.182 395.899 106.544 394.541 107.907 393.183C109.045 392.045 109.045 392.045 110.206 390.885C112.131 389.057 114.073 387.332 116.097 385.62C119.533 382.701 122.742 379.612 125.92 376.416C126.799 375.539 126.799 375.539 127.695 374.644C129.638 372.702 131.578 370.757 133.517 368.813C134.917 367.412 136.317 366.013 137.717 364.613C141.504 360.826 145.288 357.037 149.071 353.247C153.031 349.281 156.993 345.318 160.955 341.355C168.45 333.856 175.944 326.355 183.436 318.852C191.968 310.309 200.504 301.768 209.039 293.227C226.592 275.664 244.141 258.098 261.687 240.529Z");
+const oc=document.createElement('canvas').getContext('2d');
+function pontoF(){for(let k=0;k<200;k++){const x=Math.random()*730,y=Math.random()*512;const b=oc.isPointInPath(PB,x,y);if(b||oc.isPointInPath(PL,x,y)||oc.isPointInPath(PH,x,y)){return {p:[(x-365)/365*1.15,-(y-256)/365*1.15,(Math.random()-.5)*0.06],b};}}return {p:[0,0,0],b:false};}
+
+const o4=document.createElement('canvas');o4.width=600;o4.height=260;const x4=o4.getContext('2d');x4.fillStyle='#000';x4.font='800 250px Inter Tight, sans-serif';x4.textAlign='center';x4.textBaseline='middle';x4.letterSpacing='-10px';x4.fillText('404',300,140);
+const d4=x4.getImageData(0,0,600,260).data;const pix=[];for(let y=0;y<260;y+=2)for(let x=0;x<600;x+=2){if(d4[(y*600+x)*4+3]>128)pix.push([x,y]);}
+function ponto404(){const [x,y]=pix[Math.floor(Math.random()*pix.length)]||[300,130];return {p:[(x-300)/300*1.3,-(y-130)/300*1.3,(Math.random()-.5)*0.08],b:false};}
+const N=3200,P=[];const ga=Math.PI*(3-Math.sqrt(5));
+// alvos: esfera (fibonacci) e lâminas (3 paralelogramos a 45°)
+function esfera(i){const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),t=ga*i;return [Math.cos(t)*r,y,Math.sin(t)*r];}
+function lamina(i){const k=i%3;const u=Math.random(),v=Math.random();const w=1.9,h=0.42;const y0=0.75-k*0.62;const x=-w/2+u*w-(v-0.5)*h*1.0+ (k-1)*0.18;const y=y0-v*h;const z=(Math.random()-.5)*0.18;return [x*0.95,y,z];}
+for(let i=0;i<N;i++){const a=esfera(i);const f=ponto404();P.push({e:a,l:f.p,fb:f.b,p:[...a],v:[0,0,0],g:Math.floor(Math.random()*GL.length),az:Math.random()<0.04});}
+// ruído simples para buracos
+function rn(x,y,z,t){return Math.sin(x*3.1+t*0.5)*Math.sin(y*2.7-t*0.4)*Math.sin(z*3.3+t*0.3);}
+let vel=1,mx=-9999,my=-9999,ang=0,inc=0,alvoInc=0,modo='normal',morf=0,alvoMorf=0,ciclo=0;
+cv.addEventListener('pointermove',e=>{const b=cv.getBoundingClientRect();mx=(e.clientX-b.left)/b.width*W;my=(e.clientY-b.top)/b.height*H;alvoInc=((my-H*0.55)/H)*0.6;});
+cv.addEventListener('pointerleave',()=>{mx=my=-9999;alvoInc=0;});
+window.formarF=v=>{alvoMorf=v?1:0;ciclo=-999;};window.girar=k=>{vel=k;};
+
+let CX=W/2,CY=H/2,ESC=Math.min(W,H)*0.36;let t=0,ult=performance.now();
+function quadro(tt){const dt=Math.min(.04,(tt-ult)/1000);ult=tt;
+ if(modo==='normal'){t+=dt;ang+=dt*0.18*vel;ciclo+=dt;inc+=(alvoInc-inc)*0.04;morf+=(alvoMorf-morf)*dt*1.2;}
+ c.clearRect(0,0,W,H);const ca=Math.cos(ang),sa=Math.sin(ang),ci=Math.cos(inc),si=Math.sin(inc);
+ const pts=[];
+ for(const q of P){const m=morf*morf*(3-2*morf);const base=[q.e[0]+(q.l[0]-q.e[0])*m,q.e[1]+(q.l[1]-q.e[1])*m,q.e[2]+(q.l[2]-q.e[2])*m];
+  // gira (esfera gira; lâminas giram menos)
+  const a2=(ang%(Math.PI*2))*(1-m);const c2=Math.cos(a2),s2=Math.sin(a2);let x=base[0]*c2-base[2]*s2,z=base[0]*s2+base[2]*c2,y=base[1];
+  const inc2=inc*(1-m);const ci2=Math.cos(inc2),si2=Math.sin(inc2);const y2=y*ci2-z*si2,z2=y*si2+z*ci2;y=y2;z=z2;
+  // buracos de ruído (só na esfera)
+  const nz=rn(q.e[0],q.e[1],q.e[2],t);if(m<0.5&&nz>0.32)continue;
+  const f=3/(3+z);let sx=CX+x*ESC*f,sy=CY-y*ESC*f;
+  // empurrão do cursor
+  if(modo==='normal'){const dx=sx-mx,dy=sy-my,d=Math.hypot(dx,dy);const R=110;let ox=0,oy=0;if(d<R){const k=(1-d/R)*38;ox=dx/d*k;oy=dy/d*k;}q.v[0]+=(ox-q.v[0])*0.15;q.v[1]+=(oy-q.v[1])*0.15;sx+=q.v[0];sy+=q.v[1];}
+  pts.push([sx,sy,z,q]);}
+ pts.sort((a,b)=>b[2]-a[2]);
+ for(const [sx,sy,z,q] of pts){const al=Math.max(0.12,Math.min(1,0.75-z*0.55));c.globalAlpha=al;const g=(q.g+((t*2)|0))%GL.length;const azul=morf>0.5?q.fb:q.az;c.drawImage(SP[azul?'#002FA7':'#121212'][modo==='normal'?g:q.g],sx-7,sy-7);}
+ c.globalAlpha=1;requestAnimationFrame(quadro);}
+requestAnimationFrame(quadro);
+
+
+let W2=500;CX=250;CY=250;ESC=170;
+function quebrar(){}
+morf=1;window.formarF(true);setInterval(()=>{window.formarF(alvoMorf?false:true);},3800);
+function digitar(k){const el=document.querySelectorAll('[data-g]')[k];const t='Página não encontrada';let n=0;clearInterval(el._i);el._i=setInterval(()=>{n++;el.textContent=t.slice(0,n);if(n>=t.length)clearInterval(el._i);},600/t.length);}
+digitar(0);digitar(1);
+function ajustar(){document.querySelectorAll('.moldura').forEach(m=>m.querySelector('.tela').style.transform='scale('+(m.clientWidth/1440)+')');}
+addEventListener('resize',ajustar);ajustar();
+</script></body></html>

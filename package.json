@@ -1,0 +1,14 @@
+{
+  "name": "floway",
+  "private": true,
+  "workspaces": [
+    "apps/site",
+    "apps/conceitos/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "test:build": "npm run test:build --workspaces --if-present"
+  }
+}

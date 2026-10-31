@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · trabalhos em destaque</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Inter+Tight:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--c3:#787878;--escuro:#121212;--azul:#002FA7;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio-p{max-width:900px;font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:18px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--escuro);border-left:1px solid var(--escuro);margin-bottom:22px}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}}
+.ficha div{border-right:1px solid var(--escuro);border-bottom:1px solid var(--escuro);padding:10px 12px;font-size:14px}
+.ficha b{display:block;font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:var(--azul)}
+.controles{display:flex;gap:6px;margin-bottom:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;align-items:center;flex-wrap:wrap}
+.controles button{font:inherit;background:none;border:1px solid var(--escuro);padding:8px 10px;cursor:pointer;color:var(--escuro)}
+.controles button[aria-pressed=true]{background:var(--escuro);color:var(--claro)}
+.moldura{position:relative;width:100%;max-width:1100px;aspect-ratio:1440/900;border:1px solid var(--c2);overflow:hidden}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;overflow-y:auto;overflow-x:hidden;background:var(--escuro);color:var(--claro)}
+.cab{position:sticky;top:0;height:0;z-index:5}
+.cab div{position:absolute;top:12px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;text-transform:uppercase}
+.antes{height:500px;padding:120px 30px;opacity:.5;display:grid;grid-template-columns:200px 1000px;gap:20px;font-size:18px;line-height:25px}
+.pin{position:relative}
+.palco{position:sticky;top:0;height:900px;overflow:hidden}
+.rotulo{position:absolute;top:80px;left:30px;font-size:18px;letter-spacing:-.02em}
+.fila{position:absolute;top:118px;left:30px;display:flex;gap:30px;will-change:transform}
+.cartao{position:relative;width:450px;height:666px;overflow:hidden;cursor:pointer;flex:none}
+.cartao canvas{position:absolute;inset:0;width:100%;height:100%;transition:transform .4s,filter .4s}
+.cartao:hover canvas{transform:scale(1.1);filter:brightness(.7)}
+.cartao .nome,.cartao .info{position:absolute;left:0;right:0;text-align:center;mix-blend-mode:difference;color:#F7F7F5;z-index:2}
+.cartao .nome{top:14px;font-weight:500;font-size:17px;line-height:20px;letter-spacing:-.02em}
+.cartao .info{bottom:14px;font-size:16px;line-height:17px;letter-spacing:-.02em;text-transform:uppercase}
+.previa{position:absolute;left:50%;top:50%;width:250px;height:150px;margin:-75px 0 0 -125px;background:#121212;border:1px solid #F7F7F5;color:#F7F7F5;font-family:var(--mono);font-size:11px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;transform:scaleY(0);transition:transform .3s;z-index:3}
+.capas .cartao:hover .previa{transform:scaleY(1)}
+.vazio{border:1px dashed #555}
+.vazio .marca{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:#888;text-align:center;padding:30px}
+.barra{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:253px;height:16px}
+.barra .cheia{position:absolute;left:0;top:0;height:16px;border:1px solid #F7F7F5;width:0}
+.barra i{position:absolute;top:0;width:1px;height:16px;background:#F7F7F5}
+.depois{height:400px;padding:150px 30px;color:#888;font-family:var(--mono);font-size:13px;text-transform:uppercase;text-align:center}
+.grade{display:none;padding:120px 30px 60px;grid-template-columns:repeat(3,1fr);gap:30px}
+.reduzido .pin{display:none}.reduzido .grade{display:grid}
+.grade .cartao{width:auto;height:560px}
+.nota{margin-top:22px;font-size:15px;max-width:1100px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+.opcoes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;max-width:1100px}
+@media(max-width:900px){.opcoes{grid-template-columns:1fr}}
+.opcao{border:1px solid var(--escuro);padding:12px;cursor:pointer}
+.opcao.selected{outline:3px solid var(--azul);outline-offset:3px}
+.opcao h3{font-weight:500;text-transform:uppercase;font-size:16px;margin:4px 0}
+.opcao p{font-size:14px}
+.opcao .ex{font-family:var(--mono);font-size:11px;text-transform:uppercase;margin-top:8px;background:var(--escuro);color:var(--claro);padding:8px;text-align:center;line-height:15px}
+.letra{font-family:var(--mono);font-size:11px;text-transform:uppercase}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · Início</span><span>Seção 05 · Trabalhos em destaque</span></div>
+<h1>Trabalhos em destaque</h1>
+<p class="apoio-p">Linha de informações: <b>opção B</b> (mês e ano / oferta · Conceito). Cartões em <b>cor estática</b> até os portfólios existirem. Na referência, a seção fica presa, e a <b>rolagem vertical move uma fileira de cartões altos na horizontal</b>. Cada cartão tem o nome em cima e, embaixo, a data e os serviços. A imagem chega desenhada em <b>caracteres (ASCII)</b> e uma varredura de baixo para cima revela a foto. Ao passar o mouse, a imagem aproxima 10% e escurece. No pé, a <b>barra de 29 tracinhos</b> enche conforme você anda. <b>Role dentro da janela</b> e passe o mouse num cartão.</p>
+<div class="ficha">
+ <div><b>O que prova</b>Trabalho de verdade, com a mesma qualidade do próprio site. O primeiro cartão é a Floway, o único trabalho real por enquanto; os conceitos vêm depois, cada um com o rótulo "Conceito".</div>
+ <div><b>Efeito (referência 3.6)</b>Presa pela largura extra da fileira menos 500 px. Cartões de 50vh × 74vh. ASCII com célula de 15 px. Hover: zoom de 10% e escurecimento de 30% (0,4 s para entrar, 0,3 s para sair). Barra de 253×16 px.</div>
+ <div><b>Texto que pede</b>Rótulo "(Trabalhos)". Em cada cartão: o nome e a linha de informações (é a pergunta abaixo). Os dados vêm de cada case.</div>
+ <div><b>Celular</b>Lista vertical, sem ASCII: cada cartão sobe 50 px e aparece, com 0,2 s entre eles.</div>
+ <div><b>Movimento reduzido</b>Grade parada, sem ASCII e sem prender a seção, com todas as imagens à vista. Há um botão para ver.</div>
+ <div><b>Sem WebGL / o que muda</b>Sem WebGL, imagens comuns sem ASCII. Em relação à 02-site, o cartão mostra a oferta em vez do nicho, e a quantidade de cartões acompanha a lista de trabalhos. Enquanto um case não está pronto, o lugar dele não aparece.</div>
+</div>
+<div class="controles">Cartões: <button data-c="0" aria-pressed="true">Hoje (cor estática)</button><button data-c="1" aria-pressed="false">Depois (com capas)</button> &nbsp; Ver como: <button data-m="desktop" aria-pressed="true">Desktop</button><button data-m="reduzido" aria-pressed="false">Movimento reduzido</button></div>
+<div class="moldura"><div class="tela" id="tela">
+ <div class="cab"><div><span>REC SÁB15:46:14</span><span>©FLOWAY</span><span>PT▾ &nbsp; TRABALHOS &nbsp; CONTATO</span></div></div>
+ <div class="antes"><div style="text-align:right">(O que é único)</div><div>Cada marca carrega uma identidade, uma visão e uma história própria…</div></div>
+ <div class="pin" id="pin"><div class="palco"><p class="rotulo">(Trabalhos)</p><div class="fila" id="fila"></div><div class="barra" id="barra"><div class="cheia" id="cheia"></div></div></div></div>
+ <div class="grade" id="grade"></div>
+ <div class="depois">↓ aqui entra o lençol "(O que entregamos)"</div>
+</div></div>
+<div class="nota"><b>Os efeitos ficam garantidos</b>Quando a capa de um case entra, o mesmo cartão liga sozinho: o ASCII com a varredura de baixo para cima, o zoom de 10% com escurecimento no hover e a prévia em vídeo de 250 px que abre na vertical no centro. Na spec, isso vira critério de aceite com teste. Use o botão "Depois (com capas)" e passe o mouse num cartão para ver.</div><div class="nota"><b>Cartões em cor estática</b>Enquanto os portfólios não existem, cada cartão é um bloco liso em #DCDCD8. É o cinza claro que a paleta reserva para estados apagados, o que é exatamente o caso aqui. O nome e a linha "mês e ano / oferta · Conceito" ficam por cima. Não há ASCII nem imagem, porque ainda não há o que revelar; o efeito liga sozinho quando a capa de um case entrar. O zoom do hover e a barra de 29 tracinhos continuam funcionando. Os nomes "Conceito · …" são marcadores de construção. Antes de publicar, só ficam na galeria os trabalhos com case pronto.</div>
+<script>
+const T=[
+ {n:'Floway',d:'Outubro 2026',o:'Site institucional',s:'Site institucional · Branding',c:false,t:0},
+ {n:'Conceito · Landing page',d:'Novembro 2026',o:'Landing page',s:'Landing page',c:true,t:1},
+ {n:'Conceito · Automação',d:'Novembro 2026',o:'Automação',s:'Automação · Integrações',c:true,t:2},
+ {n:'Conceito · Site institucional',d:'Dezembro 2026',o:'Site institucional',s:'Site institucional',c:true,t:3},
+ 
+];
+let modoInfo='oferta';
+function linha(x){if(modoInfo==='ref')return x.d+'<br>'+x.s+(x.c?' · Conceito':'');if(modoInfo==='oferta')return x.d+'<br>'+x.o+(x.c?' · Conceito':'');return x.o+(x.c?' · Conceito':'');}
+function info(m){modoInfo=m;document.querySelectorAll('.cartao').forEach((c,i)=>c.querySelector('.info').innerHTML=linha(T[i%T.length]));}
+// imagem de origem gerada (sem fotos)
+function origem(t,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#DCDCD8';x.fillRect(0,0,w,h);return c;
+ const g=x.createLinearGradient(0,0,w,h);const pal=[['#2a2a2a','#d9d9d4'],['#d4d4cf','#3a3a3a'],['#1a1a1a','#8a8a86'],['#bdbdb8','#202020'],['#555','#999']][t];g.addColorStop(0,pal[0]);g.addColorStop(1,pal[1]);x.fillStyle=g;x.fillRect(0,0,w,h);
+ x.fillStyle='rgba(247,247,245,.85)';
+ if(t===0){x.font='800 70px Inter Tight';x.save();x.translate(w/2,h/2);x.rotate(-Math.PI/2);x.textAlign='center';x.fillText('FLOWAY',0,25);x.restore();}
+ else{for(let i=0;i<4;i++){x.fillStyle=`rgba(${t%2?18:247},${t%2?18:247},${t%2?18:245},.55)`;x.beginPath();const y=80+i*130+t*10;x.moveTo(60,y);x.lineTo(380,y);x.lineTo(320,y+70);x.lineTo(0,y+70);x.closePath();x.fill();}}
+ return c;}
+function origemImg(t,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+ const g=x.createLinearGradient(0,0,w,h);const pal=[['#2a2a2a','#d9d9d4'],['#d4d4cf','#3a3a3a'],['#1a1a1a','#8a8a86'],['#bdbdb8','#202020'],['#555','#999']][t];g.addColorStop(0,pal[0]);g.addColorStop(1,pal[1]);x.fillStyle=g;x.fillRect(0,0,w,h);
+ x.fillStyle='rgba(247,247,245,.85)';
+ if(t===0){x.font='800 70px Inter Tight';x.save();x.translate(w/2,h/2);x.rotate(-Math.PI/2);x.textAlign='center';x.fillText('FLOWAY',0,25);x.restore();}
+ else{for(let i=0;i<4;i++){x.fillStyle=`rgba(${t%2?18:247},${t%2?18:247},${t%2?18:245},.55)`;x.beginPath();const y=80+i*130+t*10;x.moveTo(60,y);x.lineTo(380,y);x.lineTo(320,y+70);x.lineTo(0,y+70);x.closePath();x.fill();}}
+ return c;}
+let comCapas=false;
+const GL=' .:*o&8@#';
+function desenhar(cv,src,rev){const x=cv.getContext('2d'),w=cv.width,h=cv.height;x.fillStyle='#121212';x.fillRect(0,0,w,h);
+ const corte=h*(1-rev);x.save();x.beginPath();x.rect(0,corte,w,h-corte);x.clip();x.drawImage(src,0,0,w,h);x.restore();
+ const d=src.getContext('2d').getImageData(0,0,w,h).data;x.font='13px Azeret Mono, monospace';x.textAlign='center';x.textBaseline='middle';
+ for(let yy=0;yy<corte;yy+=15)for(let xx=0;xx<w;xx+=15){const o=((Math.min(h-1,yy+7))*w+Math.min(w-1,xx+7))*4;const L=(d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;const k=Math.min(GL.length-1,Math.max(0,Math.floor((L+Math.random()*0.08)*GL.length)));x.fillStyle='#F7F7F5';x.fillText(GL[k],xx+7,yy+7);}}
+const fila=document.getElementById('fila'),grade=document.getElementById('grade');const cards=[];
+function criar(par,x,i){const c=document.createElement('div');c.className='cartao';const cv=document.createElement('canvas');cv.width=450;cv.height=666;c.appendChild(cv);
+ c.insertAdjacentHTML('beforeend',`<div class="nome">${x.n}</div><div class="info">${linha(x)}</div>`);par.appendChild(c);const vd=document.createElement('div');vd.className='previa';vd.textContent='prévia em vídeo';c.appendChild(vd);return {c,cv,src:origem(x.t,450,666),img:origemImg(x.t,450,666),i};}
+T.forEach((x,i)=>cards.push(criar(fila,x,i)));const gcards=T.map((x,i)=>criar(grade,x,i));
+gcards.forEach(g=>{g.cv.getContext('2d').drawImage(g.src,0,0);});
+const barra=document.getElementById('barra');const ticks=[];for(let i=0;i<29;i++){const t=document.createElement('i');t.style.left=(i*9)+'px';barra.appendChild(t);ticks.push(t);}
+const tela=document.getElementById('tela'),pin=document.getElementById('pin');
+function medidas(){const extra=fila.scrollWidth-1380;pin.style.height=(900+Math.max(0,extra-500)+400)+'px';return extra;}
+let extra=medidas(),atual=0;
+function quadro(){const y=tela.scrollTop-pin.offsetTop;const total=pin.offsetHeight-900;const alvo=Math.min(1,Math.max(0,y/total));atual+=(alvo-atual)*0.08;
+ fila.style.transform=`translateX(${-atual*extra}px)`;
+ cards.forEach((k,i)=>{if(comCapas){const rev=Math.min(1,Math.max(0,atual*2.2-i*0.18+0.35));desenhar(k.cv,k.img,rev);}else{k.cv.getContext('2d').drawImage(k.src,0,0);}});
+ document.getElementById('cheia').style.width=(atual*253)+'px';ticks.forEach((t,i)=>t.style.opacity=(i*9<atual*253)?0:1);
+ setTimeout(()=>requestAnimationFrame(quadro),60);}
+requestAnimationFrame(quadro);
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{comCapas=b.dataset.c==='1';document.querySelector('.moldura').classList.toggle('capas',comCapas);document.querySelectorAll('[data-c]').forEach(x=>x.setAttribute('aria-pressed',x===b));gcards.forEach(g=>g.cv.getContext('2d').drawImage(comCapas?g.img:g.src,0,0));if(window.brainstorm)brainstorm.send({type:'capas',valor:comCapas});});
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{document.querySelector('.moldura').classList.toggle('reduzido',b.dataset.m==='reduzido');document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+function ajustar(){const m=document.querySelector('.moldura');const s=m.clientWidth/1440;tela.style.transform='scale('+s+')';tela.style.height=(m.clientHeight/s)+'px';}
+addEventListener('resize',ajustar);ajustar();
+</script></body></html>

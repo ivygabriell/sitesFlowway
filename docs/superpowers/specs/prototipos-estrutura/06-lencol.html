@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · lençol O que entregamos</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Inter+Tight:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--c3:#787878;--escuro:#121212;--azul:#002FA7;--papel:#FFFFFF;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio-p{max-width:900px;font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:18px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--escuro);border-left:1px solid var(--escuro);margin-bottom:22px}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}}
+.ficha div{border-right:1px solid var(--escuro);border-bottom:1px solid var(--escuro);padding:10px 12px;font-size:14px}
+.ficha b{display:block;font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:var(--azul)}
+.layout{display:grid;grid-template-columns:minmax(0,1100px) 280px;gap:20px;align-items:start}
+@media(max-width:1200px){.layout{grid-template-columns:1fr}}
+.moldura{position:relative;width:100%;aspect-ratio:1440/900;border:1px solid var(--c2);overflow:hidden}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;overflow-y:auto;overflow-x:hidden;background:var(--escuro);color:var(--claro)}
+.cab{position:sticky;top:0;height:0;z-index:5}
+.cab div{position:absolute;top:12px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;text-transform:uppercase;color:#F7F7F5;mix-blend-mode:difference}
+.antes{height:600px;color:#666;font-family:var(--mono);font-size:13px;text-transform:uppercase;text-align:center;padding-top:300px}
+.pin{position:relative;height:2600px}
+.palco{position:sticky;top:0;height:900px;overflow:hidden}
+.frases{position:absolute;top:270px;left:0;right:0;text-align:center;font-size:18px;line-height:23px;min-height:46px}
+.titulo{position:absolute;top:445px;left:78px;right:78px;display:flex;align-items:center;font-size:18px;z-index:3}
+.titulo .linha{flex:none;height:1px;background:#F7F7F5;margin:0 20px;width:0}
+.titulo .esq{flex:none}.titulo .dir{margin-left:auto;flex:none}
+.mascara{position:absolute;left:0;right:0;top:451px;bottom:0;overflow:hidden;z-index:2}
+.folha{position:absolute;left:50%;width:864px;margin-left:-432px;background:var(--papel);color:var(--escuro);padding:30px 50px 70px;will-change:transform}
+.folha:before,.folha:after{content:"";position:absolute;left:18px;right:18px;border-top:2px dashed var(--escuro)}
+.folha:before{top:14px}.folha:after{bottom:34px}
+.folha ol{list-style:none}
+.folha li{font-weight:500;font-size:53.3px;line-height:63.4px;letter-spacing:-.02em;text-transform:uppercase;white-space:nowrap}
+.folha sup{font-size:14px;font-weight:400;vertical-align:28px;margin-left:8px;letter-spacing:0}
+.depois{height:300px}
+.painel{border:1px solid var(--escuro);padding:12px;font-size:14px}
+.painel h3{font-family:var(--mono);font-weight:400;font-size:11px;text-transform:uppercase;color:var(--azul);margin-bottom:8px}
+.painel label{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--c2);cursor:pointer}
+.painel small{display:block;color:#555;font-size:12px}
+.painel .fixo{opacity:.7}
+.nota{margin-top:18px;font-size:15px;max-width:1100px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · Início</span><span>Seção 06 · Lençol "(O que entregamos)"</span></div>
+<h1>Lençol · O que entregamos</h1>
+<p class="apoio-p">Conferi a referência hoje. A seção fica presa. Um título partido em dois, <b>"(O que" ——— "entregamos)"</b>, ganha uma linha que <b>cresce</b> entre as duas metades. Acima dele, <b>duas frases se digitam</b> letra a letra. Uma <b>folha branca</b> com a lista numerada, tracejada em cima e embaixo, <b>sobe por trás da linha</b> com a borda de baixo <b>ondulando como tecido</b>. Na referência, a lista é de prêmios; na Floway, é o que a empresa entrega. <b>Role dentro da janela.</b></p>
+<div class="ficha">
+ <div><b>O que prova</b>O que a Floway entrega, numa lista que cresce: um produto novo é só mais uma linha, sem refazer a página (opção A da oferta).</div>
+ <div><b>Efeito (referência 3.7)</b>Presa por 1,2 altura da folha. Linha de 0 até 60vw + 200 px. Frases digitadas em 1,2 s, com 0,5 s entre elas. Folha de 60vw que ondula 18 a 24 px na borda de baixo. Itens de 3,7vw, peso 500, número sobrescrito de 14 px.</div>
+ <div><b>Texto que pede</b>Até 11 itens de até 3 palavras. Duas frases de até 90 caracteres. As frases da janela são exemplo.</div>
+ <div><b>Celular</b>A lista aparece em DOM sobre a folha branca, sem ondular. A linha cresce e as frases se digitam igual.</div>
+ <div><b>Movimento reduzido</b>A lista fica parada e inteira à vista, as frases aparecem completas e a linha já vem cheia.</div>
+ <div><b>Sem WebGL / o que muda</b>Sem WebGL, igual ao celular. Em relação à 02-site, o título passa de "(Método & Entregas)" para "(O que entregamos)", e a lista passa a ser das ofertas.</div>
+</div>
+<div class="layout">
+<div>
+<div class="moldura"><div class="tela" id="tela">
+ <div class="cab"><div><span>REC SÁB15:46:14</span><span>©FLOWAY</span><span>PT▾ &nbsp; TRABALHOS &nbsp; CONTATO</span></div></div>
+ <div class="antes">↑ trabalhos em destaque</div>
+ <div class="pin" id="pin"><div class="palco">
+  <p class="frases" id="frases"></p>
+  <div class="titulo"><span class="esq">(O que</span><span class="linha" id="linha"></span><span class="dir">entregamos)</span></div>
+  <div class="mascara"><div class="folha" id="folha"><ol id="lista"></ol></div></div>
+ </div></div>
+ <div class="depois"></div>
+</div></div>
+<div class="nota"><b>Frases de exemplo (as de verdade passam pela sua aprovação)</b>"Do primeiro esboço à automação rodando, cuidamos de cada etapa." · "Cada entrega nasce para resolver um problema real do seu negócio."</div>
+</div>
+<div class="painel"><h3>Quais itens entram na lista?</h3>
+ <p style="font-size:13px;margin-bottom:8px">Sua lista, na ordem que você mandou. Desmarque para testar.</p>
+ <div id="itens"></div>
+</div>
+</div>
+<script>
+const ITENS=[['Estratégia digital','sua lista',true],['Design de interfaces','sua lista',true],['Desenvolvimento web','sua lista',true],['Inteligência artificial','sua lista',true],['Automações e integrações','sua lista',true],['Experiências digitais','sua lista',true],['Manutenção e evolução','sua lista',true]];
+const box=document.getElementById('itens');
+ITENS.forEach(([n,o,on],i)=>{box.insertAdjacentHTML('beforeend',`<label><input type="checkbox" data-i="${i}" ${on?'checked':''}><span>${n}<small>${o}</small></span></label>`);});
+const lista=document.getElementById('lista');
+function montar(){const sel=[...box.querySelectorAll('input:checked')].map(c=>ITENS[c.dataset.i][0]);lista.innerHTML=sel.map((n,i)=>`<li>${n}<sup>(${i+1})</sup></li>`).join('');
+ if(window.brainstorm)brainstorm.send({type:'lista',itens:sel});}
+box.addEventListener('change',montar);montar();
+const F=['Do primeiro esboço à automação rodando, cuidamos de cada etapa.','Cada entrega nasce para resolver um problema real do seu negócio.'];
+const tela=document.getElementById('tela'),pin=document.getElementById('pin'),folha=document.getElementById('folha'),linha=document.getElementById('linha'),frases=document.getElementById('frases');
+let atual=0,t0=performance.now();
+function quadro(ms){const t=(ms-t0)/1000;const y=tela.scrollTop-pin.offsetTop;const total=pin.offsetHeight-900;const alvo=Math.min(1,Math.max(0,y/total));atual+=(alvo-atual)*0.08;
+ // linha
+ const lmax=0.6*1440+200;linha.style.width=Math.min(lmax,Math.max(0,atual*4)*lmax)+'px';
+ // frases digitadas
+ const pf=Math.min(1,Math.max(0,(atual-0.05)*5));const n1=Math.round(Math.min(1,pf*2)*F[0].length),n2=Math.round(Math.min(1,Math.max(0,(pf-0.55)/0.45))*F[1].length);
+ frases.innerHTML=F[0].slice(0,n1)+'<br>'+F[1].slice(0,n2);
+ // folha sobe
+ const h=folha.offsetHeight;const ini=470,fim=-h+300;const yy=ini+(fim-ini)*Math.min(1,Math.max(0,(atual-0.15)/0.85));
+ folha.style.transform=`translateY(${yy}px)`;
+ // borda ondulada
+ const pts=[];for(let x=0;x<=100;x+=5){const a=(5+2*Math.sin(x*0.07+t))*Math.sin(x*0.12+t*1.6);pts.push(`${x}% calc(100% - ${8+a}px)`);}
+ folha.style.clipPath=`polygon(0 0,100% 0,${pts.reverse().join(',')})`;
+ requestAnimationFrame(quadro);}
+requestAnimationFrame(quadro);
+function ajustar(){const m=document.querySelector('.moldura');const s=m.clientWidth/1440;tela.style.transform='scale('+s+')';tela.style.height=(m.clientHeight/s)+'px';}
+addEventListener('resize',ajustar);ajustar();
+</script></body></html>

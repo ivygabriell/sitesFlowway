@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · página Trabalhos</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Instrument+Serif&family=Inter+Tight:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--c3:#787878;--escuro:#121212;--azul:#002FA7;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace;--serif:'Instrument Serif',serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio-p{max-width:920px;font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:18px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--escuro);border-left:1px solid var(--escuro);margin-bottom:22px;max-width:1100px}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}}
+.ficha div{border-right:1px solid var(--escuro);border-bottom:1px solid var(--escuro);padding:10px 12px;font-size:14px}
+.ficha b{display:block;font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:var(--azul)}
+.controles{display:flex;gap:6px;margin-bottom:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;align-items:center;flex-wrap:wrap}
+.controles button{font:inherit;background:none;border:1px solid var(--escuro);padding:8px 10px;cursor:pointer;color:var(--escuro)}
+.controles button[aria-pressed=true]{background:var(--escuro);color:var(--claro)}
+.palco{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
+.moldura{position:relative;flex:1 1 700px;max-width:1100px;aspect-ratio:1440/900;border:1px solid var(--c2);overflow:hidden}
+.moldura.cel{flex:0 0 260px;aspect-ratio:390/844}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;overflow-y:auto;overflow-x:hidden;background:var(--escuro);color:var(--claro)}
+.cel .tela{width:390px;height:844px}
+.cab{position:sticky;top:0;height:0;z-index:6}
+.cab div{position:absolute;top:12px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;text-transform:uppercase}
+.cel .cab div{left:18px;right:18px;font-size:12px}
+.cab s{text-decoration:line-through}
+.pin{position:relative}
+.cena{position:sticky;top:0;height:900px;overflow:hidden;perspective:1800px}
+.plano{position:absolute;left:50%;top:50%;width:450px;height:666px;margin:-333px 0 0 -225px;transform-style:preserve-3d;transition:transform .05s linear}
+.plano .f,.plano .v{position:absolute;inset:0;backface-visibility:hidden}
+.plano .v{transform:rotateY(180deg);filter:brightness(.5)}
+.plano canvas{width:100%;height:100%;display:block}
+.info{position:absolute;left:30px;top:50%;transform:translateY(-50%);font-size:15px;line-height:17px;text-transform:uppercase;z-index:3;min-height:51px}
+.cont{position:absolute;right:30px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:15px;z-index:3}
+.titulo{position:absolute;left:30vw;left:432px;width:576px;top:50%;transform:translateY(-50%);text-align:center;z-index:3;pointer-events:none}
+.titulo .rot{font-size:15px;margin-bottom:58px;opacity:0;transition:opacity .3s .1s}
+.parado .titulo .rot{opacity:1}
+.titulo .nome{font-family:var(--serif);font-size:49px;line-height:58px;color:#F7F7F5;mix-blend-mode:difference}
+.video{position:absolute;left:50%;top:calc(50% + 180px);width:230px;height:120px;margin-left:-115px;margin-top:-60px;z-index:3;transform:scaleY(0);transition:transform .2s .1s;border:1px solid #F7F7F5;background:#121212;font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;text-transform:uppercase}
+.parado .video{transform:scaleY(1)}
+.mins{position:absolute;bottom:30px;left:50%;display:flex;gap:0;z-index:3}
+.mins span{width:30px;height:44px;display:block;filter:grayscale(1) brightness(.8);cursor:pointer}
+.mins span.on{filter:none}
+.moldmin{position:absolute;bottom:26px;width:38px;height:52px;border:1px solid #F7F7F5;z-index:4;transition:left .3s}
+.lista{display:none;padding:70px 14px 30px}
+.cel .lista{display:block}
+.lista .card{position:relative;height:201px;margin-bottom:12px;text-align:center;color:#121212}
+.lista .card .n{position:absolute;top:10px;left:0;right:0;font-size:14px}
+.lista .card .l{position:absolute;bottom:10px;left:0;right:0;font-size:13px;text-transform:uppercase}
+.nota{margin-top:18px;font-size:15px;max-width:1100px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+.escondido{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · /trabalhos · /en/work</span><span>Página Trabalhos</span></div>
+<h1>Página Trabalhos</h1>
+<p class="apoio-p">Conferi a referência hoje (rayraylab.com/work). É uma <b>tela só, presa, com o fundo escuro inteiro</b>. Na entrada, as capas descem do alto girando e chegam curvadas. Depois, <b>cada rolada troca o trabalho em destaque e gira a capa meia volta</b>. No centro fica o nome em serifa, com "Ver trabalho" por cima. À esquerda ficam as informações, que se digitam; à direita, o contador "(01/04)". Embaixo, a prévia em vídeo e a fileira de miniaturas com uma moldura que anda. <b>Role dentro da janela.</b> No celular, a página vira uma lista.</p>
+<div class="ficha">
+ <div><b>O que prova</b>Todo o portfólio numa tela só, com um efeito que ninguém esquece. A capa de cada case é a protagonista.</div>
+ <div><b>Efeito (referência 7)</b>Presa por (n − 1) telas, sem atraso. Meia volta por trabalho. Curva pela velocidade e assenta no trabalho mais próximo. Entrada de até 4 s: planos em 2 s, curva em 0,8 s, textos de 0,3 s.</div>
+ <div><b>Texto que pede</b>Em cada trabalho: nome, setor, mês e ano, oferta (com "Conceito" quando for o caso). Rótulo fixo "Ver trabalho". Tudo vem do case.</div>
+ <div><b>Celular</b>Lista vertical de cartões, com o nome em cima e "mês e ano · oferta" embaixo. Cada cartão sobe e aparece, com 0,2 s entre eles.</div>
+ <div><b>Movimento reduzido</b>A mesma lista do celular, sem entrada, com tudo à vista.</div>
+ <div><b>Sem WebGL / o que muda</b>Sem WebGL, a lista do celular. Em relação à 02-site, só o conteúdo: setor no lugar de nicho, oferta + "Conceito", e cartões em cor estática até as capas existirem.</div>
+</div>
+<div class="controles">Capas: <button data-c="0" aria-pressed="true">Hoje (cor estática)</button><button data-c="1" aria-pressed="false">Depois (com capas)</button></div>
+<div class="palco">
+<div class="moldura desk"><div class="tela" id="tela">
+ <div class="cab"><div><span>Voltar ao início</span><span>©FLOWAY</span><span>PT▾ &nbsp; <s>TRABALHOS</s> &nbsp; CONTATO</span></div></div>
+ <h1 class="escondido">Trabalhos</h1>
+ <div class="pin" id="pin"><div class="cena" id="cena">
+  <div id="planos"></div>
+  <div class="info" id="info"></div>
+  <div class="titulo"><p class="rot">Ver trabalho</p><p class="nome" id="nome"></p></div>
+  <div class="cont" id="cont"></div>
+  <div class="video" id="video">prévia em vídeo</div>
+  <div class="mins" id="mins"></div><div class="moldmin" id="moldmin"></div>
+ </div></div>
+</div></div>
+<div class="moldura cel"><div class="tela">
+ <div class="cab"><div><span>©FLOWAY</span><span>PT▾ &nbsp; <s>TRABALHOS</s> &nbsp; CONTATO</span></div></div>
+ <div class="lista" id="lista"></div>
+</div></div>
+</div>
+<div class="nota"><b>Conteúdo</b>Os quatro trabalhos são marcadores: a Floway, que é real, e três conceitos que ainda vão ser definidos. Antes de publicar, só aparecem os trabalhos com case pronto. Com um só trabalho, a página não prende: mostra a capa parada, sem contador nem miniaturas.</div>
+<script>
+const T=[{n:'Floway',s:'Tecnologia',d:'Outubro 2026',o:'Site institucional',c:false},{n:'Conceito · Landing page',s:'Setor a definir',d:'Novembro 2026',o:'Landing page',c:true},{n:'Conceito · Automação',s:'Setor a definir',d:'Novembro 2026',o:'Automação',c:true},{n:'Conceito · Site institucional',s:'Setor a definir',d:'Dezembro 2026',o:'Site institucional',c:true}];
+const n=T.length;let comCapas=false;
+function capa(i,w,h,cor){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+ if(!cor){x.fillStyle='#DCDCD8';x.fillRect(0,0,w,h);return c;}
+ const g=x.createLinearGradient(0,0,w,h);const p=[['#2a2a2a','#d9d9d4'],['#d4d4cf','#3a3a3a'],['#1a1a1a','#8a8a86'],['#bdbdb8','#202020']][i%4];g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);x.fillStyle=g;x.fillRect(0,0,w,h);
+ for(let k=0;k<4;k++){x.fillStyle=`rgba(${i%2?18:247},${i%2?18:247},${i%2?18:245},.5)`;x.beginPath();const y=h*0.12+k*h*0.2;x.moveTo(w*0.15,y);x.lineTo(w*0.85,y);x.lineTo(w*0.72,y+h*0.1);x.lineTo(0,y+h*0.1);x.closePath();x.fill();}return c;}
+const planos=document.getElementById('planos'),mins=document.getElementById('mins'),lista=document.getElementById('lista');
+function montar(){planos.innerHTML='';mins.innerHTML='';lista.innerHTML='';
+ T.forEach((t,i)=>{const p=document.createElement('div');p.className='plano';const f=document.createElement('div');f.className='f';f.appendChild(capa(i,450,666,comCapas));const v=document.createElement('div');v.className='v';v.appendChild(capa(i,450,666,comCapas));p.append(f,v);planos.appendChild(p);
+  const m=document.createElement('span');m.appendChild(capa(i,30,44,comCapas));mins.appendChild(m);
+  const l=document.createElement('div');l.className='card';l.appendChild(capa(i,362,201,comCapas));l.firstChild.style.cssText='position:absolute;inset:0;width:100%;height:100%';l.insertAdjacentHTML('beforeend',`<div class="n">${t.n}</div><div class="l">${t.d} · ${t.o}${t.c?' · Conceito':''}</div>`);lista.appendChild(l);});
+ mins.style.marginLeft=(-n*15)+'px';}
+montar();
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{comCapas=b.dataset.c==='1';document.querySelectorAll('[data-c]').forEach(x=>x.setAttribute('aria-pressed',x===b));montar();});
+const tela=document.getElementById('tela'),pin=document.getElementById('pin'),cena=document.getElementById('cena');
+pin.style.height=(900*n)+'px';
+let atual=0,ultimoAtivo=-1,ultY=0,vel=0,parado=0,t0=performance.now();
+function digitar(el,txt){let k=0;clearInterval(el._i);el._i=setInterval(()=>{k+=Math.ceil(txt.length/18);el.innerHTML=txt.slice(0,k).replace(/\n/g,'<br>');if(k>=txt.length)clearInterval(el._i);},33);}
+function quadro(tt){const y=tela.scrollTop;vel=y-ultY;ultY=y;const alvo=y/900;atual+=(alvo-atual)*0.35;
+ const ent=Math.min(1,(tt-t0)/2000);const ease=1-Math.pow(1-ent,2);
+ [...planos.children].forEach((p,i)=>{const d=i-atual;const desce=(1-ease)*-7200;const giro=Math.PI*d+(1-ease)*7.2*Math.PI;
+  const curva=Math.min(25,Math.abs(vel))/25;
+  p.style.transform=`translateY(${d*117+desce}px) translateZ(${-Math.abs(d)*800}px) rotateY(${giro}rad) rotateX(${curva*8}deg)`;p.style.opacity=ent<1?1:Math.max(0,1-Math.abs(d)*1.4);});
+ const ativo=Math.max(0,Math.min(n-1,Math.round(atual)));
+ if(ativo!==ultimoAtivo){ultimoAtivo=ativo;const t=T[ativo];document.getElementById('nome').textContent=t.n;document.getElementById('cont').textContent=`(${String(ativo+1).padStart(2,'0')}/${String(n).padStart(2,'0')})`;
+  digitar(document.getElementById('info'),`${t.s}\n${t.d}\n${t.o}${t.c?' · Conceito':''}`);
+  [...mins.children].forEach((m,i)=>m.classList.toggle('on',i===ativo));}
+ const mm=document.getElementById('moldmin');mm.style.left=(720-n*15+atual*30-4)+'px';
+ if(Math.abs(vel)<0.5)parado++;else parado=0;cena.classList.toggle('parado',parado>12&&ent>=1);
+ requestAnimationFrame(quadro);}
+requestAnimationFrame(quadro);
+let tSnap;tela.addEventListener('scroll',()=>{clearTimeout(tSnap);tSnap=setTimeout(()=>{tela.scrollTo({top:Math.round(tela.scrollTop/900)*900,behavior:'smooth'});},140);});
+function ajustar(){document.querySelectorAll('.moldura').forEach(m=>{const w=m.classList.contains('cel')?390:1440;const s=m.clientWidth/w;const t=m.querySelector('.tela');t.style.transform='scale('+s+')';t.style.height=(m.clientHeight/s)+'px';});}
+addEventListener('resize',ajustar);ajustar();
+</script></body></html>

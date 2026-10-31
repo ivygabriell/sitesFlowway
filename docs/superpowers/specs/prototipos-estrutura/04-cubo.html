@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · cubo da marca</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Inter+Tight:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--c3:#787878;--escuro:#121212;--azul:#002FA7;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio-p{max-width:900px;font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:18px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--escuro);border-left:1px solid var(--escuro);margin-bottom:22px}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}}
+.ficha div{border-right:1px solid var(--escuro);border-bottom:1px solid var(--escuro);padding:10px 12px;font-size:14px}
+.ficha b{display:block;font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:var(--azul)}
+.controles{display:flex;gap:6px;margin-bottom:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;align-items:center;flex-wrap:wrap}
+.controles button{font:inherit;background:none;border:1px solid var(--escuro);padding:8px 10px;cursor:pointer;color:var(--escuro)}
+.controles button[aria-pressed=true]{background:var(--escuro);color:var(--claro)}
+.moldura{position:relative;width:100%;max-width:1100px;aspect-ratio:1440/900;border:1px solid var(--c2);overflow:hidden}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;overflow-y:auto;overflow-x:hidden;background:var(--escuro);color:var(--claro)}
+.cab{position:sticky;top:0;height:0;z-index:5}
+.cab div{position:absolute;top:12px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;text-transform:uppercase}
+.antes{padding:120px 30px 80px;opacity:.55}
+.antes .m{font-weight:500;text-transform:uppercase;font-size:53.3px;line-height:47.8px;letter-spacing:-.01em;text-align:justify;text-align-last:left}
+.antes .s{width:1000px;margin:50px auto 0;font-size:18px;line-height:25px}
+.pin{height:1620px;position:relative}
+.palco{position:sticky;top:0;height:900px;display:flex;align-items:center;justify-content:center;perspective:2400px}
+.cubo{width:1000px;height:600px;position:relative;transform-style:preserve-3d;transform:translateZ(-500px) rotateY(0deg)}
+.face{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;border:1px solid #F7F7F5}
+.frente{transform:translateZ(500px);background:var(--escuro);display:flex;flex-direction:column;justify-content:center;gap:0}
+.linha{display:flex;justify-content:center;gap:0;white-space:nowrap;height:174px;align-items:center}
+.palavra{font-weight:700;font-size:230px;line-height:174px;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:1px #F7F7F5;display:inline-block;animation:gira 12s linear infinite}
+.parado .palavra{animation-play-state:paused}
+@keyframes gira{to{transform:rotateX(360deg)}}
+.lado{transform:rotateY(90deg) translateZ(500px);background:#1a1a1a}
+.lado canvas{position:absolute;inset:-40px;width:1080px;height:680px;filter:blur(26px)}
+.ret{position:absolute;left:50%;top:50%;border:1px solid #F7F7F5;transform:translate(-50%,-50%);transition:transform .15s}
+.legenda{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--mono);font-size:9px;line-height:11px;text-transform:uppercase;text-align:center;width:220px;z-index:2}
+.unico{display:grid;grid-template-columns:200px 1000px;gap:20px;padding:40px 30px 300px 30px;margin-left:0}
+.unico .r{font-size:18px;text-align:right}
+.unico p{font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:16px}
+.vazio{opacity:.45}
+.nota{margin-top:22px;font-size:15px;max-width:1100px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · Início</span><span>Seção 04 · Cubo da marca e "O que é único"</span></div>
+<h1>Cubo da marca</h1>
+<p class="apoio-p">Conferi a referência hoje. Logo depois do manifesto, a seção fica presa e um <b>bloco de 1000×600 gira −90°</b> com a rolagem. A frente tem a <b>palavra da marca em contorno</b>, em 3 linhas de cópias que giram sem parar. A lateral tem um <b>fundo desfocado</b> com <b>10 retângulos aninhados</b> e uma legenda curta no centro. No fim do giro, os retângulos seguem o mouse. Depois vem "(O que é único)", com dois parágrafos. <b>Role dentro da janela</b> e, no fim do giro, passe o mouse sobre a lateral.</p>
+<div class="ficha">
+ <div><b>O que prova</b>Domínio técnico num detalhe: 3D, tipografia e interação feitos no navegador. É a "assinatura" da Floway antes dos trabalhos.</div>
+ <div><b>Efeito (referência 3.5)</b>Presa por 0,8 tela, gira −90° no eixo Y seguindo a rolagem. Palavras em contorno: 230 px, peso 700, ciclo de 12 s. Retângulos encolhem com 0,01 s entre eles e seguem o mouse com 0,15 s × índice.</div>
+ <div><b>Texto que pede</b>A palavra da frente (FLOWAY, a assinatura). A legenda da lateral, até 8 palavras. "(O que é único)": 2 parágrafos de até 60 palavras cada.</div>
+ <div><b>Celular</b>Gira uma vez sozinho quando a seção chega a 80% da tela, sem ficar preso e sem mouse.</div>
+ <div><b>Movimento reduzido</b>O cubo já aparece girado, com a lateral à vista, as palavras paradas e os retângulos no tamanho final.</div>
+ <div><b>Sem WebGL / o que muda</b>O cubo é feito em CSS 3D, então funciona sem WebGL. O fundo da lateral é a sua foto (silhueta abstrata em movimento), em tons de cinza. Em relação à 02-site, só muda o conteúdo.</div>
+</div>
+<div class="controles">Ver como: <button data-m="desktop" aria-pressed="true">Desktop</button><button data-m="reduzido" aria-pressed="false">Movimento reduzido</button></div>
+<div class="moldura"><div class="tela" id="tela">
+ <div class="cab"><div><span>REC SÁB15:46:14</span><span>©FLOWAY</span><span>PT▾ &nbsp; TRABALHOS &nbsp; CONTATO</span></div></div>
+ <div class="antes"><p class="m">A Floway transforma tecnologia em vantagem para o seu negócio. Estratégia, branding e inteligência artificial em soluções que simplificam processos e impulsionam negócios.</p><p class="s">Boas experiências digitais não acontecem por acaso. Cada interação é uma oportunidade de aproximar marcas e pessoas. Na Floway, exploramos novas possibilidades da tecnologia e da inteligência artificial para criar experiências intuitivas, marcantes e feitas para gerar impacto.</p></div>
+ <div class="pin" id="pin"><div class="palco"><div class="cubo" id="cubo">
+  <div class="face frente" id="frente"></div>
+  <div class="face lado" id="lado"><img src="cubo-lateral.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) blur(4px)"><canvas id="fundo" width="270" height="170" style="display:none"></canvas><div class="legenda" id="legenda">Experiências digitais que transformam a forma de conectar</div></div>
+ </div></div></div>
+ <section class="unico"><div class="r">(O que é único)</div><div><p>Cada marca carrega uma identidade, uma visão e uma história própria. Nosso trabalho é interpretar esses elementos sob diferentes perspectivas, explorando a criatividade para construir uma presença digital autêntica, capaz de despertar interesse e estabelecer conexões duradouras.</p><p>Para dar vida a essa visão, combinamos tecnologia, inteligência artificial e atenção aos detalhes. Cada escolha tem um propósito: tornar a navegação mais intuitiva, valorizar a comunicação e transformar cada ponto de contato em algo relevante e memorável.</p></div></section>
+</div></div>
+<div class="nota"><b>O que falta de você</b>A legenda da lateral (até 8 palavras) e os dois parágrafos de "(O que é único)" (até 60 palavras cada). Na referência, a legenda é uma frase de efeito sobre a marca em movimento, e os parágrafos explicam o que torna o estúdio diferente.</div>
+<script>
+const tela=document.getElementById('tela'),cubo=document.getElementById('cubo'),pin=document.getElementById('pin'),lado=document.getElementById('lado'),frente=document.getElementById('frente');
+let modo='desktop',atual=0;
+// frente: 3 linhas x 7 cópias
+for(let l=0;l<3;l++){const d=document.createElement('div');d.className='linha';for(let c=0;c<7;c++){const s=document.createElement('span');s.className='palavra';s.textContent='FLOWAY';s.style.animationDelay=(-(l*2.4+c*1.7))+'s';s.style.perspective=(c%2?600:1000)+'px';d.appendChild(s);}frente.appendChild(d);}
+
+// lateral: fundo desfocado com lâminas
+const cv=document.getElementById('fundo'),cx=cv.getContext('2d');
+function fundo(t){cx.fillStyle='#202020';cx.fillRect(0,0,270,170);
+ const L=[[30,20,180,50,'#9a9a96'],[10,80,150,45,'#5e5e5c'],[120,110,170,50,'#c9c9c5'],[160,40,120,40,'#3a3a39']];
+ L.forEach(([x,y,w,h,c],i)=>{const dx=Math.sin(t*0.4+i)*8;cx.fillStyle=c;cx.beginPath();cx.moveTo(x+dx+h,y);cx.lineTo(x+dx+w+h,y);cx.lineTo(x+dx+w,y+h);cx.lineTo(x+dx,y+h);cx.closePath();cx.fill();});}
+// retângulos
+const tam=[[43,66],[90,120],[150,190],[230,270],[320,370],[430,480],[560,600],[700,720],[850,860],[980,1430]];
+const rets=tam.map(([w,h],i)=>{const r=document.createElement('div');r.className='ret';r.style.width=w+'px';r.style.height=h+'px';lado.appendChild(r);return r;});
+let mx=0,my=0;lado.addEventListener('mousemove',e=>{const b=lado.getBoundingClientRect();mx=(e.clientX-b.left)/b.width-.5;my=(e.clientY-b.top)/b.height-.5;});
+function quadro(ms){const t=ms/1000;fundo(t);
+ let p;if(modo==='reduzido'){p=1;}else{const y=tela.scrollTop-pin.offsetTop;const alvo=Math.min(1,Math.max(0,y/720));atual+=(alvo-atual)*0.08;p=atual;}
+ cubo.style.transform=`translateZ(-500px) rotateY(${-90*p}deg)`;
+ frente.classList.toggle('parado',p>0.87||modo==='reduzido');
+ rets.forEach((r,i)=>{const enc=modo==='reduzido'?1:Math.min(1,Math.max(0,(p-0.4-i*0.01)/0.5));const s=1+(1-enc)*(1200/tam[i][0]-1)*0.3;
+  const seg=p>0.87&&modo!=='reduzido';r.style.transitionDuration=(0.15*(i+1))+'s';
+  r.style.transform=`translate(calc(-50% + ${seg?mx*120*(i+1)/10:0}px), calc(-50% + ${seg?my*80*(i+1)/10:0}px)) scale(${s})`;});
+ requestAnimationFrame(quadro);}
+requestAnimationFrame(quadro);
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{modo=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+function ajustar(){const m=document.querySelector('.moldura');const s=m.clientWidth/1440;tela.style.transform='scale('+s+')';tela.style.height=(m.clientHeight/s)+'px';}
+addEventListener('resize',ajustar);ajustar();
+</script></body></html>

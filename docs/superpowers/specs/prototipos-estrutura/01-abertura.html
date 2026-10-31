@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · seção Abertura</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Inter+Tight:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--c3:#787878;--escuro:#121212;--azul:#002FA7;--papel:#FFFFFF;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio{max-width:880px;font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:18px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--escuro);border-left:1px solid var(--escuro);margin-bottom:24px}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}}
+.ficha div{border-right:1px solid var(--escuro);border-bottom:1px solid var(--escuro);padding:10px 12px;font-size:14px}
+.ficha b{display:block;font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:var(--azul)}
+.barra{display:flex;gap:10px;align-items:center;margin-bottom:16px;font-family:var(--mono);font-size:11px;text-transform:uppercase}
+.barra button{font:inherit;background:var(--escuro);color:var(--claro);border:0;padding:10px 14px;cursor:pointer}
+.opcoes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:1100px){.opcoes{grid-template-columns:1fr}}
+.opcao{border:1px solid var(--escuro);padding:14px;cursor:pointer}
+.opcao.selected{outline:3px solid var(--azul);outline-offset:3px}
+.letra{font-family:var(--mono);font-size:11px;text-transform:uppercase}
+.opcao h2{font-weight:500;text-transform:uppercase;font-size:20px;margin:4px 0 10px;letter-spacing:-.02em}
+.opcao p{font-size:14px;margin-top:10px}
+.moldura{width:100%;aspect-ratio:1440/900;position:relative;overflow:hidden;border:1px solid var(--c2)}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;background:var(--claro)}
+.abertura{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;background:var(--claro);z-index:3}
+.abertura canvas{width:300px;height:158px;transform-origin:center}
+.trechos{font-family:var(--mono);font-size:14px;letter-spacing:-.02em}
+.trechos span{opacity:0}
+.hero-depois{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:224px;letter-spacing:-.055em;opacity:0;transition:opacity .4s}
+.hero-depois.on{opacity:1}
+.tempo{font-family:var(--mono);font-size:11px;margin-top:8px}
+.nota{margin-top:22px;font-size:15px;max-width:900px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · Início</span><span>Seção 00 · Abertura</span></div>
+<h1>Abertura</h1>
+<p class="apoio">Na referência (conferida hoje em rayraylab.com), a abertura é um <b>vídeo pequeno, de 300×158, com a gravação do primeiro trabalho, em preto e branco</b>, e abaixo dele três trechos curtos em mono que aparecem um a um. Depois, o vídeo achata na vertical, o texto some e o hero entra. Os três cartões abaixo tocam a abertura com os tempos medidos; só muda o que passa dentro do vídeo.</p>
+
+<div class="ficha">
+ <div><b>O que prova</b>Cuidado desde o primeiro segundo: o site espera as fontes e a primeira imagem e não mostra um indicador girando.</div>
+ <div><b>Efeito (referência 3.1)</b>Trecho 1 em 0,2 s; o vídeo fica pelo menos 1,6 s; trechos 2 e 3 em 0,2 s e 0,3 s; o vídeo achata e o texto some em 0,3 s, 0,5 s depois. No máximo 6 s, uma vez por sessão.</div>
+ <div><b>Texto que pede</b>Três trechos de até 6 palavras cada, com o posicionamento. Os do cartão são só exemplo; os de verdade vêm em C2, com a sua aprovação.</div>
+ <div><b>Celular</b>Não existe: a página começa direto no hero, como na referência.</div>
+ <div><b>Movimento reduzido</b>Não existe: começa direto no hero, com todo o conteúdo visível.</div>
+ <div><b>Sem WebGL / sem JS</b>Funciona igual, porque é canvas 2D e texto. Sem JavaScript, a abertura fica escondida.</div>
+</div>
+
+<div class="barra"><button type="button" id="tocar">▶ Tocar as três de novo</button><span>Os tempos são os medidos na referência.</span></div>
+
+<div class="opcoes">
+ <div class="opcao" data-choice="filme-palavra" onclick="toggleSelect(this)"><div class="letra">A · Filme da palavra</div><h2>FLOWAY sintonizando</h2>
+  <div class="moldura"><div class="tela"><div class="hero-depois">FLOWAY</div><div class="abertura"><canvas width="300" height="158" data-filme="palavra"></canvas><p class="trechos"><span>Landing pages, </span><span>sites institucionais, </span><span>automações</span></p></div></div></div>
+  <div class="tempo" data-tempo></div>
+  <p>A palavra FLOWAY cortada em linhas que deslizam, como uma fita sendo sintonizada. É o código de hoje, trocando "IDENTIDADE" por FLOWAY, e já anuncia o glitch do hero. Não depende de nenhum case.</p></div>
+
+ <div class="opcao" data-choice="filme-case" onclick="toggleSelect(this)"><div class="letra">B · Igual à referência</div><h2>Gravação do 1º trabalho</h2>
+  <div class="moldura"><div class="tela"><div class="hero-depois">FLOWAY</div><div class="abertura"><canvas width="300" height="158" data-filme="case"></canvas><p class="trechos"><span>Tecnologia que trabalha, </span><span>design que convence, </span><span>entrega que flui</span></p></div></div></div>
+  <div class="tempo" data-tempo></div>
+  <p>Passa, em preto e branco, a gravação do primeiro trabalho da lista, como na referência. O primeiro segundo do site já é prova de trabalho, e o mesmo vídeo serve à galeria. Depende de haver um case com gravação; até lá, usa o filme da opção A.</p></div>
+
+ <div class="opcao" data-choice="filme-laminas" onclick="toggleSelect(this)"><div class="letra">C · Filme das lâminas</div><h2>Lâminas passando</h2>
+  <div class="moldura"><div class="tela"><div class="hero-depois">FLOWAY</div><div class="abertura"><canvas width="300" height="158" data-filme="laminas"></canvas><p class="trechos"><span>Sites, </span><span>automações, </span><span>soluções que crescem</span></p></div></div></div>
+  <div class="tempo" data-tempo></div>
+  <p>Lâminas de vidro a 45° atravessando o quadro escuro, a mesma família do hero em miniatura. Liga a abertura ao hero, mas mostra a forma duas vezes seguidas.</p></div>
+</div>
+
+<div class="nota"><b>Minha recomendação</b>B, com a A enquanto não houver gravação de case. Na B, quem chega vê trabalho de verdade logo no primeiro segundo, e é isso que faz pensar "esses caras são bons". Ela também segue a referência à risca. A gravação vem da peça "gravação no celular" do modelo de case, então não pede material extra.</div>
+
+<script>
+const Fn="'Inter Tight',sans-serif";
+function filmePalavra(c,t){const l=c.canvas.width,a=c.canvas.height;c.fillStyle='#121212';c.fillRect(0,0,l,a);
+ for(let y=0;y<a;y+=3){const v=40+60*(0.5+0.5*Math.sin(y*0.21+t*3.1))*(0.6+0.4*Math.sin(t*1.7+y*0.03));c.fillStyle=`rgb(${v},${v},${v})`;c.fillRect(0,y,l,2);}
+ c.font=`800 ${Math.round(a*0.3)}px ${Fn}`;c.textAlign='center';c.textBaseline='middle';
+ for(let y=0;y<a;y+=6){const d=Math.sin(y*0.7+t*9)*14*Math.max(0,Math.sin(t*1.3));c.save();c.beginPath();c.rect(0,y,l,6);c.clip();c.fillStyle='#F7F7F5';c.fillText('FLOWAY',l/2+d,a/2);c.restore();}}
+function filmeCase(c,t){const l=c.canvas.width,a=c.canvas.height;c.fillStyle='#d6d6d2';c.fillRect(0,0,l,a);
+ const off=(t*40)%400;c.save();c.translate(0,-off);
+ for(let k=0;k<3;k++){const y0=k*400;c.fillStyle='#121212';c.fillRect(20,y0+20,120,10);c.fillRect(20,y0+40,200,26);
+  c.fillStyle='#9a9a96';c.fillRect(20,y0+80,260,90);c.fillStyle='#bdbdb9';c.fillRect(20,y0+180,125,70);c.fillRect(155,y0+180,125,70);
+  c.fillStyle='#121212';c.fillRect(20,y0+265,80,6);c.fillRect(20,y0+278,180,6);c.fillStyle='#8a8a86';c.fillRect(20,y0+300,260,80);}
+ c.restore();c.fillStyle='rgba(18,18,18,.55)';c.fillRect(0,a-18,l,18);c.fillStyle='#F7F7F5';c.font='9px Azeret Mono, monospace';c.fillText('gravação do case (exemplo)',8,a-6);}
+function filmeLaminas(c,t){const l=c.canvas.width,a=c.canvas.height;c.fillStyle='#121212';c.fillRect(0,0,l,a);
+ for(let i=0;i<4;i++){const x=((t*60+i*110)%(l+260))-160,y=20+i*34;c.save();c.translate(x,y);c.beginPath();c.moveTo(40,0);c.lineTo(160,0);c.lineTo(120,40);c.lineTo(0,40);c.closePath();
+  c.fillStyle='rgba(247,247,245,.16)';c.fill();c.strokeStyle='rgba(247,247,245,.6)';c.stroke();c.restore();}}
+const F={palavra:filmePalavra,case:filmeCase,laminas:filmeLaminas};
+const cv=[...document.querySelectorAll('canvas[data-filme]')];
+function loop(ms){cv.forEach(c=>F[c.dataset.filme](c.getContext('2d'),ms/1000));requestAnimationFrame(loop);}requestAnimationFrame(loop);
+function ajustar(){document.querySelectorAll('.moldura').forEach(m=>m.querySelector('.tela').style.transform='scale('+(m.clientWidth/1440)+')');}
+addEventListener('resize',ajustar);ajustar();
+const reduzido=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tocar(){
+ document.querySelectorAll('.opcao').forEach(op=>{
+  const ab=op.querySelector('.abertura'),s=op.querySelectorAll('.trechos span'),c=op.querySelector('canvas'),h=op.querySelector('.hero-depois'),tp=op.querySelector('[data-tempo]');
+  ab.style.display='flex';ab.style.opacity=1;c.style.transition='none';c.style.transform='scaleY(1)';s.forEach(x=>{x.style.transition='none';x.style.opacity=0});h.classList.remove('on');
+  if(reduzido){ab.style.display='none';h.classList.add('on');tp.textContent='Movimento reduzido: sem abertura';return;}
+  const t0=performance.now();const rel=setInterval(()=>tp.textContent=((performance.now()-t0)/1000).toFixed(1)+' s',100);
+  const at=(ms,f)=>setTimeout(f,ms);
+  at(30,()=>{s[0].style.transition='opacity .2s linear';s[0].style.opacity=1});
+  at(1600,()=>{s[1].style.transition='opacity .2s linear';s[1].style.opacity=1;});
+  at(1700,()=>{s[2].style.transition='opacity .3s linear';s[2].style.opacity=1;});
+  at(2500,()=>{c.style.transition='transform .3s cubic-bezier(.33,1,.68,1)';c.style.transform='scaleY(0)';ab.style.transition='opacity .3s';ab.querySelector('.trechos').style.transition='opacity .3s';ab.querySelector('.trechos').style.opacity=0;});
+  at(2800,()=>{ab.style.display='none';ab.querySelector('.trechos').style.opacity=1;h.classList.add('on');clearInterval(rel);tp.textContent='Hero entra em 2,8 s (o limite é 6 s)';});
+ });
+}
+document.getElementById('tocar').onclick=tocar;tocar();
+</script>
+</body></html>

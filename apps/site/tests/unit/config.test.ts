@@ -1,0 +1,28 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+
+// O CI fica na raiz do monorepo; os testes rodam dentro de apps/site.
+const ci = readFileSync('../../.github/workflows/ci.yml', 'utf8');
+const layout = readFileSync('app/layout.tsx', 'utf8');
+
+describe('CI', () => {
+  it('roda instalação, testes, tipos e o teste do build com o Chromium do Playwright', () => {
+    const passos = ['npm ci', 'npm test', 'npm run check', 'npx playwright install --with-deps chromium', 'npm run test:build'];
+    let ultimo = -1;
+    for (const passo of passos) {
+      const i = ci.indexOf(`run: ${passo}`);
+      expect(i, passo).toBeGreaterThan(ultimo);
+      ultimo = i;
+    }
+  });
+
+  it('o job se chama "Testes, tipos e build", o check exigido pela main', () => {
+    expect(ci).toMatch(/name: Testes, tipos e build/);
+  });
+});
+
+describe('buscadores', () => {
+  it('o layout mantém o site fora dos buscadores até a publicação', () => {
+    expect(layout).toMatch(/robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
+  });
+});

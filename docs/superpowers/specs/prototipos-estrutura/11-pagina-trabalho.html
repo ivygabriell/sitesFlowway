@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floway · página Trabalho</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&family=Instrument+Serif&family=Inter+Tight:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--claro:#F7F7F5;--c2:#DCDCD8;--c3:#787878;--escuro:#121212;--azul:#002FA7;--azul-e:#5B7BFF;--sans:'Inter Tight',sans-serif;--mono:'Azeret Mono',monospace;--serif:'Instrument Serif',serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--claro);color:var(--escuro);font-family:var(--sans);padding:32px 30px 60px}
+.topo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;text-transform:uppercase;border-bottom:1px solid var(--escuro);padding-bottom:12px;margin-bottom:24px}
+h1.t{font-weight:800;text-transform:uppercase;letter-spacing:-.055em;font-size:clamp(30px,5vw,70px);line-height:.95;margin-bottom:12px}
+.apoio-p{max-width:920px;font-size:18px;line-height:25px;letter-spacing:-.02em;margin-bottom:18px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--escuro);border-left:1px solid var(--escuro);margin-bottom:22px;max-width:1100px}
+@media(max-width:900px){.ficha{grid-template-columns:1fr}}
+.ficha div{border-right:1px solid var(--escuro);border-bottom:1px solid var(--escuro);padding:10px 12px;font-size:14px}
+.ficha b{display:block;font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:var(--azul)}
+.layout{display:grid;grid-template-columns:minmax(0,1100px) 230px;gap:18px;align-items:start}
+@media(max-width:1250px){.layout{grid-template-columns:1fr}}
+.moldura{position:relative;width:100%;aspect-ratio:1440/900;border:1px solid var(--c2);overflow:hidden}
+.tela{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;overflow-y:auto;overflow-x:hidden;background:var(--escuro);color:var(--claro)}
+.cab{position:sticky;top:0;height:0;z-index:9}
+.cab div{position:absolute;top:12px;left:30px;right:30px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;text-transform:uppercase;color:#F7F7F5;mix-blend-mode:difference}
+.ph{background:var(--c2)}
+.lbl{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:#121212;display:flex;align-items:center;justify-content:center;text-align:center}
+/* wd1 */
+.wd1{padding-top:387px;position:relative}
+.wd1 h2{font-family:var(--serif);font-weight:400;font-size:43.2px;line-height:53.3px;margin:0 30px}
+.linha{height:1px;background:rgba(247,247,245,.5);margin:14px 30px 0;width:0;transition:width 1s cubic-bezier(.77,0,.18,1)}
+.on .linha{width:calc(100% - 60px)}
+.faixa{position:sticky;top:450px;display:grid;grid-template-columns:1fr 1fr 1fr;margin:20px 30px 0;font-size:15px;line-height:18px;text-transform:uppercase;letter-spacing:-.02em;z-index:5;mix-blend-mode:difference}
+.faixa span:last-child{text-align:right}
+.capa{position:relative;height:900px;margin-top:117px;overflow:hidden}
+.capa .img{position:absolute;inset:0}
+.fita{position:absolute;left:0;right:0;height:50%;background:var(--escuro);transition:transform 2s cubic-bezier(.55,.055,.675,.19)}
+.fita.a{top:0}.fita.b{top:50%}
+.on .fita.a{transform:translateY(-110%) skewX(-8deg)}.on .fita.b{transform:translateY(110%) skewX(8deg)}
+/* wd2 */
+.wd2{padding:40px 30px 100px 50%;font-size:18px;line-height:26px}
+/* wd3 */
+.wd3{display:grid;grid-template-columns:repeat(3,1fr);gap:6%;padding:100px 30px 200px}
+.col h3{font-size:15px;text-transform:uppercase;font-weight:400;padding-bottom:10px;border-bottom:1px solid #F7F7F5;margin-bottom:20px}
+.col .r{font-family:var(--mono);font-size:14px;margin-bottom:6px}
+.col p{font-size:18px;line-height:26px;margin-bottom:26px}
+/* wd4 */
+.wd4{position:relative}
+.wd4 .cena{position:sticky;top:0;height:900px;overflow:hidden}
+.fila{position:absolute;top:117px;left:720px;display:flex;gap:150px;will-change:transform}
+.fila .it{width:1295px;height:666px;flex:none;position:relative}
+.pilula{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:30px;border:1px solid #F7F7F5;background:rgba(18,18,18,.2);backdrop-filter:blur(8px);font-weight:500;font-size:11.5px;text-transform:uppercase;padding:9px 18px;color:#F7F7F5;cursor:pointer}
+.barra{position:absolute;bottom:40px;left:50%;margin-left:-126px;width:253px;height:16px}
+.barra .cheia{position:absolute;left:0;top:0;height:16px;border:1px solid #F7F7F5;width:0}
+.barra i{position:absolute;top:0;width:1px;height:16px;background:#F7F7F5}
+.pop{position:absolute;inset:0;background:#121212;z-index:20;display:none;align-items:center;justify-content:center}
+.pop.on{display:flex}
+.pop .rep{width:86%;height:86%}
+.pop .fechar{position:absolute;top:20px;right:30px;font-family:var(--mono);font-size:15px;text-transform:uppercase;cursor:pointer}
+/* wd5 */
+.wd5{position:relative;padding-top:600px}
+.wd5 .fundo{position:sticky;top:0;height:900px;margin-bottom:-900px}
+.wd5 .trilho{height:1620px;position:relative}
+.cel{position:sticky;top:146px;margin:0 auto;width:360px;height:608px;border-radius:44px;border:10px solid #121212;overflow:hidden;box-shadow:0 0 0 1px #555}
+.cel .grav{position:absolute;inset:0}
+.cel .tampa{position:absolute;left:0;right:0;top:0;height:100%;background:#9a9a96}
+/* wd6 */
+.wd6{position:relative;height:1125px;background:#121212;z-index:2}
+.wd6 .cena{position:sticky;top:0;height:900px;padding-top:387px}
+.wd6 .rot{font-size:15px;margin:0 30px 40px}
+.wd6 h2{font-family:var(--serif);font-weight:400;font-size:43.2px;margin:0 30px}
+.wd6 .fx{display:grid;grid-template-columns:1fr 1fr 1fr;margin:20px 30px 0;font-size:15px;text-transform:uppercase}
+.wd6 .aviso{position:absolute;bottom:70px;left:0;right:0;text-align:center;font-size:15px;text-transform:uppercase}
+.wd6 .barra{bottom:40px}
+.indice{border:1px solid var(--escuro);padding:12px;font-size:13px}
+.indice h3{font-family:var(--mono);font-weight:400;font-size:11px;text-transform:uppercase;color:var(--azul);margin-bottom:8px}
+.indice button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--c2);padding:6px 0;font:inherit;cursor:pointer}
+.nota{margin-top:18px;font-size:15px;max-width:1100px;border:1px solid var(--escuro);padding:12px}
+.nota b{font-family:var(--mono);font-weight:400;font-size:10px;text-transform:uppercase;color:var(--azul);display:block;margin-bottom:4px}
+</style></head><body>
+<div class="topo"><span>©FLOWAY · /trabalhos/&lt;case&gt; · /en/work/&lt;case&gt;</span><span>Página Trabalho</span></div>
+<h1 class="t">Página Trabalho</h1>
+<p class="apoio-p">Conferi a referência (rayraylab.com/work/1). É o mesmo modelo para todo case; só o conteúdo muda. Montei <b>a estrutura inteira, com todos os efeitos</b>, mas com o conteúdo vazio, como na Início: as mídias em cor estática (#DCDCD8) e os textos marcados entre colchetes. Quando um case for adicionado, ele preenche estes lugares e os efeitos continuam iguais. <b>Role dentro da janela</b> ou use o índice ao lado.</p>
+<div class="ficha">
+ <div><b>O que prova</b>Como a Floway pensa e entrega: o desafio, as decisões e o resultado, com imagens, vídeo e o site rodando num celular.</div>
+ <div><b>Efeitos (referência 8)</b>Linha que cresce (1 s). Faixa presa no meio da tela. Capa revelada por duas fitas (2 s). Colunas que aparecem a 70%. Galeria horizontal presa com a barra. Vídeo em camada cheia. Celular de mostruário. Próximo trabalho que vai sozinho aos 99%.</div>
+ <div><b>Texto que pede (por case)</b>Nome, endereço publicado (se houver), mês e ano, oferta, setor, "Conceito" quando for o caso. Descrição de até 80 palavras. Dois itens em Desafio, Decisões e Entrega.</div>
+ <div><b>Celular</b>Tudo em coluna, com a faixa presa no meio. Galeria em imagens empilhadas. Só a gravação, sem o aparelho. Próximo trabalho por toque.</div>
+ <div><b>Movimento reduzido</b>Capa já descoberta, linhas cheias, itens visíveis, imagens empilhadas, só a gravação parada até o clique e próximo trabalho por clique.</div>
+ <div><b>O que muda em relação à 02-site</b>Nada na estrutura. Os conceitos ganham "Conceito" na faixa, no título da aba e na descrição ("Projeto conceitual, sem cliente"). Um trabalho inexistente responde 404.</div>
+</div>
+<div class="layout">
+<div class="moldura"><div class="tela" id="tela">
+ <div class="cab"><div><span>Voltar ao início</span><span>©FLOWAY</span><span>PT▾ &nbsp; TRABALHOS &nbsp; CONTATO</span></div></div>
+ <section class="wd1" id="s1"><h2>[Nome do trabalho]</h2><div class="linha"></div>
+  <div class="faixa"><span>[endereço publicado] ↗</span><span>[mês ano] · [oferta]</span><span>[setor] · Conceito</span></div>
+  <div class="capa"><div class="img ph lbl">capa do case (tela cheia)</div><div class="fita a"></div><div class="fita b"></div></div></section>
+ <section class="wd2" id="s2">[Descrição do trabalho, até 80 palavras. Nos conceitos, começa por "Projeto conceitual, sem cliente".]</section>
+ <section class="wd3" id="s3">
+  <div class="col"><h3>Desafio</h3><p class="r">(01)</p><p>[item]</p><p class="r">(02)</p><p>[item]</p></div>
+  <div class="col"><h3>Decisões</h3><p class="r">(01)</p><p>[item]</p><p class="r">(02)</p><p>[item]</p></div>
+  <div class="col"><h3>Entrega</h3><p class="r">(01)</p><p>[item]</p><p class="r">(02)</p><p>[item]</p></div></section>
+ <section class="wd4" id="s4"><div class="cena"><div class="fila" id="fila">
+  <div class="it ph lbl">imagem 1</div><div class="it ph lbl">imagem 2</div><div class="it ph lbl">imagem 3</div><div class="it ph lbl">imagem 4</div><div class="it ph lbl">vídeo<span class="pilula" id="abre">Ver vídeo</span></div></div>
+  <div class="barra" id="barra"><div class="cheia" id="cheia"></div></div></div></section>
+ <section class="wd5" id="s5"><div class="fundo ph lbl">imagem de fundo (tela cheia)</div><div class="trilho" id="trilho"><div class="cel"><div class="grav lbl" style="background:#bdbdb8">gravação no celular</div><div class="tampa" id="tampa"></div></div></div></section>
+ <section class="wd6" id="s6"><div class="cena"><p class="rot">Próximo trabalho</p><h2>[Nome do próximo]</h2><div class="fx"><span>[endereço] ↗</span><span>[mês ano] · [oferta]</span><span style="text-align:right">[setor]</span></div>
+  <p class="aviso" id="aviso">Continue rolando</p><div class="barra" id="barra2"><div class="cheia" id="cheia2"></div></div></div></section>
+ <div class="pop" id="pop"><div class="rep ph lbl">vídeo completo (servido pelo próprio site)</div><span class="fechar" id="fechar">Fechar</span></div>
+</div></div>
+<div class="indice"><h3>Ir para</h3>
+ <button data-s="s1">1 · Título, faixa e capa</button><button data-s="s2">2 · Descrição</button><button data-s="s3">3 · Desafio, Decisões, Entrega</button><button data-s="s4">4 · Galeria e vídeo</button><button data-s="s5">5 · Celular de mostruário</button><button data-s="s6">6 · Próximo trabalho</button>
+ <button id="rever">↻ Rever a entrada</button></div>
+</div>
+<div class="nota"><b>Case de automação</b>Esta é a página de um case de site. Um case de automação usa o mesmo modelo, mas troca o que vai nas mídias (por exemplo, o fluxo desenhado no lugar da capa e a demonstração gravada no lugar do celular). Isso entra na pergunta do modelo de case, depois das páginas.</div>
+<script>
+const tela=document.getElementById('tela');
+function barra(id){const b=document.getElementById(id);const ts=[];for(let i=0;i<29;i++){const t=document.createElement('i');t.style.left=(i*9)+'px';b.appendChild(t);ts.push(t);}return ts;}
+const t1=barra('barra'),t2=barra('barra2');
+function entrada(){tela.classList.remove('on');void tela.offsetWidth;setTimeout(()=>tela.classList.add('on'),500);}
+entrada();document.getElementById('rever').onclick=()=>{tela.scrollTop=0;entrada();};
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{tela.scrollTo({top:document.getElementById(b.dataset.s).offsetTop,behavior:'smooth'});});
+document.getElementById('abre').onclick=()=>document.getElementById('pop').classList.add('on');document.getElementById('fechar').onclick=()=>document.getElementById('pop').classList.remove('on');
+const s4=document.getElementById('s4'),fila=document.getElementById('fila'),larg=5*1295+4*150;s4.style.height=(900+larg*0.8)+'px';
+const s5=document.getElementById('s5'),tr=document.getElementById('trilho'),tampa=document.getElementById('tampa');
+const s6=document.getElementById('s6');let foi=false;
+let a4=0;function quadro(){const y=tela.scrollTop;
+ const p4=Math.min(1,Math.max(0,(y-s4.offsetTop)/(larg*0.8)));a4+=(p4-a4)*0.15;fila.style.transform=`translateX(${-a4*larg}px)`;document.getElementById('cheia').style.width=(a4*253)+'px';t1.forEach((t,i)=>t.style.opacity=i*9<a4*253?0:1);
+ const p5=Math.min(1,Math.max(0,(y-(s5.offsetTop+tr.offsetTop+0))/720));tampa.style.height=(100-Math.pow(p5,2)*100)+'%';
+ const p6=Math.min(1.05,Math.max(0,(y-s6.offsetTop)/225));document.getElementById('cheia2').style.width=Math.min(253,p6*253)+'px';t2.forEach((t,i)=>t.style.opacity=i*9<p6*253?0:1);
+ if(p6>=0.99&&!foi){foi=true;document.getElementById('aviso').textContent='→ indo para o próximo trabalho';setTimeout(()=>{tela.scrollTop=0;entrada();foi=false;document.getElementById('aviso').textContent='Continue rolando';},900);}
+ requestAnimationFrame(quadro);}requestAnimationFrame(quadro);
+function ajustar(){const m=document.querySelector('.moldura');const s=m.clientWidth/1440;tela.style.transform='scale('+s+')';tela.style.height=(m.clientHeight/s)+'px';}
+addEventListener('resize',ajustar);ajustar();
+</script></body></html>
