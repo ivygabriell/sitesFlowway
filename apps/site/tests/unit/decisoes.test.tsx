@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Decisoes } from '@/componentes/decisoes/Decisoes';
-import { ScrollTrigger } from '@/gsap';
+import { gsap } from '@/gsap';
 import { ProvedorIdioma } from '@/lib/useIdioma';
 
 // Textos exatos da seção 4.3 da spec (2026-10-31-estrutura-site-design.md), lençol "(O que entregamos)".
@@ -38,7 +38,16 @@ function comCanvas(textos: string[]) {
   HTMLCanvasElement.prototype.getContext = ((tipo: string) => (tipo === '2d' ? ctx2d : {})) as typeof HTMLCanvasElement.prototype.getContext;
 }
 
-const gatilhosDaSecao = () => ScrollTrigger.getAll().filter((g) => (g.trigger as Element | undefined)?.classList?.contains('secao-decisoes'));
+// Os gatilhos de rolagem que a seção pede ao GSAP (vars de cada timeline com scrollTrigger).
+// Olhar as vars, e não ScrollTrigger.getAll(), evita depender de quando o gatilho "once" dispara no jsdom.
+type VarsDoGatilho = { trigger?: Element; pin?: boolean; once?: boolean };
+function espiarGatilhos() {
+  const espiao = vi.spyOn(gsap, 'timeline');
+  return () =>
+    espiao.mock.calls
+      .map(([vars]) => (vars as { scrollTrigger?: VarsDoGatilho } | undefined)?.scrollTrigger)
+      .filter((g): g is VarsDoGatilho => !!g && !!g.trigger?.classList.contains('secao-decisoes'));
+}
 
 async function montar(ui = <Decisoes />) {
   const r = render(ui);
@@ -50,7 +59,7 @@ beforeEach(() => definirLargura(1440));
 
 afterEach(() => {
   cleanup();
-  ScrollTrigger.getAll().forEach((g) => g.kill());
+  vi.restoreAllMocks();
   definirLargura(larguraOriginal);
   window.matchMedia = matchMediaOriginal;
   HTMLCanvasElement.prototype.getContext = getContextOriginal;
@@ -64,7 +73,8 @@ describe('Lençol "(O que entregamos)"', () => {
     expect([...titulo.querySelectorAll('.titulo-parte')].map((e) => e.textContent)).toEqual(['(O que', 'entregamos)']);
   });
 
-  it('tem as duas frases da spec', async () => {
+  it('tem as duas frases da spec (com movimento reduzido, já completas)', async () => {
+    reduzirMovimento();
     const { container } = await montar();
     expect([...container.querySelectorAll('.frase')].map((f) => f.textContent)).toEqual(FRASES);
   });
@@ -105,29 +115,39 @@ describe('Lençol "(O que entregamos)"', () => {
 
   it('no celular, a lista fica no DOM e a linha e as frases animam uma vez ao entrar, sem prender a seção', async () => {
     definirLargura(390);
+    comCanvas([]);
+    const gatilhosDaSecao = espiarGatilhos();
     const { container } = await montar();
     expect(container.querySelector('.secao-decisoes')?.classList.contains('com-lencol')).toBe(false);
     expect(container.querySelectorAll('.lista-decisoes li')).toHaveLength(7);
     const gatilhos = gatilhosDaSecao();
     expect(gatilhos).toHaveLength(1);
-    expect(gatilhos[0].vars.pin).toBeFalsy();
-    expect(gatilhos[0].vars.once).toBe(true);
+    expect(gatilhos[0].pin).toBeFalsy();
+    expect(gatilhos[0].once).toBe(true);
   });
 
   it('sem WebGL no desktop, faz como no celular: sem lençol e sem prender', async () => {
+    const gatilhosDaSecao = espiarGatilhos();
     const { container } = await montar();
     expect(container.querySelector('.secao-decisoes')?.classList.contains('com-lencol')).toBe(false);
     const gatilhos = gatilhosDaSecao();
     expect(gatilhos).toHaveLength(1);
-    expect(gatilhos[0].vars.pin).toBeFalsy();
+    expect(gatilhos[0].pin).toBeFalsy();
+    expect(gatilhos[0].once).toBe(true);
   });
 
-  it('com movimento reduzido, nada anima: sem gatilho, frases completas e lista à vista', async () => {
+  it.each([
+    ['com WebGL', true],
+    ['sem WebGL', false],
+  ])('com movimento reduzido (%s), nada anima: sem gatilho, frases completas, linha cheia e lista à vista', async (_, webgl) => {
     reduzirMovimento();
+    if (webgl) comCanvas([]);
+    const gatilhosDaSecao = espiarGatilhos();
     const { container } = await montar();
     expect(gatilhosDaSecao()).toHaveLength(0);
     expect(container.querySelector('.secao-decisoes')?.classList.contains('com-lencol')).toBe(false);
     expect([...container.querySelectorAll('.frase')].map((f) => f.textContent)).toEqual(FRASES);
+    expect(container.querySelector<HTMLElement>('.titulo-decisoes .linha')?.style.width).toBe('');
     expect(container.querySelectorAll('.lista-decisoes li')).toHaveLength(7);
   });
 });
