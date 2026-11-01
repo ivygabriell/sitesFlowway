@@ -1,7 +1,8 @@
-import { logotipo } from '@/conteudo/identidade';
+// A palavra do filme é a marca, igual nas duas línguas.
+const PALAVRA_FILME = 'FLOWAY';
 
 // O "filme" da abertura, desenhado à mão em canvas (300×158): faixas de ruído em tons de cinza
-// e o logotipo cortado em linhas que deslizam, como uma fita sendo sintonizada.
+// e a palavra FLOWAY cortada em linhas que deslizam, como uma fita sendo sintonizada.
 export function desenharFilme(ctx: CanvasRenderingContext2D, t: number) {
   const { width: l, height: a } = ctx.canvas;
   ctx.fillStyle = '#121212';
@@ -24,7 +25,7 @@ export function desenharFilme(ctx: CanvasRenderingContext2D, t: number) {
     ctx.rect(0, y, l, faixa);
     ctx.clip();
     ctx.fillStyle = '#F7F7F5';
-    ctx.fillText(logotipo, l / 2 + desvio, a / 2);
+    ctx.fillText(PALAVRA_FILME, l / 2 + desvio, a / 2);
     ctx.restore();
   }
 }
