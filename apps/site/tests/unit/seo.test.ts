@@ -23,19 +23,25 @@ describe('buscadores e metadados', () => {
     expect(m.description).toBe('[pendente: descrição da Início, até 155 caracteres]');
   });
 
-  it('robots.txt fecha tudo e o sitemap fica vazio', () => {
+  it('robots.txt não bloqueia o rastreamento (o robô precisa ler o noindex) e o sitemap fica vazio', () => {
     const r = robots();
     const regras = Array.isArray(r.rules) ? r.rules : [r.rules];
-    expect(regras).toContainEqual(expect.objectContaining({ userAgent: '*', disallow: '/' }));
+    expect(regras).toEqual([{ userAgent: '*', allow: '/' }]);
     expect(r.sitemap).toBeUndefined();
     expect(sitemap()).toEqual([]);
   });
 
-  it('o vercel.json manda noindex em toda resposta', () => {
+  it('o vercel.json manda noindex e os cabeçalhos de segurança em toda resposta', () => {
     const v = JSON.parse(readFileSync('vercel.json', 'utf8'));
     expect(v.framework).toBe('nextjs');
     const cabecalhos = v.headers.flatMap((h: { source: string; headers: { key: string; value: string }[] }) => h.headers.map((c) => ({ ...c, source: h.source })));
-    expect(cabecalhos).toContainEqual({ source: '/(.*)', key: 'X-Robots-Tag', value: 'noindex, nofollow' });
+    for (const [key, value] of [
+      ['X-Robots-Tag', 'noindex, nofollow'],
+      ['X-Content-Type-Options', 'nosniff'],
+      ['Referrer-Policy', 'strict-origin-when-cross-origin'],
+      ['X-Frame-Options', 'DENY'],
+    ])
+      expect(cabecalhos).toContainEqual({ source: '/(.*)', key, value });
   });
 
   it('as duas páginas da Início exportam os metadados de metadadosDaPagina', () => {
