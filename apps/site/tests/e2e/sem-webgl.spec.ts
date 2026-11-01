@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.use({ launchOptions: { args: ['--disable-3d-apis', '--disable-webgl'] } });
 
-test('sem WebGL a página não quebra: o trecho escuro tem fundo escuro e os cartazes aparecem como imagens', async ({ page }) => {
+test('sem WebGL a página não quebra: o trecho escuro tem fundo escuro e os cartões sem capa aparecem em cor estática', async ({ page }) => {
   const erros: string[] = [];
   page.on('pageerror', (e) => erros.push(e.message));
   await page.goto('/');
@@ -13,8 +13,9 @@ test('sem WebGL a página não quebra: o trecho escuro tem fundo escuro e os car
   await manifesto.scrollIntoViewIfNeeded();
   await expect(manifesto).toHaveCSS('background-color', 'rgb(18, 18, 18)');
   await expect(page.locator('.manifesto-texto')).toBeVisible();
-  const imagem = page.locator('.cartao-img img').first();
-  await imagem.scrollIntoViewIfNeeded();
-  await expect(imagem).toHaveCSS('opacity', '1');
+  const cartao = page.locator('.cartao.sem-capa').first();
+  await cartao.scrollIntoViewIfNeeded();
+  await expect(cartao).toBeVisible();
+  await expect(cartao).toHaveCSS('background-color', 'rgb(220, 220, 216)');
   expect(erros).toEqual([]);
 });

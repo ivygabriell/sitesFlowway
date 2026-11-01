@@ -7,7 +7,7 @@ test('com movimento reduzido não há abertura nem seção fixada, e o conteúdo
   await page.waitForTimeout(1500);
   await expect(page.locator('.abertura')).toHaveCount(0);
   await expect(page.locator('.pin-spacer')).toHaveCount(0);
-  for (const seletor of ['.manifesto-texto', '.cartao-titulo >> nth=6', '.lista-decisoes li >> nth=10', '.frase-contato']) {
+  for (const seletor of ['.manifesto-texto', '.cartao-titulo >> nth=-1', '.lista-decisoes li >> nth=-1', '.frase-contato']) {
     const el = page.locator(seletor);
     await el.scrollIntoViewIfNeeded();
     await expect(el).toBeVisible();
