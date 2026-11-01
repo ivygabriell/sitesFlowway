@@ -37,6 +37,10 @@ test.describe('no celular', () => {
     await expect(secao).not.toHaveClass(/com-lencol/);
     const itens = page.locator('.lista-decisoes li');
     await expect(itens).toHaveCount(7);
+    // A folha é tracejada em cima e embaixo, como no protótipo 06.
+    for (const lado of ['::before', '::after']) {
+      expect(await page.locator('.lista-decisoes').evaluate((e, l) => getComputedStyle(e, l).borderTopStyle, lado)).toBe('dashed');
+    }
     for (let i = 0; i < ITENS.length; i++) {
       await itens.nth(i).scrollIntoViewIfNeeded();
       await expect(itens.nth(i)).toBeVisible();
