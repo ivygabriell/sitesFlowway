@@ -40,6 +40,9 @@ function legivel({ escuros, p10 }: { escuros: number; p10: number }) {
 
 test.describe('desktop', () => {
   test('no recorte da issue (x 100, y 150, 1240×280), a palavra FLOWAY fica legível sob as lâminas', async ({ page }) => {
+    // Só o desktop tem a abertura (até 6 s). No CI sem GPU, abertura + entrada do hero passam dos 9 s e a
+    // medida pega o glitch no meio. Pula a abertura como numa segunda visita: o que se mede é o hero parado.
+    await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
     await page.goto('/');
     await page.waitForTimeout(ESPERA);
     const medida = await luminancias(page, { x: 100, y: 150, width: 1240, height: 280 });
