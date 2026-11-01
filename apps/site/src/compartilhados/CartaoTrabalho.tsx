@@ -1,0 +1,58 @@
+'use client';
+
+import { useRef } from 'react';
+import { type Idioma, t } from '@/conteudo/textos';
+import { type Trabalho, linhaDoCartao } from '@/conteudo/trabalhos';
+import './estilo.css';
+
+// Medidas da capa (a imagem do DOM, que o plano WebGL cobre com o ASCII).
+export const LARGURA_CAPA = 730;
+export const ALTURA_CAPA = 1080;
+
+type Props = {
+  trabalho: Trabalho;
+  idioma: Idioma;
+  indice: number;
+  aoPassar?: (indice: number, dentro: boolean) => void;
+};
+
+// Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII, sem prévia e sem link.
+// Com capa: a imagem (que a cena WebGL da seção revela em ASCII) e a prévia em vídeo de 250 px que abre na vertical.
+export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
+  const video = useRef<HTMLVideoElement>(null);
+  const nome = t(trabalho.nome, idioma);
+  const [data, oferta] = linhaDoCartao(trabalho, idioma);
+  const info = (
+    <div className="cartao-info">
+      <p className="cartao-subtitulo">
+        {data}
+        <br />
+        {oferta}
+      </p>
+      <h3 className="cartao-titulo">{nome}</h3>
+    </div>
+  );
+
+  if (!trabalho.capa) return <article className="cartao sem-capa">{info}</article>;
+
+  const passar = (dentro: boolean) => {
+    aoPassar?.(indice, dentro);
+    const v = video.current;
+    if (!v) return;
+    if (dentro) void v.play().catch(() => {});
+    else v.pause();
+  };
+
+  return (
+    <article className="cartao com-capa" onMouseEnter={() => passar(true)} onMouseLeave={() => passar(false)}>
+      {info}
+      <div className="cartao-previa" aria-hidden="true">
+        {trabalho.previa && <video ref={video} src={trabalho.previa} muted loop playsInline preload="none" />}
+      </div>
+      <div className="cartao-img">
+        {/* eslint-disable-next-line @next/next/no-img-element -- a capa também é a textura do plano WebGL */}
+        <img src={trabalho.capa} alt={nome} width={LARGURA_CAPA} height={ALTURA_CAPA} loading="lazy" decoding="async" />
+      </div>
+    </article>
+  );
+}

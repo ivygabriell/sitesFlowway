@@ -1,4 +1,4 @@
-import { familiasDaPagina } from './cartazes';
+import { familiasDaPagina } from './familias';
 
 // Folha branca com a lista numerada das decisões, tracejada em cima e embaixo. Vira a textura do lençol.
 export function desenharFolha(itens: readonly string[], largura: number): HTMLCanvasElement {
