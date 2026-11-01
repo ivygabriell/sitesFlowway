@@ -77,7 +77,7 @@ export function Contato() {
   }, [modo]);
 
   return (
-    <section className={`secao-contato modo-${modo ?? 'desktop'}`} id="contato">
+    <section data-fundo="claro" className={`secao-contato modo-${modo ?? 'desktop'}`} id="contato">
       <p className="frase-contato">{contato}</p>
       <div className="circulo-escuro" aria-hidden="true" />
       <Rodape />

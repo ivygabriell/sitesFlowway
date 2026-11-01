@@ -75,7 +75,7 @@ export function Capitulos() {
   };
 
   return (
-    <section className={`secao-capitulos trecho-escuro modo-${modo}${comWebgl ? ' com-webgl' : ''}`} id="capitulos">
+    <section data-fundo="escuro" className={`secao-capitulos trecho-escuro modo-${modo}${comWebgl ? ' com-webgl' : ''}`} id="capitulos">
       <div className="capitulos-palco">
         <h2 className="rotulo-capitulos">{capitulosRotulo}</h2>
         <div className="cartoes">

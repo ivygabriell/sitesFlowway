@@ -53,7 +53,7 @@ export function Decisoes() {
   }, [comLencol, folha]);
 
   return (
-    <section className={`secao-decisoes trecho-escuro${comLencol ? ' com-lencol' : ''}`} id="decisoes">
+    <section data-fundo="escuro" className={`secao-decisoes trecho-escuro${comLencol ? ' com-lencol' : ''}`} id="decisoes">
       <div className="frases">
         {decisoes.frases.map((f) => (
           <p key={f} className="frase">

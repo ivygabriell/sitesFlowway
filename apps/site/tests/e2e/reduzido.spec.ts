@@ -19,5 +19,5 @@ test('com movimento reduzido o cabeçalho não desliza e o ponto do relógio nã
   await page.goto('/');
   await page.waitForTimeout(500);
   await expect(page.locator('.cabecalho')).toHaveCSS('transition-duration', '0s');
-  await expect(page.locator('.cabecalho .relogio i')).toHaveCSS('animation-name', 'none');
+  await expect(page.locator('.ponto-relogio')).toHaveCSS('animation-name', 'none');
 });
