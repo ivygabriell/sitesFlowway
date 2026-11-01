@@ -33,8 +33,19 @@ describe('destinoDaTransicao', () => {
   it('recusa links externos, de protocolo relativo (//), âncoras e a própria página', () => {
     expect(destinoDaTransicao(link('//exemplo.com'), '/')).toBeNull();
     expect(destinoDaTransicao(link('https://exemplo.com'), '/')).toBeNull();
+    expect(destinoDaTransicao(link('javascript:alert(1)'), '/')).toBeNull();
     expect(destinoDaTransicao(link('#topo'), '/')).toBeNull();
+    expect(destinoDaTransicao(link('/trabalhos'), '/')).toBe('/trabalhos');
     expect(destinoDaTransicao(link('/'), '/')).toBeNull();
+  });
+  it('recusa a barra invertida, que o navegador lê como barra e leva a outra origem', () => {
+    expect(destinoDaTransicao(link('/' + '\\' + 'example.com'), '/')).toBeNull();
+    expect(destinoDaTransicao(link('/' + '\\' + '/example.com'), '/')).toBeNull();
+    expect(destinoDaTransicao(link('/contato' + '\\' + 'x'), '/')).toBeNull();
+  });
+  it('recusa o que resolve para outra origem, mesmo começando com /', () => {
+    expect(destinoDaTransicao(link('/\t/example.com'), '/')).toBeNull();
+    expect(destinoDaTransicao(link('/\n/example.com'), '/')).toBeNull();
   });
   it('recusa a troca de língua, nova aba, download, data-sem-transicao e o item atual do menu', () => {
     expect(destinoDaTransicao(link('/en'), '/')).toBeNull();
