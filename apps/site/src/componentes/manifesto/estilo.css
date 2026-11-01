@@ -10,21 +10,22 @@
 .rotulo-unico { position: absolute; left: -148px; top: 0; }
 
 /* ---------- cubo da marca ---------- */
+/* Tempos: tokens de src/movimento/tokens.css (tempo-palavras-cubo, intervalo-palavras-cubo). A curva das palavras é linear (curva-linear no GSAP). */
 .cubo-palco { width: calc(1000px * var(--escala-cubo)); height: calc(600px * var(--escala-cubo)); perspective: 2600px; }
 .cubo-escala { width: 1000px; height: 600px; transform: scale(var(--escala-cubo)); transform-origin: top left; transform-style: preserve-3d; }
 .cubo { position: relative; width: 1000px; height: 600px; transform-style: preserve-3d; transform: translateZ(-500px); will-change: transform; }
 .cubo-frente, .cubo-lado { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; }
 .cubo-frente { background: var(--escuro); transform: translateZ(500px); }
-.cubo-lado { transform: rotateY(90deg) translateZ(500px); background: var(--escuro) center / cover no-repeat; border: 0 solid var(--claro); }
-.palavra-contorno { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 700 230px/174px var(--sans); letter-spacing: -0.02em; color: transparent; -webkit-text-stroke: 1px var(--claro); transform-origin: center bottom; animation: girar-x 12s linear infinite; will-change: transform; }
+.cubo-lado { transform: rotateY(90deg) translateZ(500px); background: var(--escuro) center / cover no-repeat; filter: grayscale(1); border: 0 solid var(--claro); }
+.palavra-contorno { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 700 230px/174px var(--sans); letter-spacing: -0.02em; color: transparent; -webkit-text-stroke: 1px var(--claro); transform-origin: center bottom; animation: girar-x var(--tempo-palavras-cubo) linear infinite; will-change: transform; }
 .palavra-contorno.linha-1 { top: calc(30% - 329px); }
 .palavra-contorno.linha-3 { top: calc(30% + 329px); }
 .palavra-contorno.parada { animation: none; }
 .palavra-contorno.parada-invertida { animation: none; transform: perspective(1000px) rotateX(180deg); }
-.palavra-contorno.g2 { animation-delay: 2.4s; }
-.palavra-contorno.g3 { animation-delay: 4.8s; }
-.palavra-contorno.g4 { animation-delay: 7.2s; }
-.palavra-contorno.g5 { animation-delay: 9.6s; }
+.palavra-contorno.g2 { animation-delay: var(--intervalo-palavras-cubo); }
+.palavra-contorno.g3 { animation-delay: calc(2 * var(--intervalo-palavras-cubo)); }
+.palavra-contorno.g4 { animation-delay: calc(3 * var(--intervalo-palavras-cubo)); }
+.palavra-contorno.g5 { animation-delay: calc(4 * var(--intervalo-palavras-cubo)); }
 @keyframes girar-x {
   0% { transform: perspective(1000px) rotateX(0deg); }
   25% { transform: perspective(600px) rotateX(90deg); }
