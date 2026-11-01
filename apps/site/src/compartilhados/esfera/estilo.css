@@ -1,0 +1,13 @@
+/* Esfera de letras: a div só marca o lugar e o tamanho; as letras são desenhadas no canvas global.
+   Quem usa a esfera pode trocar a proporção (por exemplo, altura cheia no contato). */
+.esfera {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  pointer-events: none;
+}
+
+/* Sem WebGL, a esfera não ocupa lugar: ficam a frase e o rodapé. */
+html.js-global-canvas-error .esfera {
+  display: none;
+}
