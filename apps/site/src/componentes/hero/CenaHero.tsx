@@ -21,13 +21,13 @@ const unidade = () => (window.innerWidth < 1800 ? window.innerWidth / 2.5 : wind
 
 // Escalas de repouso (em unidades), medidas no protótipo 02-hero: a principal cobre ~85% da largura e a segunda
 // e a terceira ficam abaixo dela, com vão entre as três. Na saída cada peça vai a SAIDA × a escala de repouso.
-const ESCALA = { principal: 0.9, laje: 0.75, pequena: 0.8, principalCelular: 1.2 };
+const ESCALA = { principal: 0.8, laje: 0.75, pequena: 0.8, principalCelular: 1.6 };
 const SAIDA = { principal: 0.9, laje: 1.2, pequena: 0.82 };
 
 // Posições de repouso (em unidades), do protótipo 02-hero.
 const POSICAO = {
   principal: { x: -0.02, y: 0.3 },
-  principalCelular: { y: 0.1 },
+  principalCelular: { y: 0.45 },
   laje: { x: -0.45, y: -0.12 },
   pequena: { x: 0.62, y: -0.5 },
 };

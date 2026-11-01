@@ -14,3 +14,10 @@ test('sem WebGL, a palavra FLOWAY do hero aparece em SVG e nada fica escondido',
   expect(caixa.y).toBeGreaterThanOrEqual(0);
   await expect(page.getByText('IDENTIDADE')).toHaveCount(0);
 });
+
+test('sem WebGL, faixas, intro e convite a rolar ficam visíveis', async ({ page }) => {
+  await page.goto('/');
+  for (const sel of ['.secao-hero .faixas', '.secao-hero .intro', '.secao-hero .role-para-baixo']) {
+    await expect(page.locator(sel)).toHaveCSS('opacity', '1');
+  }
+});

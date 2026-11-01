@@ -25,3 +25,7 @@
   .secao-hero .faixa { animation: none; }
   .secao-hero .faixas, .secao-hero .intro, .secao-hero .role-para-baixo { opacity: 1; }
 }
+/* Sem WebGL não há entrada animada: faixas, intro e convite a rolar aparecem prontos. */
+.js-global-canvas-error .secao-hero .faixas,
+.js-global-canvas-error .secao-hero .intro,
+.js-global-canvas-error .secao-hero .role-para-baixo { opacity: 1; }
