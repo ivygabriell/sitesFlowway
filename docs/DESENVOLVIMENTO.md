@@ -36,6 +36,8 @@ Next.js 15.5 (App Router), React 19, Three.js r180, @react-three/fiber 9, @14isl
 - Back com o Codex e front com o Claude (modo em rascunho): a coordenadora Claude inicia os agentes do back com `--agent codex`; o Codex lê o `AGENTS.md`, com as mesmas regras do `CLAUDE.md`. O contrato da API é aprovado antes de qualquer tarefa de construção.
 - Para trazer este projeto à versão mais nova do método: `/metodo:atualizar-projeto`.
 - Memória do projeto: `docs/memoria-do-projeto.md`.
+- Com agentes especialistas (modo em rascunho): cada agente lê primeiro o seu harness em `docs/agentes/` e atua dentro dele. A integradora coordena os especialistas, e cada especialista abre as suas trabalhadoras. Exige no Orca: Settings → Orchestration → Nested worker depth = 2.
+- Especialistas deste projeto (site sem back-end próprio): Integradora, Arquitetura, Design e Front (até 2 trabalhadoras Claude) e Segurança, sempre; DevOps só na publicação (C5) e Back e Dados só se a rota do formulário ou a IA do contato pedirem; Produto, sob demanda.
 
 ## Antes do primeiro push para um repositório público
 
