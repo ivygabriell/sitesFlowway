@@ -10,6 +10,8 @@ export const ESFERA = {
   // Buracos: ruído 3D com corte em 0.32 (ruído levado a -1..1), só enquanto é esfera.
   corteDosBuracos: 0.32,
   frequenciaDosBuracos: 1.8,
+  // A câmera fica a 3 raios do centro da esfera (a perspectiva do protótipo).
+  cameraEmRaios: 3,
   // Teto do gl_PointSize: há Android com limite de 64 px (decisão 005).
   tetoDoPonto: 64,
 } as const;
@@ -42,7 +44,9 @@ void main() {
   float c = cos(a);
   float s = sin(a);
   p = vec3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
-  vec3 q = p * uRaio;
+  // A profundidade é medida em distâncias de câmera, e não em raios: a câmera fica a 3 raios do centro, como no
+  // protótipo, qualquer que seja o tamanho da esfera na tela.
+  vec3 q = vec3(p.xy * uRaio, p.z * cameraPosition.z / ${glsl(ESFERA.cameraEmRaios)});
 
   // O cursor empurra as letras no plano da tela (unidades da cena = pixels).
   vec2 d = q.xy - uMouse;
@@ -52,7 +56,8 @@ void main() {
 
   vec4 mv = modelViewMatrix * vec4(q, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = min(uTamanho * uDpr * cameraPosition.z / -mv.z, ${glsl(ESFERA.tetoDoPonto)});
+  // Todas as letras com o mesmo tamanho, como no protótipo (a perspectiva só mexe nas posições).
+  gl_PointSize = min(uTamanho * uDpr, ${glsl(ESFERA.tetoDoPonto)});
 
   // Buracos de ruído, presos à superfície da esfera e animados pelo tempo.
   float n = ruido3(aEsfera * ${glsl(ESFERA.frequenciaDosBuracos)} + vec3(uTempo * 0.3, uTempo * -0.4, uTempo * 0.5)) * 2.0 - 1.0;

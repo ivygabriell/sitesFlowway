@@ -1,4 +1,5 @@
-import { cleanup, render } from '@testing-library/react';
+import { useCanvasStore } from '@14islands/r3f-scroll-rig';
+import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EsferaDeLetras } from '@/compartilhados/esfera/EsferaDeLetras';
 import { desenharAtlas, LETRAS } from '@/compartilhados/esfera/atlas';
@@ -111,5 +112,37 @@ describe('EsferaDeLetras', () => {
     expect(container.querySelector('div.esfera')).toBeTruthy();
     expect(container.querySelector('canvas')).toBeNull();
     expect(alvo).not.toHaveBeenCalled();
+  });
+
+  it('com canvas, só chama a fábrica do alvo quando a esfera se aproxima da tela, com 20 mil pontos no desktop', () => {
+    let avisar!: (e: Partial<IntersectionObserverEntry>[]) => void;
+    const opcoes: IntersectionObserverInit[] = [];
+    class Observador {
+      constructor(cb: (e: Partial<IntersectionObserverEntry>[]) => void, o: IntersectionObserverInit) {
+        avisar = cb;
+        opcoes.push(o);
+      }
+      observe() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('IntersectionObserver', Observador);
+    useCanvasStore.setState({ isCanvasAvailable: true });
+    try {
+      const alvo = vi.fn((n: number) => pontosSimbolo(n, semente(1)));
+      const { container } = render(<EsferaDeLetras alvo={alvo} />);
+      expect(container.querySelector('div.esfera')).toBeTruthy();
+      expect(alvo).not.toHaveBeenCalled();
+      expect(opcoes[0].rootMargin).toBeTruthy();
+
+      act(() => avisar([{ isIntersecting: false }]));
+      expect(alvo).not.toHaveBeenCalled();
+
+      act(() => avisar([{ isIntersecting: true }]));
+      expect(alvo).toHaveBeenCalledTimes(1);
+      expect(alvo).toHaveBeenCalledWith(QUANTIDADE.desktop);
+    } finally {
+      useCanvasStore.setState({ isCanvasAvailable: false });
+      vi.unstubAllGlobals();
+    }
   });
 });

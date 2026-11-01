@@ -18,8 +18,9 @@ const GIRO_POR_SEGUNDO = 0.18;
 // a transição usa os tokens tempo-planos e curva-suave.
 const INTERVALO_MORFOSE = 7;
 
-// O raio da esfera cabe na div: o F tem 2.3 raios de largura (1.15 para cada lado) e o cursor empurra para fora.
-const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.6, altura / 2.2);
+// A div é o palco da esfera (a seção inteira, no protótipo 07): raio de 230 px numa tela de 900 px de altura,
+// e no máximo o que deixa o F (2.3 raios de largura) e o empurrão do cursor caberem na largura.
+const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8, (altura * 230) / 900);
 
 // Quanto o cursor guardado anda até o real, por quadro a 60 qps (o atraso do protótipo).
 const SEGUIR_CURSOR = 0.15;
@@ -105,17 +106,23 @@ function Pontos({ track, scale, inViewport, atributos, modo }: ScrollSceneChildP
   }, [scale, n, gl, material]);
 
   // Morfose automática só no desktop: esfera e alvo se alternam a cada INTERVALO_MORFOSE.
-  const morfose = useMemo(() => {
-    if (modo !== 'desktop') return null;
+  const morfose = useRef<gsap.core.Timeline | null>(null);
+  useEffect(() => {
+    if (modo !== 'desktop') return;
     const s = estado.current;
     const dur = TEMPOS['tempo-planos'];
-    return gsap
+    const tl = gsap
       .timeline({ repeat: -1, paused: true })
       .to(s, { morf: 1, duration: dur, ease: CURVAS['curva-suave'] }, INTERVALO_MORFOSE - dur)
       .to(s, { morf: 0, duration: dur, ease: CURVAS['curva-suave'] }, 2 * INTERVALO_MORFOSE - dur);
+    morfose.current = tl;
+    return () => {
+      tl.kill();
+      morfose.current = null;
+      s.morf = 0;
+    };
   }, [modo]);
-  useEffect(() => () => void morfose?.kill(), [morfose]);
-  useEffect(() => void morfose?.paused(!inViewport), [morfose, inViewport]);
+  useEffect(() => void morfose.current?.paused(!inViewport), [modo, inViewport]);
 
   // O cursor (ou o toque, no celular) empurra as letras; com movimento reduzido, nada se mexe.
   useEffect(() => {
