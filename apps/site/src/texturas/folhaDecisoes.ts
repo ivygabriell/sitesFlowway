@@ -1,6 +1,7 @@
 import { familiasDaPagina } from './cartazes';
 
-// Folha branca com a lista numerada das decisões, tracejada em cima e embaixo. Vira a textura do lençol.
+// Folha branca com a lista numerada do que a Floway entrega (os mesmos itens da lista em DOM), tracejada em
+// cima e embaixo. Vira a textura do lençol "(O que entregamos)".
 export function desenharFolha(itens: readonly string[], largura: number): HTMLCanvasElement {
   const tela = document.createElement('canvas');
   const f = familiasDaPagina();
