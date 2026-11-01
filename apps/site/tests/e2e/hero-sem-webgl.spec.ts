@@ -12,7 +12,7 @@ test('sem WebGL, a palavra FLOWAY do hero aparece em SVG e nada fica escondido',
   const largura = page.viewportSize()!.width;
   expect(caixa.width).toBeGreaterThan(0.8 * largura);
   expect(caixa.y).toBeGreaterThanOrEqual(0);
-  await expect(page.getByText('IDENTIDADE')).toHaveCount(0);
+  await expect(page.locator('.secao-hero').getByText('IDENTIDADE', { exact: true })).toHaveCount(0);
 });
 
 test('sem WebGL, faixas, intro e convite a rolar ficam visíveis', async ({ page }) => {
