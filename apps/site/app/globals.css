@@ -1,3 +1,5 @@
+@import '../src/movimento/tokens.css';
+
 /* Tokens da marca. Só estas cores entram no projeto (teste-guarda em tests/unit/guardas.test.ts). */
 :root {
   --claro: #F7F7F5;

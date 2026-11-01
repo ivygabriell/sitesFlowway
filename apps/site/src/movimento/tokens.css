@@ -1,0 +1,50 @@
+/* Tokens de tempo e de curva (02-site.md). Mesmos nomes e valores de tokens.ts.
+   As curvas do GSAP (power1.out etc.) ficam aqui só como registro; em CSS use as que são funções do CSS. */
+:root {
+  --tempo-piscar: 0.1s;
+  --tempo-rapido: 0.2s;
+  --tempo-curto: 0.3s;
+  --tempo-hover: 0.4s;
+  --tempo-esmaecer: 0.5s;
+  --tempo-transicao: 0.6s;
+  --tempo-digitar-curto: 0.6s;
+  --tempo-lista: 0.7s;
+  --tempo-cabecalho: 0.8s;
+  --tempo-curvar: 0.8s;
+  --tempo-glitch: 1s;
+  --tempo-selo: 1s;
+  --tempo-linha: 1s;
+  --tempo-cubo-celular: 1s;
+  --tempo-digitar-frase: 1.2s;
+  --tempo-vidro: 1.4s;
+  --tempo-circulo: 1.5s;
+  --tempo-filme-minimo: 1.6s;
+  --tempo-ponto-relogio: 1.6s;
+  --tempo-vidro-principal: 1.8s;
+  --tempo-planos: 2s;
+  --tempo-fitas: 2s;
+  --tempo-palavras-cubo: 12s;
+  --tempo-faixas: 200s;
+  --tempo-scrub: 1s;
+  --intervalo-minimo: 0.01s;
+  --intervalo-curto: 0.1s;
+  --intervalo-seguir: 0.15s;
+  --intervalo-lista: 0.2s;
+  --intervalo-meio: 0.5s;
+  --intervalo-cabecalho: 1s;
+  --intervalo-glitch: 1.2s;
+  --intervalo-intro: 1.5s;
+  --intervalo-palavras-cubo: 2.4s;
+  --curva-linear: none;
+  --curva-padrao: power1.out;
+  --curva-suave: power1.inOut;
+  --curva-giro: power2.inOut;
+  --curva-saida: power2.out;
+  --curva-entrada: power1.in;
+  --curva-fitas: power3.in;
+  --curva-linha: power4.inOut;
+  --curva-circulo: expoScale(3, 1);
+  --curva-cabecalho: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --curva-hover: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --curva-piscar: steps(1);
+}
