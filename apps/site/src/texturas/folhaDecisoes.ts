@@ -1,4 +1,4 @@
-import { familiasDaPagina } from './cartazes';
+import { familiasDaPagina } from './familias';
 
 // Folha branca com a lista numerada do que a Floway entrega (os mesmos itens da lista em DOM), tracejada em
 // cima e embaixo. Vira a textura do lençol "(O que entregamos)".

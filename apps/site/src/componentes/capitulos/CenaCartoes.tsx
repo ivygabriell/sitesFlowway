@@ -1,62 +1,73 @@
 'use client';
 
 import { useFrame, useThree } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { asciiFrag } from '@/shaders/ascii';
 import { vertUv } from '@/shaders/comum';
 
 export type EstadoCartoes = { progresso: number; hover: number[] };
 
-// Um plano por cartão, posicionado a cada quadro sobre a imagem do DOM (que anda com o pin e com a galeria).
-export function CenaCartoes({ cartazes, estado }: { cartazes: HTMLCanvasElement[]; estado: { current: EstadoCartoes } }) {
+// Um plano por cartão com capa, posicionado a cada quadro sobre a imagem do DOM (que anda com o pin e com a
+// galeria). A capa chega em ASCII e uma varredura a revela; o hover aproxima 10% e escurece 30% (no shader).
+// `capas[k]` é a capa do k-ésimo cartão com capa, e `indices[k]` o índice dele na fileira (para o hover).
+export function CenaCartoes({ capas, indices, estado }: { capas: string[]; indices: number[]; estado: { current: EstadoCartoes } }) {
   const { gl } = useThree();
   const planos = useRef<(THREE.Mesh | null)[]>([]);
-  const materiais = useMemo(
-    () =>
-      cartazes.map((c) => {
-        const textura = new THREE.CanvasTexture(c);
-        textura.colorSpace = THREE.SRGBColorSpace;
-        return new THREE.ShaderMaterial({
-          glslVersion: THREE.GLSL3,
-          vertexShader: vertUv,
-          fragmentShader: asciiFrag,
-          uniforms: {
-            uImagem: { value: textura },
-            uProgresso: { value: 0 },
-            uHover: { value: 0 },
-            uTempo: { value: 0 },
-            uPixelRatio: { value: gl.getPixelRatio() },
-            uFundo: { value: new THREE.Color('#121212') },
-          },
-        });
+  const materiais = useMemo(() => {
+    const carregador = new THREE.TextureLoader();
+    return capas.map((capa) => {
+      const textura = carregador.load(capa);
+      textura.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL3,
+        vertexShader: vertUv,
+        fragmentShader: asciiFrag,
+        uniforms: {
+          uImagem: { value: textura },
+          uProgresso: { value: 0 },
+          uHover: { value: 0 },
+          uTempo: { value: 0 },
+          uPixelRatio: { value: gl.getPixelRatio() },
+          uFundo: { value: new THREE.Color('#121212') },
+        },
+      });
+    });
+  }, [capas, gl]);
+
+  // Texturas e materiais saem da GPU quando a cena desmonta.
+  useEffect(
+    () => () =>
+      materiais.forEach((m) => {
+        (m.uniforms.uImagem.value as THREE.Texture).dispose();
+        m.dispose();
       }),
-    [cartazes, gl],
+    [materiais],
   );
 
   useFrame(({ clock }) => {
     const imagens = document.querySelectorAll<HTMLImageElement>('.secao-capitulos .cartao-img img');
     const W = window.innerWidth;
     const H = window.innerHeight;
-    imagens.forEach((img, i) => {
-      const plano = planos.current[i];
+    imagens.forEach((img, k) => {
+      const plano = planos.current[k];
       if (!plano) return;
       const r = img.getBoundingClientRect();
       plano.visible = r.bottom > 0 && r.top < H && r.right > 0 && r.left < W;
       if (!plano.visible) return;
       plano.position.set(r.left + r.width / 2 - W / 2, H / 2 - (r.top + r.height / 2), 0);
       plano.scale.set(r.width, r.height, 1);
-      const u = materiais[i].uniforms;
+      const u = materiais[k].uniforms;
       u.uTempo.value = clock.elapsedTime;
       u.uProgresso.value = estado.current.progresso;
-      u.uHover.value = estado.current.hover[i] ?? 0;
+      u.uHover.value = estado.current.hover[indices[k]] ?? 0;
     });
   });
 
   return (
     <group>
-      {materiais.map((m, i) => (
-        <mesh key={i} ref={(el) => void (planos.current[i] = el)} material={m} visible={false}>
+      {materiais.map((m, k) => (
+        <mesh key={k} ref={(el) => void (planos.current[k] = el)} material={m} visible={false}>
           <planeGeometry args={[1, 1]} />
         </mesh>
       ))}

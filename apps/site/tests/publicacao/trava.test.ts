@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TEXTOS } from '@/conteudo';
 import { pendencias } from '@/conteudo/textos';
+import { listaDeTrabalhos } from '@/conteudo/trabalhos';
 
 // Trava de publicação (C5): só passa quando nenhum texto do índice está pendente e todos têm inglês (que todo
 // módulo de conteúdo está no índice, quem confere é tests/unit/indice.test.ts, no CI). Fica fora do CI até C2
@@ -8,5 +9,10 @@ import { pendencias } from '@/conteudo/textos';
 describe('trava de publicação', () => {
   it('não há texto pendente nem texto sem inglês', () => {
     expect(pendencias(TEXTOS)).toEqual([]);
+  });
+
+  it('não há marcadores de construção', () => {
+    // Enquanto a lista real estiver vazia, a Início mostra os cartões "Conceito · …" (marcadoresDeConstrucao).
+    expect(listaDeTrabalhos.length).toBeGreaterThan(0);
   });
 });
