@@ -1,6 +1,5 @@
+import type { Pagina } from '@/lib/idioma';
 import { pendente, type Texto, type Textos } from './textos';
-
-type Pagina = 'inicio' | 'trabalhos' | 'contato' | 'privacidade';
 
 // Títulos com até 60 caracteres e descrições com até 155 (02-site, "Buscadores"). Os da 02-site falam dos
 // nichos, que a spec tirou do foco; por isso ficam pendentes até C2, exceto os títulos que não citam nicho.
