@@ -12,31 +12,30 @@ import { vertUv } from '@/shaders/comum';
 import { glitchFrag } from '@/shaders/glitch';
 import { refracaoFrag, refracaoVert } from '@/shaders/refracao';
 import { desenharPalavra } from '@/texturas/palavra';
+import { ESCALA, INCLINACAO, PALAVRA, PARALAXE, POSICAO, SAIDA, alvosDeSaida, repouso, unidade } from './disposicao';
 import { criarLaminas } from './laminas';
 
 const CLARO = new THREE.Color('#F7F7F5');
 
-// Unidade do hero, como na referência: a cena inteira escala com a largura da tela.
-const unidade = () => (window.innerWidth < 1800 ? window.innerWidth / 2.5 : window.innerWidth / 2.8);
+const u = () => unidade(window.innerWidth);
 
-// Escalas de repouso (em unidades), medidas no protótipo 02-hero: a principal cobre ~85% da largura e a segunda
-// e a terceira ficam abaixo dela, com vão entre as três. Na saída cada peça vai a SAIDA × a escala de repouso.
-const ESCALA = { principal: 0.8, laje: 0.75, pequena: 0.8, principalCelular: 1.6 };
-const SAIDA = { principal: 0.9, laje: 1.2, pequena: 0.82 };
+// Rotação de repouso de cada lâmina (rad); a saída soma a ela o giro de alvosDeSaida.
+const ROTACAO = {
+  principal: [INCLINACAO.principal, 0, 0],
+  laje: [INCLINACAO.laje, 0, 0],
+  pequena: [INCLINACAO.pequena, 0.1, 0],
+} as const;
 
-// Posições de repouso (em unidades), do protótipo 02-hero.
-const POSICAO = {
-  principal: { x: -0.02, y: 0.3 },
-  principalCelular: { y: 0.45 },
-  laje: { x: -0.45, y: -0.12 },
-  pequena: { x: 0.62, y: -0.5 },
-};
+// Intensidade do vidro (issue #15): a lâmina principal passa sobre a palavra e quase não borra nem clareia, para
+// FLOWAY seguir escura e nítida sob ela, como na referência; as menores mantêm o borrão forte. passoBorrao é a
+// distância (px) entre as 9 amostras do borrão; veu, quanto do branco cobre o fundo; forca, quanto a normal desloca o
+// fundo (na principal, menos, para o chanfro de baixo ainda mostrar o pé das letras).
+const INTENSIDADE = { principal: { passoBorrao: 0.5, veu: 0.015, forca: 0.3 }, demais: { passoBorrao: 7, veu: 0.1, forca: 1 } };
 
 // Atalhos para os tokens de movimento usados aqui.
 const T = TEMPOS;
 const C = CURVAS;
 
-const escalaDeSaida = (e: number, duration: number) => ({ x: e, y: e, z: e, duration });
 
 export function CenaHero() {
   const { gl, scene, camera, size } = useThree();
@@ -56,9 +55,12 @@ export function CenaHero() {
   const estado = useRef({ progresso: reduzido ? 1 : 0, opacidade: 1, yPrincipal: 0, yLaje: 0, yPequena: 0, ativo: true });
 
   const formas = useMemo(() => criarLaminas(), []);
+  // Repouso das lâminas para o tamanho atual da tela (recalculado quando ela muda).
+  const lugar = useMemo(() => repouso(size.width, size.height), [size]);
   const alvo = useMemo(() => new THREE.WebGLRenderTarget(1, 1), []);
-  const materialVidro = useMemo(
-    () =>
+  // Um material por lâmina, com o mesmo alvo: só a intensidade (borrão e véu) muda entre elas.
+  const vidros = useMemo(() => {
+    const criar = ({ passoBorrao, veu, forca }: { passoBorrao: number; veu: number; forca: number }) =>
       new THREE.ShaderMaterial({
         vertexShader: refracaoVert,
         fragmentShader: refracaoFrag,
@@ -70,11 +72,13 @@ export function CenaHero() {
           uTempo: { value: 0 },
           uBorrao: { value: new THREE.Vector2() },
           uOpacidade: { value: 1 },
-          uForca: { value: 1 },
+          uForca: { value: forca },
+          uPassoBorrao: { value: passoBorrao },
+          uVeu: { value: veu },
         },
-      }),
-    [alvo],
-  );
+      });
+    return { principal: criar(INTENSIDADE.principal), laje: criar(INTENSIDADE.demais), pequena: criar(INTENSIDADE.demais) };
+  }, [alvo]);
   const materialLogo = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -107,17 +111,17 @@ export function CenaHero() {
   useEffect(() => {
     const v = gl.getDrawingBufferSize(new THREE.Vector2());
     alvo.setSize(v.x, v.y);
-    materialVidro.uniforms.uResolucao.value.copy(v);
-    const u = unidade();
-    refPrincipal.current?.scale.setScalar((celular ? ESCALA.principalCelular : ESCALA.principal) * u);
-    refLaje.current?.scale.setScalar(ESCALA.laje * u);
-    refPequena.current?.scale.setScalar(ESCALA.pequena * u);
-  }, [gl, size, alvo, materialVidro, celular]);
+    Object.values(vidros).forEach((m) => m.uniforms.uResolucao.value.copy(v));
+    const un = u();
+    refPrincipal.current?.scale.setScalar((celular ? ESCALA.principalCelular : ESCALA.principal) * un);
+    refLaje.current?.scale.setScalar(ESCALA.laje * un);
+    refPequena.current?.scale.setScalar(ESCALA.pequena * un);
+  }, [gl, size, alvo, vidros, celular]);
 
   // Entrada (quando a abertura termina) e saída ligada à rolagem.
   useEffect(() => {
     if (!terminou || reduzido) return;
-    const u = unidade();
+    const un = u();
     const s = estado.current;
     const principal = refPrincipal.current!;
     const pequena = refPequena.current!;
@@ -127,7 +131,7 @@ export function CenaHero() {
     const entrada = gsap.timeline();
     entrada.set('.secao-hero .intro', { opacity: 1 }, 0);
     if (celular) {
-      s.yPrincipal = -3 * u;
+      s.yPrincipal = -3 * un;
       entrada
         .to(s, { progresso: 1, duration: T['tempo-glitch'], ease: C['curva-suave'] }, 1)
         .to('.secao-hero .faixas', { opacity: 1, duration: T['tempo-hover'] }, 1)
@@ -136,9 +140,9 @@ export function CenaHero() {
         .to('.secao-hero .role-para-baixo', { opacity: 1, duration: T['tempo-curto'] }, 1.2);
       palavras.forEach((p) => entrada.from(p, { opacity: 0, duration: T['tempo-piscar'], repeat: 4 }, 1.1 + 0.5 * Math.random()));
     } else {
-      s.yPrincipal = -2 * u;
-      s.yLaje = -2 * u;
-      s.yPequena = -2 * u;
+      s.yPrincipal = -2 * un;
+      s.yLaje = -2 * un;
+      s.yPequena = -2 * un;
       entrada
         .to(s, { progresso: 1, duration: T['tempo-glitch'], ease: C['curva-suave'] }, INTERVALOS['intervalo-glitch'])
         .to('.secao-hero .faixas', { opacity: 1, duration: T['tempo-esmaecer'] }, INTERVALOS['intervalo-intro'])
@@ -158,33 +162,31 @@ export function CenaHero() {
       s.ativo = sim;
       [refPrincipal, refLaje, refPequena].forEach((r) => r.current && (r.current.visible = sim && (!celular || r === refPrincipal)));
     };
+    // Saída (referência 3.2): as lâminas crescem e giram no lugar enquanto o vidro some; a altura segue só a paralaxe.
+    const malhas = { principal: principal, laje: refLaje.current!, pequena: pequena };
     const atraso = setTimeout(() => {
       saida = gsap.timeline({
         scrollTrigger: {
           trigger: '.secao-hero',
-          start: 'top+=10',
-          end: `+=${(celular ? 0.7 : 2) * window.innerHeight}`,
-          scrub: T['tempo-scrub'],
+          start: SAIDA.inicio,
+          end: `+=${(celular ? SAIDA.alturas.celular : SAIDA.alturas.desktop) * window.innerHeight}`,
+          scrub: SAIDA.scrub,
           refreshPriority: PRIORIDADE.hero,
           onLeave: () => mostrar(false),
           onEnterBack: () => mostrar(true),
         },
       });
       saida.to(['.secao-hero .role-para-baixo', '.secao-hero .faixas'], { opacity: 0, duration: T['tempo-rapido'] }, 0);
-      if (celular) {
-        saida.to(s, { opacidade: 0, duration: T['tempo-curto'] }, 0.2).to(principal.rotation, { y: 0.05 * Math.PI, duration: 1 }, 0);
-      } else {
+      for (const { peca, crescimento, giro } of alvosDeSaida(celular, false)) {
+        const escala = (peca === 'principal' && celular ? ESCALA.principalCelular : ESCALA[peca]) * crescimento * un;
+        const [rx, ry, rz] = ROTACAO[peca];
         saida
-          .to(principal.scale, escalaDeSaida(ESCALA.principal * SAIDA.principal * u, T['tempo-planos']), 0.2)
-          .to(s, { opacidade: 0, duration: 0.58, ease: C['curva-entrada'] }, 0.4)
-          .to(refLaje.current!.scale, escalaDeSaida(ESCALA.laje * SAIDA.laje * u, T['tempo-planos']), 0.2)
-          .to(s, { yLaje: 0.1 * u, duration: 1 }, 0.2)
-          .to(pequena.scale, escalaDeSaida(ESCALA.pequena * SAIDA.pequena * u, T['tempo-ponto-relogio']), 0.2)
-          .to('.secao-hero .vidro-dom-recorte', { scale: 0, opacity: 0, rotateZ: -9, duration: 1.2 }, 0.2)
-          .to(principal.rotation, { y: 0.1 * Math.PI, duration: 1.5 }, 0.1)
-          .to(refLaje.current!.rotation, { y: -0.05 * Math.PI, duration: 1.4 }, 0.2)
-          .to(pequena.rotation, { z: -0.05 * Math.PI, duration: 1.2 }, 0.2);
+          .to(malhas[peca].scale, { x: escala, y: escala, z: escala, duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto'])
+          .to(malhas[peca].rotation, { x: rx + (giro.x ?? 0), y: ry + (giro.y ?? 0), z: rz + (giro.z ?? 0), duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto']);
       }
+      // O vidro some até o escuro subir (0,9 de 2,1 da saída: cerca de uma altura de tela de rolagem no desktop), já com as lâminas bem maiores.
+      saida.to(s, { opacidade: 0, duration: T['tempo-lista'], ease: C['curva-entrada'] }, INTERVALOS['intervalo-lista']);
+      if (!celular) saida.to('.secao-hero .vidro-dom-recorte', { scale: 0, opacity: 0, rotateZ: -9, duration: 1.2 }, 0.2);
       recalcularGatilhos();
     }, 1000);
 
@@ -201,31 +203,37 @@ export function CenaHero() {
     const principal = refPrincipal.current;
     if (!principal || !refLogo.current) return;
 
-    const u = unidade();
+    const un = u();
     const t = reduzido ? 0 : estadoR3f.clock.elapsedTime;
     const m = reduzido ? { x: 0, y: 0 } : estadoR3f.pointer;
     const sy = rolagemSuave ? scroll.y : window.scrollY;
+    // Com movimento reduzido tudo anda com a página (×1) e some com a seção.
+    const px = (fator: number) => (reduzido ? 1 : fator) * sy;
 
     materialLogo.uniforms.uProgresso.value = s.progresso;
-    refLogo.current.position.y = 0.178 * window.innerHeight + (reduzido ? 1 : 1.6) * sy;
+    refLogo.current.position.y = 0.178 * window.innerHeight + px(PARALAXE.palavra);
 
     const laje = refLaje.current!;
     const pequena = refPequena.current!;
+    const r = lugar;
     if (celular) {
-      principal.position.set(POSICAO.principal.x * u + 0.07 * Math.sin(0.9 * t) * u, POSICAO.principalCelular.y * u + 0.03 * Math.sin(0.7 * t) * u + s.yPrincipal + 0.1 * sy, 0);
+      principal.position.set(POSICAO.principal.x * un + 0.07 * Math.sin(0.9 * t) * un, r.principal.y + 0.03 * Math.sin(0.7 * t) * un + s.yPrincipal + px(PARALAXE.principal), 0);
     } else {
-      principal.position.x = POSICAO.principal.x * u + 0.07 * Math.sin(0.9 * t) * u + 0.1 * m.x * u;
-      principal.position.y = POSICAO.principal.y * u + 0.03 * Math.sin(0.6 * t) * u + 0.03 * m.y * u + s.yPrincipal + (reduzido ? 1 : 0.1) * sy;
+      principal.position.x = POSICAO.principal.x * un + 0.07 * Math.sin(0.9 * t) * un + 0.1 * m.x * un;
+      principal.position.y = r.principal.y + 0.03 * Math.sin(0.6 * t) * un + 0.03 * m.y * un + s.yPrincipal + px(PARALAXE.principal);
       principal.rotation.z = -0.04 * m.x;
-      laje.position.x = POSICAO.laje.x * u - Math.cos(0.8 * t) * u * 0.05 + 0.08 * m.x * u;
-      laje.position.y = POSICAO.laje.y * u + s.yLaje + (reduzido ? 1 : 0.9) * sy;
-      pequena.position.x = POSICAO.pequena.x * u - 0.04 * Math.sin(0.7 * t) * u + 0.05 * m.x * u;
-      pequena.position.y = POSICAO.pequena.y * u - 0.02 * m.y * u + s.yPequena + (reduzido ? 1 : 0.4) * sy;
+      laje.position.x = POSICAO.laje.x * un - Math.cos(0.8 * t) * un * 0.05 + 0.08 * m.x * un;
+      laje.position.y = r.laje.y + s.yLaje + px(PARALAXE.laje);
+      pequena.position.x = POSICAO.pequena.x * un - 0.04 * Math.sin(0.7 * t) * un + 0.05 * m.x * un;
+      pequena.position.y = r.pequena.y - 0.02 * m.y * un + s.yPequena + px(PARALAXE.pequena);
       if (vidroDom.current) gsap.set(vidroDom.current, { x: pequena.position.x, y: -pequena.position.y });
     }
-    materialVidro.uniforms.uTempo.value = t;
-    materialVidro.uniforms.uBorrao.value.set(5 * m.x, 3 * m.y);
-    materialVidro.uniforms.uOpacidade.value = s.opacidade;
+    // O mouse empurra o borrão em proporção ao passo de cada lâmina (no passo 7, até 5 px na horizontal e 3 na vertical).
+    Object.values(vidros).forEach(({ uniforms }) => {
+      uniforms.uTempo.value = t;
+      uniforms.uBorrao.value.set((5 / 7) * m.x, (3 / 7) * m.y);
+      uniforms.uOpacidade.value = s.opacidade;
+    });
 
     // Fora do hero (inclusive com movimento reduzido, quando não há gatilho de saída) o passo da refração para.
     if (!s.ativo || s.opacidade < 0.01 || sy > 2 * window.innerHeight) return;
@@ -240,17 +248,18 @@ export function CenaHero() {
   });
 
   const larguraLogo = typeof window === 'undefined' ? 0 : window.innerWidth * (celular ? 0.9 : 0.86);
+  const zLogo = typeof window === 'undefined' ? 0 : PALAVRA.z * u();
 
   return (
     <group>
       {logo && (
-        <mesh ref={refLogo} material={materialLogo} position={[0, 0, -0.2 * unidade()]}>
+        <mesh ref={refLogo} material={materialLogo} position={[0, 0, zLogo]}>
           <planeGeometry args={[larguraLogo, larguraLogo * logo.razao]} />
         </mesh>
       )}
-      <mesh ref={refPrincipal} geometry={formas.principal} material={materialVidro} rotation={[-0.35, 0, 0]} renderOrder={2} />
-      <mesh ref={refLaje} geometry={formas.segunda} material={materialVidro} rotation={[-0.3, 0, 0]} visible={!celular} renderOrder={2} />
-      <mesh ref={refPequena} geometry={formas.terceira} material={materialVidro} rotation={[-0.25, 0.1, 0]} visible={!celular} renderOrder={2} />
+      <mesh ref={refPrincipal} geometry={formas.principal} material={vidros.principal} rotation={[...ROTACAO.principal]} renderOrder={2} />
+      <mesh ref={refLaje} geometry={formas.segunda} material={vidros.laje} rotation={[...ROTACAO.laje]} visible={!celular} renderOrder={2} />
+      <mesh ref={refPequena} geometry={formas.terceira} material={vidros.pequena} rotation={[...ROTACAO.pequena]} visible={!celular} renderOrder={2} />
     </group>
   );
 }
