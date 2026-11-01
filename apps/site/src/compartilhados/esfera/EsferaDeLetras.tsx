@@ -18,8 +18,9 @@ export type FabricaDoAlvo = (n: number) => AlvoDaEsfera;
 const ANTECEDENCIA = '100% 0px';
 
 // Esfera de letras FLOWAY que forma o alvo (o F do símbolo no contato). Acompanha a div.esfera com um <UseCanvas>;
-// sem WebGL, fica só a div, sem nada desenhado.
-export function EsferaDeLetras({ alvo, className }: { alvo: FabricaDoAlvo; className?: string }) {
+// sem WebGL, fica só a div, sem nada desenhado. Com `fixa`, a div é position: sticky e a cena acompanha a parte presa
+// (quem usa dá o sticky no CSS); sem `fixa`, nada muda.
+export function EsferaDeLetras({ alvo, className, fixa = false }: { alvo: FabricaDoAlvo; className?: string; fixa?: boolean }) {
   const { isCanvasAvailable } = useScrollRig();
   const ref = useRef<HTMLDivElement>(null);
   const [modo, setModo] = useState<ModoDeExibicao | null>(null);
@@ -61,8 +62,8 @@ export function EsferaDeLetras({ alvo, className }: { alvo: FabricaDoAlvo; class
   return (
     <div ref={ref} className={className ? `esfera ${className}` : 'esfera'} aria-hidden="true">
       {atributos && modo && (
-        <UseCanvas atributos={atributos} modo={modo}>
-          <CenaEsfera track={ref as React.MutableRefObject<HTMLElement>} atributos={atributos} modo={modo} />
+        <UseCanvas atributos={atributos} modo={modo} fixa={fixa}>
+          <CenaEsfera track={ref as React.MutableRefObject<HTMLElement>} atributos={atributos} modo={modo} fixa={fixa} />
         </UseCanvas>
       )}
     </div>
