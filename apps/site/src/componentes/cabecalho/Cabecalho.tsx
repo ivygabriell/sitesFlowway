@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { cabecalho } from '@/conteudo/identidade';
 import { useAbertura } from '@/estado/abertura';
 import { relogio } from '@/lib/relogio';
+import './estilo.css';
 
 // Relógio REC, nome com trecho que recolhe e menu com texto que gira. Inverte sozinho com mix-blend-mode.
 export function Cabecalho({ visivel }: { visivel: boolean }) {

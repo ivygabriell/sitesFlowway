@@ -6,6 +6,7 @@ import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { CuboMarca } from './CuboMarca';
+import './estilo.css';
 
 export function Manifesto() {
   useEfeitoDeLayout(() => {

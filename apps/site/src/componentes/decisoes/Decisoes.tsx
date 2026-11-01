@@ -8,6 +8,7 @@ import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { desenharFolha } from '@/texturas/folhaDecisoes';
 import { CenaLencol, type EstadoLencol } from './CenaLencol';
+import './estilo.css';
 
 export function Decisoes() {
   const { isCanvasAvailable } = useScrollRig();

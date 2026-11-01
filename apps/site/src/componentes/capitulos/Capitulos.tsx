@@ -11,6 +11,7 @@ import { desenharCartaz } from '@/texturas/cartazes';
 import { BarraProgresso } from './BarraProgresso';
 import { CenaCartoes, type EstadoCartoes } from './CenaCartoes';
 import { Previa } from './Previa';
+import './estilo.css';
 
 type Modo = 'galeria' | 'grade' | 'lista';
 const LARGURA_CARTAZ = 730;

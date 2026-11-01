@@ -3,6 +3,7 @@
 import { UseCanvas } from '@14islands/r3f-scroll-rig';
 import { faixas, intro, logotipo, rolarParaBaixo } from '@/conteudo/identidade';
 import { CenaHero } from './CenaHero';
+import './estilo.css';
 
 const REPETICOES = 4;
 

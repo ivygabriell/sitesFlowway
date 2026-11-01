@@ -8,6 +8,7 @@ import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { CenaFisica, type EstadoFisica } from './CenaFisica';
 import { Rodape } from './Rodape';
+import './estilo.css';
 
 type Modo = 'desktop' | 'celular' | 'reduzido';
 

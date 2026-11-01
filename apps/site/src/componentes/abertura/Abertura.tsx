@@ -6,6 +6,7 @@ import { useAbertura } from '@/estado/abertura';
 import { gsap } from '@/gsap';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { desenharFilme } from './filmeAbertura';
+import './estilo.css';
 
 const CHAVE = 'abertura-tocou';
 const ESPERA_MINIMA = 1.6; // segundos com o filme na tela antes dos dois últimos trechos

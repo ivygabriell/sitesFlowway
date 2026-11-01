@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { temWebgl } from '@/lib/webgl';
 import { CenaPassagem } from './CenaPassagem';
+import './estilo.css';
 
 // No celular, com movimento reduzido ou sem WebGL não há plano: as seções escuras pintam o próprio fundo (classe no <html>).
 export function Passagem() {
