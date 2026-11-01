@@ -11,7 +11,7 @@ Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Que
 | 003 | Trava de publicação no build de produção, fora do CI | Aceita pela integradora (a ligação é feita em C5) | 2026-10-31 |
 | 004 | Amostragem do símbolo por faixas de linha | Aceita pela integradora | 2026-10-31 |
 | 005 | Esfera de letras como `THREE.Points` com tudo no shader | Aceita pela integradora | 2026-10-31 |
-| 006 | Avisos do `npm audit`: aceitar com registro | **Proposta**, espera o portão da pessoa | 2026-10-31 |
+| 006 | Avisos do `npm audit`: aceitar com registro | Aceita pela pessoa | 2026-10-31 |
 
 ---
 
@@ -128,7 +128,9 @@ Num celular médio, a rejeição ocuparia a thread principal por meio segundo ou
 - Pontos não giram no próprio plano e têm tamanho máximo, o que não atrapalha aqui.
 - Sem ordenação de transparência, as bordas das letras são duras (`discard`).
 
-## 006 · Avisos do `npm audit`: aceitar com registro (proposta)
+## 006 · Avisos do `npm audit`: aceitar com registro
+
+**Estado:** aceita pela pessoa em 2026-10-31, pelo portão da integradora.
 
 **Contexto.** `npm audit --package-lock-only` na raiz em 2026-10-31 mostrou 22 avisos: 2 críticos, 4 altos e 16 moderados. A pilha decidida não muda, e não se roda `audit fix`: todas as correções oferecidas são versões maiores ou quebram.
 
@@ -139,6 +141,20 @@ Num celular médio, a rejeição ocuparia a thread principal por meio segundo ou
 | `@14islands/r3f-scroll-rig` 8.15.0 → `query-string` 6.14.1 → `decode-uri-component` 0.2.2 | 3 altos | Produção, **no cliente**: o scroll-rig chama `parse(window.location.search)` ao montar o `GlobalCanvas` (conferido no `dist`); no servidor não roda | Um link com `?%…` malicioso trava a aba de quem clica nele. Sem servidor afetado, sem dado vazado, sem efeito em mais ninguém. Baixa | Aceitar e reavaliar a cada versão do scroll-rig. A 8.15.0 é a mais nova e pede `query-string ^6`. O `decode-uri-component` corrigido (0.5.1) é só ESM, e um override quebraria o `require` do `query-string` 6. A alternativa, um patch local trocando o `parse` por `URLSearchParams`, é peça nova e precisa de portão |
 | `next` 15.5.28 → `postcss` 8.4.31 | 1 alto, 1 moderado | Produção, mas **só no build** | A leitura de arquivo pelo `sourceMappingURL` e o XSS no stringify exigem CSS controlado por quem ataca entrando no build. Só entra CSS nosso e do scroll-rig. Baixa | Aceitar. O Next fixa `postcss` 8.4.31 exato, e a 15.5.28 é a última 15.x; a correção do audit é o Next 16. O override para 8.5.32 é possível, mas tira o Next da versão que ele testou, para um ganho quase nulo |
 
-**Decisão (proposta).** Aceitar os quatro grupos com este registro e criar a tarefa futura "vitest 4". **A decisão de aceitar o risco é da pessoa**, por portão da integradora.
+**Decisão.** A pessoa aceitou os quatro grupos com este registro.
 
-**O que se perde.** O audit continua mostrando os avisos até os upgrades. Revisar este registro a cada nova versão do scroll-rig, do Next 15 e do vitest.
+**Tarefa futura "vitest 4".**
+- **O quê:** subir o `vitest` de 3.2.7 para ≥ 4.1.12, o que traz o `tinypool` ≥ 2.1.2 e o `@vitest/mocker` corrigido.
+- **Quando:** depois do PR 3 do plano da base e da Início, numa issue e num PR próprios, sem misturar com as tarefas 1 a 14.
+- **Aceite:** `npm test`, `npm run check` e `npm run test:build` verdes, e o `npm audit` sem os avisos do grupo vitest.
+
+**Gatilhos de revisão** (qualquer um reabre este registro):
+- Sai uma versão nova do `@14islands/r3f-scroll-rig` que troca ou atualiza o `query-string`.
+- Sai uma versão 15.x do Next que muda o `postcss`, ou a pilha passa a admitir o Next 16.
+- Sai uma versão 3.x do vitest que corrige o `tinypool`, ou a tarefa "vitest 4" é feita.
+- Um aviso novo, ou um aviso destes que sobe de gravidade, aparece no `npm audit` do CI ou da Segurança.
+- O vitest passa a rodar com servidor exposto (modo navegador, UI ou `--api`).
+- Entra CSS de fora (de usuário, de CMS ou de pacote novo) no build.
+- Antes da publicação (C5), na revisão da Arquitetura com o DevOps e a Segurança.
+
+**O que se perde.** O audit continua mostrando os avisos até os upgrades.
