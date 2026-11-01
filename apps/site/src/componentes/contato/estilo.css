@@ -1,24 +1,30 @@
 /* ---------- contato ---------- */
-.secao-contato { position: relative; height: 100vh; padding: 70px 30px 20px; overflow: hidden; color: var(--escuro); pointer-events: none; }
-.frase-contato { position: relative; z-index: 1; font: 500 3.1vw/2.8vw var(--sans); letter-spacing: -0.02em; text-transform: uppercase; text-align: justify; }
+/* Medidas do protótipo 07 a 1440 px: frase de 44,6 px no topo; a esfera ocupa a tela inteira, atrás da frase.
+   No desktop a seção tem 1,8 altura da tela e a tela fica presa (sticky) enquanto o círculo encolhe; a esfera também
+   é sticky, logo atrás, para a cena dela acompanhar (EsferaDeLetras com `fixa`). Sem nada preso no celular e no reduzido. */
+.secao-contato { position: relative; height: 180vh; color: var(--escuro); pointer-events: none; }
+.contato-tela { position: sticky; z-index: 1; top: 0; height: 100vh; padding: 70px 30px 20px; overflow: hidden; }
+.secao-contato .esfera { position: sticky; z-index: 0; top: 0; height: 100vh; margin-top: -100vh; aspect-ratio: auto; }
+@media (max-width: 899px), (prefers-reduced-motion: reduce) {
+  .secao-contato { height: 100vh; }
+}
+.frase-contato { position: relative; z-index: 1; font: 500 3.1vw/2.8vw var(--sans); letter-spacing: -0.02em; text-transform: uppercase; text-align: justify; text-align-last: left; }
 .circulo-escuro { position: absolute; z-index: 2; width: 130vw; height: 130vw; left: 50%; top: 50%; margin: -65vw 0 0 -65vw; border-radius: 50%; background: var(--escuro); }
 .modo-reduzido .circulo-escuro { display: none; }
-.secao-contato.modo-desktop.ativo { pointer-events: auto; cursor: grab; }
-.secao-contato.modo-desktop.ativo:active { cursor: grabbing; }
 
 /* ---------- rodapé ---------- */
-.rodape { position: absolute; z-index: 3; left: 0; right: 0; bottom: 20px; display: none; flex-direction: column; align-items: center; color: var(--escuro); font: 400 1.46vw/1.7vw var(--serif); pointer-events: none; }
+.rodape { position: absolute; z-index: 3; left: 0; right: 0; bottom: 20px; display: none; flex-direction: column; align-items: center; padding: 0 30px; text-align: center; color: var(--escuro); font: 400 1.46vw/1.67vw var(--serif); pointer-events: none; }
 .rodape.visivel { display: flex; }
-.rodape-titulo { font-size: 1.56vw; line-height: 1.56vw; }
-.rodape-linhas { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 0.9vw; width: 60%; margin-top: 26px; text-transform: uppercase; }
-.rodape-linha { display: flex; gap: 6px; align-items: flex-end; }
-.rodape-linha i { font-size: 1vw; line-height: 1.4vw; text-transform: none; }
+.rodape-cta { margin-bottom: 20px; font-size: 1.56vw; line-height: 1.56vw; color: inherit; text-decoration: none; border-bottom: 1px solid var(--azul); pointer-events: auto; }
+.rodape-cta:focus-visible { outline: 2px solid var(--azul); outline-offset: 4px; }
+.rodape-linha { text-transform: uppercase; }
+.rodape-linha i { margin: 0 6px 0 14px; font-size: 1vw; text-transform: none; }
+.rodape-linha i:first-child { margin-left: 0; }
 
 @media (max-width: 899px) {
-  .secao-contato { padding: 60px 18px 20px; }
+  .contato-tela { padding: 60px 18px 20px; }
   .frase-contato { font-size: 6.4vw; line-height: 6vw; }
-  .rodape { font-size: 12px; line-height: 15px; bottom: 16px; }
-  .rodape-titulo { font-size: 16px; line-height: 18px; }
-  .rodape-linhas { width: 90%; margin-top: 12px; }
-  .rodape-linha i { font-size: 10px; line-height: 14px; }
+  .rodape { padding: 0 18px; font-size: 12px; line-height: 15px; bottom: 16px; }
+  .rodape-cta { margin-bottom: 12px; font-size: 16px; line-height: 18px; }
+  .rodape-linha i { margin: 0 4px 0 8px; font-size: 10px; }
 }
