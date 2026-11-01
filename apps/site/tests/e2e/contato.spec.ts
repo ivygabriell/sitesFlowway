@@ -61,3 +61,36 @@ for (const viewport of [{ width: 820, height: 1180 }, { width: 390, height: 720 
     });
   });
 }
+
+test.describe('frase do contato em paisagem', () => {
+  test.use({ viewport: { width: 899, height: 600 } });
+  test('nenhum glifo fica sob o selo fixo na entrada ou no topo da seção', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+    for (const topo of [150, 0]) {
+      await page.evaluate((topo) => {
+        const secao = document.querySelector('.secao-contato')!;
+        scrollTo(0, scrollY + secao.getBoundingClientRect().top - topo);
+      }, topo);
+      await expect(page.locator('.selo')).toHaveClass(/visivel/);
+      const cobertos = await page.evaluate(() => {
+        const selo = document.querySelector('.selo')!.getBoundingClientRect();
+        const texto = document.createTreeWalker(document.querySelector('.frase-contato')!, NodeFilter.SHOW_TEXT);
+        const cobertos: string[] = [];
+        let no: Node | null;
+        while ((no = texto.nextNode())) {
+          for (let i = 0; i < no.textContent!.length; i++) {
+            const letra = no.textContent![i];
+            if (!letra.trim()) continue;
+            const range = document.createRange();
+            range.setStart(no, i);
+            range.setEnd(no, i + 1);
+            if ([...range.getClientRects()].some((r) => r.right > selo.left && r.left < selo.right && r.bottom > selo.top && r.top < selo.bottom)) cobertos.push(letra);
+          }
+        }
+        return cobertos;
+      });
+      expect(cobertos, `glifos cobertos com a seção a ${topo}px do topo`).toEqual([]);
+    }
+  });
+});
