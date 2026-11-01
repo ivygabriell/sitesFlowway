@@ -39,8 +39,16 @@ export function contornoLamina(largura: number, altura: number, raio: number): T
   );
 }
 
-const PROFUNDIDADE = 0.2;
-const CHANFRO = 0.06;
+// Medidas das lâminas, em unidades do hero (a disposição usa as mesmas para saber onde cada uma fica na tela).
+export const MEDIDAS = {
+  principal: { largura: 1.9, altura: 0.42 },
+  laje: { largura: 1.4, altura: 0.42 },
+  pequena: { largura: 1.1, altura: 0.36 },
+  profundidade: 0.2,
+  chanfro: 0.06,
+} as const;
+const PROFUNDIDADE = MEDIDAS.profundidade;
+const CHANFRO = MEDIDAS.chanfro;
 const RAIO = 0.05;
 
 function extrudar(forma: THREE.Shape) {
@@ -59,8 +67,8 @@ function extrudar(forma: THREE.Shape) {
 
 export function criarLaminas() {
   return {
-    principal: extrudar(contornoLamina(1.9, 0.42, RAIO)),
-    segunda: extrudar(contornoLamina(1.4, 0.42, RAIO)),
-    terceira: extrudar(contornoLamina(1.1, 0.36, RAIO)),
+    principal: extrudar(contornoLamina(MEDIDAS.principal.largura, MEDIDAS.principal.altura, RAIO)),
+    segunda: extrudar(contornoLamina(MEDIDAS.laje.largura, MEDIDAS.laje.altura, RAIO)),
+    terceira: extrudar(contornoLamina(MEDIDAS.pequena.largura, MEDIDAS.pequena.altura, RAIO)),
   };
 }
