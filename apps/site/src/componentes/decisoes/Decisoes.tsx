@@ -8,6 +8,7 @@ import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { desenharFolha } from '@/texturas/folhaDecisoes';
 import { CenaLencol, type EstadoLencol } from './CenaLencol';
+import './estilo.css';
 
 export function Decisoes() {
   const { isCanvasAvailable } = useScrollRig();
@@ -52,7 +53,7 @@ export function Decisoes() {
   }, [comLencol, folha]);
 
   return (
-    <section className={`secao-decisoes trecho-escuro${comLencol ? ' com-lencol' : ''}`} id="decisoes">
+    <section data-fundo="escuro" className={`secao-decisoes trecho-escuro${comLencol ? ' com-lencol' : ''}`} id="decisoes">
       <div className="frases">
         {decisoes.frases.map((f) => (
           <p key={f} className="frase">

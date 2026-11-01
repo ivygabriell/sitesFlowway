@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 // O CI fica na raiz do monorepo; os testes rodam dentro de apps/site.
 const ci = readFileSync('../../.github/workflows/ci.yml', 'utf8');
-const layout = readFileSync('app/layout.tsx', 'utf8');
+const layouts = ['app/(pt)/layout.tsx', 'app/(en)/en/layout.tsx'].map((p) => readFileSync(p, 'utf8'));
 
 describe('CI', () => {
   it('roda instalação, testes, tipos e o teste do build com o Chromium do Playwright', () => {
@@ -22,7 +22,15 @@ describe('CI', () => {
 });
 
 describe('buscadores', () => {
-  it('o layout mantém o site fora dos buscadores até a publicação', () => {
-    expect(layout).toMatch(/robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
+  it('os dois layouts raiz são cascas finas em volta do LayoutRaiz e usam a metadata base', () => {
+    for (const layout of layouts) {
+      expect(layout).toContain('<LayoutRaiz idioma=');
+      expect(layout).toMatch(/export const metadata(: Metadata)? = METADADOS_BASE;/);
+    }
+  });
+
+  it('a metadata base mantém o site fora dos buscadores até a publicação', async () => {
+    const { METADADOS_BASE } = await import('@/seo/paginas');
+    expect(METADADOS_BASE.robots).toEqual({ index: false, follow: false });
   });
 });

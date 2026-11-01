@@ -3,13 +3,14 @@
 import { UseCanvas } from '@14islands/r3f-scroll-rig';
 import { faixas, intro, logotipo, rolarParaBaixo } from '@/conteudo/identidade';
 import { CenaHero } from './CenaHero';
+import './estilo.css';
 
 const REPETICOES = 4;
 
 // Hero: o logotipo e o vidro vivem no canvas; aqui ficam as faixas, a intro, o convite a rolar e o vidro em DOM.
 export function Hero() {
   return (
-    <section className="secao-hero">
+    <section data-fundo="claro" className="secao-hero">
       <h1 className="titulo-hero ScrollRig-transparentColor">
         {logotipo}
         <span className="ponto">.</span>

@@ -6,6 +6,7 @@ import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { CuboMarca } from './CuboMarca';
+import './estilo.css';
 
 export function Manifesto() {
   useEfeitoDeLayout(() => {
@@ -82,7 +83,7 @@ export function Manifesto() {
   }, []);
 
   return (
-    <section className="secao-manifesto trecho-escuro" id="manifesto">
+    <section data-fundo="escuro" className="secao-manifesto trecho-escuro" id="manifesto">
       <div className="manifesto-texto">
         <h2 className="rotulo-manifesto">{manifesto.rotulo}</h2>
         {manifesto.partes.map((parte, i) => (

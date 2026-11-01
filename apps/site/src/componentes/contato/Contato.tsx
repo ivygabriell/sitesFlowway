@@ -8,6 +8,7 @@ import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { CenaFisica, type EstadoFisica } from './CenaFisica';
 import { Rodape } from './Rodape';
+import './estilo.css';
 
 type Modo = 'desktop' | 'celular' | 'reduzido';
 
@@ -76,7 +77,7 @@ export function Contato() {
   }, [modo]);
 
   return (
-    <section className={`secao-contato modo-${modo ?? 'desktop'}`} id="contato">
+    <section data-fundo="claro" className={`secao-contato modo-${modo ?? 'desktop'}`} id="contato">
       <p className="frase-contato">{contato}</p>
       <div className="circulo-escuro" aria-hidden="true" />
       <Rodape />

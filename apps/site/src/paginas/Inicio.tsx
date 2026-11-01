@@ -1,4 +1,5 @@
 import { Abertura } from '@/componentes/abertura/Abertura';
+import { SeloLateral } from '@/componentes/cabecalho/SeloLateral';
 import { Capitulos } from '@/componentes/capitulos/Capitulos';
 import { Contato } from '@/componentes/contato/Contato';
 import { Decisoes } from '@/componentes/decisoes/Decisoes';
@@ -6,16 +7,20 @@ import { Hero } from '@/componentes/hero/Hero';
 import { Manifesto } from '@/componentes/manifesto/Manifesto';
 import { Passagem } from '@/componentes/passagem/Passagem';
 
-export default function Pagina() {
+// A Início, igual nas duas línguas; os textos sem tradução aparecem em português.
+export function Inicio() {
   return (
-    <main className="conteudo" id="topo">
-      <Abertura />
-      <Hero />
-      <Passagem />
-      <Manifesto />
-      <Capitulos />
-      <Decisoes />
-      <Contato />
-    </main>
+    <>
+      <SeloLateral />
+      <main className="conteudo" id="topo">
+        <Abertura />
+        <Hero />
+        <Passagem />
+        <Manifesto />
+        <Capitulos />
+        <Decisoes />
+        <Contato />
+      </main>
+    </>
   );
 }
