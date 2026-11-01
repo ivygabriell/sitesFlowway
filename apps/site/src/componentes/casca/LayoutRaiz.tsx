@@ -16,6 +16,8 @@ const LANG: Record<Idioma, string> = { pt: 'pt-BR', en: 'en' };
 export function LayoutRaiz({ idioma, children }: { idioma: Idioma; children: ReactNode }) {
   return (
     <html lang={LANG[idioma]} className={classesDasFontes} suppressHydrationWarning>
+      {/* É o <head> do layout raiz do App Router (a regra só o reconhece dentro de app/). */}
+      {/* eslint-disable-next-line @next/next/no-head-element */}
       <head>
         {/* Antes de pintar: se a abertura já tocou nesta sessão, ela não aparece nem por um quadro. */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_ABERTURA }} />
