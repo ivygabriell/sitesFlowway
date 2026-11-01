@@ -2,6 +2,8 @@ import { ruido } from './comum';
 
 // Vidro fosco: amostra a cena desenhada sem o vidro (uFundo) na posição da tela, desviada pela normal,
 // com linhas que ondulam no tempo, borrão direcional (que o mouse empurra) e brilho nas bordas.
+// uPassoBorrao (px entre as amostras), uVeu (quanto do branco cobre o fundo) e uForca (quanto a normal desloca o
+// fundo) dão a intensidade de cada lâmina: a que passa sobre a palavra quase não borra, para ela seguir legível (#15).
 export const refracaoVert = /* glsl */ `
 varying vec3 vNormal;
 varying vec3 vVisao;
@@ -21,6 +23,8 @@ uniform float uTempo;
 uniform vec2 uBorrao;
 uniform float uOpacidade;
 uniform float uForca;
+uniform float uPassoBorrao;
+uniform float uVeu;
 varying vec3 vNormal;
 varying vec3 vVisao;
 ${ruido}
@@ -31,7 +35,7 @@ void main() {
   uv.x += sin(uv.y * 70.0 + uTempo * 0.8) * 0.006 * (ruido2(vec2(uv.y * 40.0, uTempo * 0.6)) - 0.3);
 
   float onda = ruido2(uv * vec2(5.0, 10.0) + uTempo * 0.3) - 0.5;
-  vec2 direcao = vec2(7.0 + uBorrao.x + onda * 14.0, uBorrao.y) / uResolucao;
+  vec2 direcao = uPassoBorrao * vec2(1.0 + uBorrao.x + onda * 2.0, uBorrao.y) / uResolucao;
   vec4 soma = vec4(0.0);
   for (int i = -4; i <= 4; i++) soma += texture2D(uFundo, uv + direcao * float(i));
   soma /= 9.0;
@@ -41,7 +45,7 @@ void main() {
   vec3 luz = normalize(vec3(0.0, 1.0, 1.2));
   float brilho = pow(max(dot(reflect(-luz, vNormal), -vVisao), 0.0), 24.0);
 
-  vec3 vidro = mix(base, vec3(1.0), 0.12) * (1.0 - fresnel * 0.75) + brilho * 0.5;
+  vec3 vidro = mix(base, vec3(1.0), uVeu) * (1.0 - fresnel * 0.75) + brilho * 0.5;
   gl_FragColor = vec4(vidro, uOpacidade * (0.9 + fresnel * 0.1));
   #include <colorspace_fragment>
 }

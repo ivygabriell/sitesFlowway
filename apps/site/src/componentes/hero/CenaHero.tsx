@@ -32,6 +32,12 @@ const POSICAO = {
   pequena: { x: 0.62, y: -0.5 },
 };
 
+// Intensidade do vidro (issue #15): a lâmina principal passa sobre a palavra e quase não borra nem clareia, para
+// FLOWAY seguir escura e nítida sob ela, como na referência; as menores mantêm o borrão forte. passoBorrao é a
+// distância (px) entre as 9 amostras do borrão; veu, quanto do branco cobre o fundo; forca, quanto a normal desloca o
+// fundo (na principal, menos, para o chanfro de baixo ainda mostrar o pé das letras).
+const INTENSIDADE = { principal: { passoBorrao: 0.5, veu: 0.015, forca: 0.3 }, demais: { passoBorrao: 7, veu: 0.12, forca: 1 } };
+
 // Atalhos para os tokens de movimento usados aqui.
 const T = TEMPOS;
 const C = CURVAS;
@@ -57,8 +63,9 @@ export function CenaHero() {
 
   const formas = useMemo(() => criarLaminas(), []);
   const alvo = useMemo(() => new THREE.WebGLRenderTarget(1, 1), []);
-  const materialVidro = useMemo(
-    () =>
+  // Um material por lâmina, com o mesmo alvo: só a intensidade (borrão e véu) muda entre elas.
+  const vidros = useMemo(() => {
+    const criar = ({ passoBorrao, veu, forca }: { passoBorrao: number; veu: number; forca: number }) =>
       new THREE.ShaderMaterial({
         vertexShader: refracaoVert,
         fragmentShader: refracaoFrag,
@@ -70,11 +77,13 @@ export function CenaHero() {
           uTempo: { value: 0 },
           uBorrao: { value: new THREE.Vector2() },
           uOpacidade: { value: 1 },
-          uForca: { value: 1 },
+          uForca: { value: forca },
+          uPassoBorrao: { value: passoBorrao },
+          uVeu: { value: veu },
         },
-      }),
-    [alvo],
-  );
+      });
+    return { principal: criar(INTENSIDADE.principal), laje: criar(INTENSIDADE.demais), pequena: criar(INTENSIDADE.demais) };
+  }, [alvo]);
   const materialLogo = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -107,12 +116,12 @@ export function CenaHero() {
   useEffect(() => {
     const v = gl.getDrawingBufferSize(new THREE.Vector2());
     alvo.setSize(v.x, v.y);
-    materialVidro.uniforms.uResolucao.value.copy(v);
+    Object.values(vidros).forEach((m) => m.uniforms.uResolucao.value.copy(v));
     const u = unidade();
     refPrincipal.current?.scale.setScalar((celular ? ESCALA.principalCelular : ESCALA.principal) * u);
     refLaje.current?.scale.setScalar(ESCALA.laje * u);
     refPequena.current?.scale.setScalar(ESCALA.pequena * u);
-  }, [gl, size, alvo, materialVidro, celular]);
+  }, [gl, size, alvo, vidros, celular]);
 
   // Entrada (quando a abertura termina) e saída ligada à rolagem.
   useEffect(() => {
@@ -223,9 +232,12 @@ export function CenaHero() {
       pequena.position.y = POSICAO.pequena.y * u - 0.02 * m.y * u + s.yPequena + (reduzido ? 1 : 0.4) * sy;
       if (vidroDom.current) gsap.set(vidroDom.current, { x: pequena.position.x, y: -pequena.position.y });
     }
-    materialVidro.uniforms.uTempo.value = t;
-    materialVidro.uniforms.uBorrao.value.set(5 * m.x, 3 * m.y);
-    materialVidro.uniforms.uOpacidade.value = s.opacidade;
+    // O mouse empurra o borrão em proporção ao passo de cada lâmina (no passo 7, até 5 px na horizontal e 3 na vertical).
+    Object.values(vidros).forEach(({ uniforms }) => {
+      uniforms.uTempo.value = t;
+      uniforms.uBorrao.value.set((5 / 7) * m.x, (3 / 7) * m.y);
+      uniforms.uOpacidade.value = s.opacidade;
+    });
 
     // Fora do hero (inclusive com movimento reduzido, quando não há gatilho de saída) o passo da refração para.
     if (!s.ativo || s.opacidade < 0.01 || sy > 2 * window.innerHeight) return;
@@ -248,9 +260,9 @@ export function CenaHero() {
           <planeGeometry args={[larguraLogo, larguraLogo * logo.razao]} />
         </mesh>
       )}
-      <mesh ref={refPrincipal} geometry={formas.principal} material={materialVidro} rotation={[-0.35, 0, 0]} renderOrder={2} />
-      <mesh ref={refLaje} geometry={formas.segunda} material={materialVidro} rotation={[-0.3, 0, 0]} visible={!celular} renderOrder={2} />
-      <mesh ref={refPequena} geometry={formas.terceira} material={materialVidro} rotation={[-0.25, 0.1, 0]} visible={!celular} renderOrder={2} />
+      <mesh ref={refPrincipal} geometry={formas.principal} material={vidros.principal} rotation={[-0.35, 0, 0]} renderOrder={2} />
+      <mesh ref={refLaje} geometry={formas.segunda} material={vidros.laje} rotation={[-0.3, 0, 0]} visible={!celular} renderOrder={2} />
+      <mesh ref={refPequena} geometry={formas.terceira} material={vidros.pequena} rotation={[-0.25, 0.1, 0]} visible={!celular} renderOrder={2} />
     </group>
   );
 }
