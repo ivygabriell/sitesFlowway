@@ -11,6 +11,7 @@
 /* Celular: lista vertical. Movimento reduzido: grade parada. */
 .modo-lista, .modo-grade { height: auto; padding: 120px 18px 60px; }
 .modo-lista .cartoes, .modo-grade .cartoes { margin: 0; padding: 0; width: auto; }
+.modo-lista .capitulos-palco { width: 100%; }
 .modo-lista .cartoes { flex-direction: column; gap: 24px; }
 .modo-grade .cartoes { flex-wrap: wrap; gap: 24px; justify-content: center; }
 .modo-lista .cartao, .modo-grade .cartao { pointer-events: auto; }

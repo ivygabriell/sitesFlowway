@@ -38,3 +38,15 @@ test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 
     expect(resposta?.status(), caminho).toBe(404);
   }
 });
+
+test.describe('no celular', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('os cartões sem capa ocupam a largura da lista', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-lista/, { timeout: 5000 });
+    const larguras = await page.$$eval('.cartao.sem-capa', (cs) => cs.map((c) => c.getBoundingClientRect().width));
+    expect(larguras).toHaveLength(4);
+    for (const l of larguras) expect(l).toBeGreaterThan(300);
+  });
+});
