@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 // O CI fica na raiz do monorepo; os testes rodam dentro de apps/site.
 const ci = readFileSync('../../.github/workflows/ci.yml', 'utf8');
-const layout = readFileSync('app/layout.tsx', 'utf8');
+const layouts = ['app/(pt)/layout.tsx', 'app/(en)/en/layout.tsx'].map((p) => readFileSync(p, 'utf8'));
 
 describe('CI', () => {
   it('roda instalação, testes, tipos e o teste do build com o Chromium do Playwright', () => {
@@ -22,7 +22,7 @@ describe('CI', () => {
 });
 
 describe('buscadores', () => {
-  it('o layout mantém o site fora dos buscadores até a publicação', () => {
-    expect(layout).toMatch(/robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
+  it('os dois layouts raiz mantêm o site fora dos buscadores até a publicação', () => {
+    for (const layout of layouts) expect(layout).toMatch(/robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   });
 });

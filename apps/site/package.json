@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
+    "test:publicacao": "vitest run --config vitest.publicacao.config.ts",
     "check": "tsc --noEmit && eslint .",
     "test:build": "NEXT_DIST_DIR=.next-teste next build && playwright test"
   },
