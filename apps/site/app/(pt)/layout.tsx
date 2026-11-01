@@ -1,10 +1,8 @@
-import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Raiz } from '@/componentes/casca/Raiz';
+import { LayoutRaiz, METADADOS_BASE } from '@/componentes/casca/LayoutRaiz';
 
-// Padrão de toda página desta língua: fora dos buscadores até a publicação (C5).
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata = METADADOS_BASE;
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return <Raiz idioma="pt">{children}</Raiz>;
+  return <LayoutRaiz idioma="pt">{children}</LayoutRaiz>;
 }

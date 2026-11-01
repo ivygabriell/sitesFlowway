@@ -22,7 +22,15 @@ describe('CI', () => {
 });
 
 describe('buscadores', () => {
-  it('os dois layouts raiz mantêm o site fora dos buscadores até a publicação', () => {
-    for (const layout of layouts) expect(layout).toMatch(/robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
+  it('os dois layouts raiz são cascas finas em volta do LayoutRaiz e usam a metadata base', () => {
+    for (const layout of layouts) {
+      expect(layout).toContain('<LayoutRaiz idioma=');
+      expect(layout).toMatch(/export const metadata(: Metadata)? = METADADOS_BASE;/);
+    }
+  });
+
+  it('a metadata base mantém o site fora dos buscadores até a publicação', async () => {
+    const { METADADOS_BASE } = await import('@/seo/paginas');
+    expect(METADADOS_BASE.robots).toEqual({ index: false, follow: false });
   });
 });

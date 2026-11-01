@@ -6,10 +6,9 @@ import { Decisoes } from '@/componentes/decisoes/Decisoes';
 import { Hero } from '@/componentes/hero/Hero';
 import { Manifesto } from '@/componentes/manifesto/Manifesto';
 import { Passagem } from '@/componentes/passagem/Passagem';
-import type { Idioma } from '@/conteudo/textos';
 
 // A Início, igual nas duas línguas; os textos sem tradução aparecem em português.
-export function Inicio({ idioma }: { idioma: Idioma }) {
+export function Inicio() {
   return (
     <>
       <SeloLateral />

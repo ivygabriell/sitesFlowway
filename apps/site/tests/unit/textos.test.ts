@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import '@/conteudo/casca';
-import { pendencias, pendente, registrar, t } from '@/conteudo/textos';
+import { casca } from '@/conteudo/casca';
+import { TEXTOS } from '@/conteudo';
+import { pendencias, pendente, t } from '@/conteudo/textos';
 
 describe('textos em duas línguas', () => {
   it('t() devolve o inglês quando existe e o português no lugar quando não', () => {
@@ -13,16 +14,18 @@ describe('textos em duas línguas', () => {
     expect(pendente('x')).toEqual({ pt: '[pendente: x]', pendente: true });
   });
 
-  it('pendencias() lista os textos pendentes e os sem inglês', () => {
-    expect(pendencias()).toContain('casca.descritor (pt)');
-    expect(pendencias()).not.toContain('casca.selo (en)');
-    registrar('teste', { so: { pt: 'só português' }, lista: [{ pt: 'a', en: 'a' }, pendente('b')] });
-    expect(pendencias()).toEqual(expect.arrayContaining(['teste.so (en)', 'teste.lista.1 (pt)']));
-    expect(pendencias()).not.toContain('teste.lista.0 (en)');
+  it('pendencias(arvore) devolve o caminho de cada texto pendente ou sem inglês', () => {
+    const arvore = { teste: { so: { pt: 'só português' }, menu: { a: { pt: 'a', en: 'a' } }, lista: [{ pt: 'a', en: 'a' }, pendente('b')] } };
+    expect(pendencias(arvore)).toEqual(['teste.so (en)', 'teste.lista.1 (pt)']);
   });
 
-  it('a casca tem os textos da spec', async () => {
-    const { casca } = await import('@/conteudo/casca');
+  it('o índice junta os módulos de conteúdo, e a casca tem pendências conhecidas', () => {
+    expect(TEXTOS.casca).toBe(casca);
+    expect(pendencias(TEXTOS)).toContain('casca.descritor (pt)');
+    expect(pendencias(TEXTOS)).not.toContain('casca.selo (en)');
+  });
+
+  it('a casca tem os textos da spec', () => {
     expect(casca.nome).toEqual({ pt: '©FLOWAY', en: '©FLOWAY' });
     expect(casca.menu.trabalhos).toEqual({ pt: 'Trabalhos', en: 'Work' });
     expect(casca.menu.contato).toEqual({ pt: 'Contato', en: 'Contact' });
