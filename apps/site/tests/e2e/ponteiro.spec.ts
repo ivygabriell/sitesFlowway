@@ -22,10 +22,12 @@ test('o vidro do hero reage ao mouse (o ponteiro chega às cenas 3D)', async ({ 
   }
 });
 
-test('no contato o cubo pode ser arrastado: cursor "grab" sobre a seção', async ({ page }) => {
+// A esfera de letras substituiu o cubo com física (spec 4.3 e protótipo 07): não há arraste, o cursor só empurra as letras.
+test('no contato não há arraste: a seção não usa cursor "grab" e a esfera de letras está nela', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
   await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(2500);
-  await expect(page.locator('.secao-contato')).toHaveCSS('cursor', 'grab');
+  await expect(page.locator('.secao-contato .esfera')).toHaveCount(1);
+  await expect(page.locator('.secao-contato')).not.toHaveCSS('cursor', 'grab');
 });

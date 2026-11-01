@@ -1,6 +1,7 @@
 'use client';
 
 import { ScrollScene, type ScrollSceneChildProps } from '@14islands/r3f-scroll-rig';
+import { StickyScrollScene } from '@14islands/r3f-scroll-rig/powerups';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import * as THREE from 'three';
@@ -28,7 +29,20 @@ const LONGE = 1e5;
 
 type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao };
 
-export function CenaEsfera({ track, atributos, modo }: Props) {
+// fixa: a div.esfera é position: sticky dentro de uma seção mais alta (o contato preso). O ScrollScene posiciona a
+// cena pela posição da div no documento e a faria rolar com a página; o StickyScrollScene acompanha a parte presa.
+// O cursor continua medido pela própria div (o StickyScrollScene passa adiante a seção, não a div).
+export function CenaEsfera({ track, atributos, modo, fixa = false }: Props & { fixa?: boolean }) {
+  const estilo = fixa && track.current ? getComputedStyle(track.current) : null;
+  // O powerup exige sticky e converte top com parseFloat: auto/NaN faria a cena desaparecer.
+  // Sem esse contrato no CSS, a esfera continua acompanhando a própria div com ScrollScene.
+  if (estilo?.position === 'sticky' && /^-?(?:\d+\.?\d*|\.\d+)px$/.test(estilo.top) && Number.isFinite(parseFloat(estilo.top))) {
+    return (
+      <StickyScrollScene track={track} hideOffscreen>
+        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} />}
+      </StickyScrollScene>
+    );
+  }
   return (
     <ScrollScene track={track} hideOffscreen>
       {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} />}
