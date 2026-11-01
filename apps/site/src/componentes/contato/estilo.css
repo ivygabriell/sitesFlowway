@@ -28,3 +28,21 @@
   .rodape-cta { margin-bottom: 12px; font-size: 16px; line-height: 18px; }
   .rodape-linha i { margin: 0 4px 0 8px; font-size: 10px; }
 }
+
+/* Exceção da spec 4.3: os modos simplificados mantêm os rótulos, sem itálico. */
+@media (max-width: 899px), (prefers-reduced-motion: reduce) {
+  .rodape-linha i { font-style: normal; }
+}
+html.js-global-canvas-error .rodape-linha i { font-style: normal; }
+
+/* Em telas móveis mais largas/baixas, a frase pode ocupar o centro da tela. O grid reserva o tamanho
+   real da frase e do rodapé; a esfera usa só a área entre eles. Celulares altos mantêm a composição original. */
+@media (max-width: 899px) and (min-aspect-ratio: 1/2) {
+  .secao-contato { display: grid; grid-template-rows: auto minmax(240px, 1fr) auto; gap: 20px; height: auto; min-height: 100vh; padding: 60px 18px 16px; }
+  .contato-tela { display: contents; }
+  .frase-contato { grid-row: 1; }
+  .secao-contato .esfera { grid-row: 2; position: relative; top: auto; height: auto; margin-top: 0; }
+  /* Reserva o rodapé mesmo antes de entrar: ativá-lo não muda as medidas da cena. */
+  .rodape { grid-row: 3; position: relative; bottom: auto; display: flex; padding: 0; visibility: hidden; }
+  .rodape.visivel { visibility: visible; }
+}

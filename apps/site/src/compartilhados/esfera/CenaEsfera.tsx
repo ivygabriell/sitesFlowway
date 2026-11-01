@@ -33,7 +33,10 @@ type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfer
 // cena pela posição da div no documento e a faria rolar com a página; o StickyScrollScene acompanha a parte presa.
 // O cursor continua medido pela própria div (o StickyScrollScene passa adiante a seção, não a div).
 export function CenaEsfera({ track, atributos, modo, fixa = false }: Props & { fixa?: boolean }) {
-  if (fixa) {
+  const estilo = fixa && track.current ? getComputedStyle(track.current) : null;
+  // O powerup exige sticky e converte top com parseFloat: auto/NaN faria a cena desaparecer.
+  // Sem esse contrato no CSS, a esfera continua acompanhando a própria div com ScrollScene.
+  if (estilo?.position === 'sticky' && /^-?(?:\d+\.?\d*|\.\d+)px$/.test(estilo.top) && Number.isFinite(parseFloat(estilo.top))) {
     return (
       <StickyScrollScene track={track} hideOffscreen>
         {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} />}

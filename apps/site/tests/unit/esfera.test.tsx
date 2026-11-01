@@ -1,7 +1,9 @@
-import { useCanvasStore } from '@14islands/r3f-scroll-rig';
+import { ScrollScene, useCanvasStore } from '@14islands/r3f-scroll-rig';
+import { StickyScrollScene } from '@14islands/r3f-scroll-rig/powerups';
 import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EsferaDeLetras } from '@/compartilhados/esfera/EsferaDeLetras';
+import { CenaEsfera } from '@/compartilhados/esfera/CenaEsfera';
 import { desenharAtlas, LETRAS } from '@/compartilhados/esfera/atlas';
 import { atributosDaEsfera, pontosEsfera, QUANTIDADE, tamanhoDaLetra } from '@/compartilhados/esfera/geometria';
 import { criarMaterialDaEsfera } from '@/compartilhados/esfera/shader';
@@ -60,7 +62,7 @@ describe('geometria da esfera', () => {
 });
 
 describe('desenharAtlas', () => {
-  it('só resolve depois de carregar a Inter Tight 800 da variável --sans', async () => {
+  it('só resolve depois de carregar a Inter Tight 800, a primeira família da variável --sans', async () => {
     document.documentElement.style.setProperty('--sans', "'Inter Tight', 'Inter Tight Fallback'");
     let liberar!: () => void;
     const load = vi.fn(() => new Promise<FontFace[]>((r) => (liberar = () => r([]))));
@@ -69,7 +71,8 @@ describe('desenharAtlas', () => {
     let pronto = false;
     const promessa = desenharAtlas().then((tela) => ((pronto = true), tela));
     await new Promise((r) => setTimeout(r, 0));
-    expect(load).toHaveBeenCalledWith("800 64px 'Inter Tight', 'Inter Tight Fallback'");
+    // Só a primeira família: a de fallback do next/font é local("Arial"), que falha onde não há Arial (Linux, Android).
+    expect(load).toHaveBeenCalledWith("800 64px 'Inter Tight'");
     expect(pronto).toBe(false);
 
     liberar();
@@ -77,6 +80,20 @@ describe('desenharAtlas', () => {
     expect(pronto).toBe(true);
     expect([tela.width, tela.height]).toEqual([64 * LETRAS.length, 64]);
     expect(LETRAS).toEqual(['F', 'L', 'O', 'W', 'A', 'Y']);
+  });
+
+  it('se fonts.load rejeita, desenha o atlas mesmo assim, depois de document.fonts.ready', async () => {
+    document.documentElement.style.setProperty('--sans', "'Inter Tight', 'Inter Tight Fallback'");
+    let liberar!: () => void;
+    const ready = new Promise<void>((r) => (liberar = r));
+    trocarFontes({ load: () => Promise.reject(new DOMException('A network error occurred.', 'NetworkError')), ready });
+    let pronto = false;
+    const promessa = desenharAtlas().then((tela) => ((pronto = true), tela));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(pronto).toBe(false);
+    liberar();
+    const tela = await promessa;
+    expect([tela.width, tela.height]).toEqual([64 * LETRAS.length, 64]);
   });
 
   it('espera também document.fonts.ready', async () => {
@@ -144,5 +161,27 @@ describe('EsferaDeLetras', () => {
       useCanvasStore.setState({ isCanvasAvailable: false });
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe('CenaEsfera fixa', () => {
+  // Selecionar StickyScrollScene incondicionalmente quebra sem CSS ou gera coordenadas NaN com top:auto.
+  it.each([
+    ['relative', '0px', ScrollScene],
+    ['static', '0px', ScrollScene],
+    ['sticky', 'auto', ScrollScene],
+    ['sticky', '25%', ScrollScene],
+    ['sticky', 'NaNpx', ScrollScene],
+    ['sticky', 'Infinitypx', ScrollScene],
+    ['sticky', '0px', StickyScrollScene],
+    ['sticky', '-12.5px', StickyScrollScene],
+  ])('com position:%s e top:%s escolhe uma cena com coordenadas válidas', (position, top, cena) => {
+    const el = document.createElement('div');
+    // Valores inválidos também cobrem o limite da integração, antes do parseFloat do powerup.
+    const estilo = getComputedStyle(el);
+    vi.spyOn(window, 'getComputedStyle').mockReturnValue({ ...estilo, position, top });
+    const atributos = atributosDaEsfera(10, pontosSimbolo(10, semente(1)), semente(2));
+    const resultado = CenaEsfera({ track: { current: el }, atributos, modo: 'desktop', fixa: true });
+    expect(resultado.type).toBe(cena);
   });
 });

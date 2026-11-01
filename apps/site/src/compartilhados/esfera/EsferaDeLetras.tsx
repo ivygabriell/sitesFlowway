@@ -12,6 +12,7 @@ import './estilo.css';
 
 // O alvo da morfose, pronto: recebe a quantidade de letras e devolve as posições e o azul de cada uma
 // (por exemplo, alvoDoSimbolo, com cache no módulo). O shader não sabe o que é o alvo: o "404" entra com outro.
+// Deve manter a mesma referência entre renders (função de módulo ou useCallback): uma arrow inline recria os atributos.
 export type FabricaDoAlvo = (n: number) => AlvoDaEsfera;
 
 // Distância (em altura da tela) em que a esfera começa a se preparar: amostra o alvo e compila o shader.
@@ -19,7 +20,7 @@ const ANTECEDENCIA = '100% 0px';
 
 // Esfera de letras FLOWAY que forma o alvo (o F do símbolo no contato). Acompanha a div.esfera com um <UseCanvas>;
 // sem WebGL, fica só a div, sem nada desenhado. Com `fixa`, a div é position: sticky e a cena acompanha a parte presa
-// (quem usa dá o sticky no CSS); sem `fixa`, nada muda.
+// (quem usa dá o sticky e top em px no CSS); sem esse CSS, usa ScrollScene. A prop alvo deve ser uma fábrica estável.
 export function EsferaDeLetras({ alvo, className, fixa = false }: { alvo: FabricaDoAlvo; className?: string; fixa?: boolean }) {
   const { isCanvasAvailable } = useScrollRig();
   const ref = useRef<HTMLDivElement>(null);

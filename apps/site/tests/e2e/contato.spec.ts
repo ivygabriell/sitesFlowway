@@ -35,3 +35,29 @@ test('a esfera acompanha a seção de contato presa: no meio da tela no início,
     expect(await tinta(page, ABAIXO), `${nome}: nada da esfera abaixo dela`).toBeLessThan(0.01);
   }
 });
+
+for (const viewport of [{ width: 820, height: 1180 }, { width: 390, height: 720 }]) {
+  test.describe(`contato legível em ${viewport.width}×${viewport.height}`, () => {
+    test.use({ viewport });
+    // Sem separar as áreas no contato, as partículas ficam atrás das últimas linhas da frase.
+    test('a esfera deixa a área da frase livre de partículas', async ({ page }) => {
+      await page.goto('/');
+      await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+      await page.evaluate(() => document.fonts.ready);
+      await page.locator('.secao-contato').scrollIntoViewIfNeeded();
+      await expect(page.locator('.rodape')).toBeVisible();
+      // Só retiramos a tinta do texto e o círculo: o retângulo da frase mantém seu tamanho real.
+      await page.addStyleTag({ content: '.circulo-escuro { visibility:hidden!important } .frase-contato { color:transparent!important }' });
+      const frase = (await page.locator('.frase-contato').boundingBox())!;
+      const esfera = (await page.locator('.secao-contato .esfera').boundingBox())!;
+      const rodape = (await page.locator('.rodape').boundingBox())!;
+      expect(frase.y + frase.height, 'a área da frase termina antes da esfera').toBeLessThanOrEqual(esfera.y);
+      expect(esfera.y + esfera.height, 'a área da esfera termina antes do rodapé').toBeLessThanOrEqual(rodape.y);
+      const miolo = { x: Math.round(esfera.x + esfera.width / 2 - 40), y: Math.round(esfera.y + esfera.height / 2 - 40), width: 80, height: 80 };
+      await expect.poll(() => tinta(page, miolo), { message: 'a esfera está desenhando antes de conferir a frase', timeout: 20_000 }).toBeGreaterThan(0.05);
+      const recorte = { x: Math.ceil(frase.x), y: Math.ceil(frase.y), width: Math.floor(frase.width), height: Math.floor(frase.height) };
+      // No salto de scroll, lâminas do hero ainda atravessam o canvas global; espera a pintura estável, mantendo zero.
+      await expect.poll(() => tinta(page, recorte), { message: 'nenhuma partícula na área reservada à frase', timeout: 20_000 }).toBe(0);
+    });
+  });
+}
