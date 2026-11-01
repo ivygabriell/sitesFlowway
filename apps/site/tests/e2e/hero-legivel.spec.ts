@@ -6,7 +6,7 @@ import { PNG } from 'pngjs';
 // abaixo de 0,35 e o percentil 10 da luminância em no máximo 0,25.
 const ESPERA = 9000;
 // O iPhone 13 do Playwright, no Chromium (defaultBrowserType não pode mudar dentro de um describe).
-const { defaultBrowserType: _webkit, ...IPHONE } = devices['iPhone 13'];
+const IPHONE = Object.fromEntries(Object.entries(devices['iPhone 13']).filter(([chave]) => chave !== 'defaultBrowserType'));
 
 type Recorte = { x: number; y: number; width: number; height: number };
 

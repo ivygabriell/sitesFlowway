@@ -17,12 +17,13 @@ export const ESCALA = { principal: 0.8, laje: 0.75, pequena: 0.8, principalCelul
 // Inclinação (rotação em x, rad) de cada lâmina.
 export const INCLINACAO = { principal: -0.35, laje: -0.3, pequena: -0.25 };
 
-// Posição de repouso: x em unidades; y em unidades acima do meio da tela.
+// Posição de repouso: x em unidades; o centro vertical em fração da altura da tela, de cima para baixo. A principal
+// fica no meio, abaixo da metade de cima da palavra (que segue livre); as duas menores, abaixo dela, com vão.
 export const POSICAO = {
-  principal: { x: -0.02, y: 0.3 },
-  principalCelular: { y: 0.45 },
-  laje: { x: -0.45, y: -0.12 },
-  pequena: { x: 0.62, y: -0.5 },
+  principal: { x: -0.02, centro: 0.54 },
+  principalCelular: { centro: 0.46 },
+  laje: { x: -0.45, centro: 0.86 },
+  pequena: { x: 0.62, centro: 0.92 },
 };
 
 type Peca = 'principal' | 'laje' | 'pequena';
@@ -40,18 +41,19 @@ function meiaAltura(peca: Peca, escala: number) {
 export function repouso(largura: number, altura: number) {
   const u = unidade(largura);
   const celular = ehCelular(largura);
-  const naTela = (peca: Peca, yUnidades: number, escala: number) => {
-    const centro = altura / 2 - yUnidades * u;
+  const naTela = (peca: Peca, fracao: number, escala: number) => {
+    const centro = fracao * altura;
     const meia = meiaAltura(peca, escala * u);
-    return { y: yUnidades * u, centro, topo: centro - meia, base: centro + meia };
+    // y: posição no mundo do canvas (px acima do meio da tela).
+    return { y: altura / 2 - centro, centro, topo: centro - meia, base: centro + meia };
   };
   const perspectiva = CAMERA_Z / (CAMERA_Z - PALAVRA.z * u);
   return {
     u,
     celular,
-    principal: naTela('principal', celular ? POSICAO.principalCelular.y : POSICAO.principal.y, celular ? ESCALA.principalCelular : ESCALA.principal),
-    laje: naTela('laje', POSICAO.laje.y, ESCALA.laje),
-    pequena: naTela('pequena', POSICAO.pequena.y, ESCALA.pequena),
+    principal: naTela('principal', celular ? POSICAO.principalCelular.centro : POSICAO.principal.centro, celular ? ESCALA.principalCelular : ESCALA.principal),
+    laje: naTela('laje', POSICAO.laje.centro, ESCALA.laje),
+    pequena: naTela('pequena', POSICAO.pequena.centro, ESCALA.pequena),
     palavra: { centro: altura / 2 - PALAVRA.acimaDoMeio * altura * perspectiva },
   };
 }
@@ -64,13 +66,15 @@ export const SAIDA = { scrub: TEMPOS['tempo-scrub'], inicio: 'top+=10', alturas:
 
 export type AlvoDeSaida = { peca: Peca; crescimento: number; giro: { x?: number; y?: number; z?: number } };
 
-// O que cada lâmina faz na saída: cresce (× a escala de repouso) e gira (rad), sem deslocamento vertical.
+// O que cada lâmina faz na saída, como na referência: cresce (× a escala de repouso) e gira no lugar (rad, somado à
+// rotação de repouso), enchendo a tela enquanto o vidro some; o deslocamento vertical é só o da paralaxe.
+// Com movimento reduzido não há saída: as lâminas ficam paradas e somem com a seção.
 export function alvosDeSaida(celular: boolean, reduzido: boolean): AlvoDeSaida[] {
   if (reduzido) return [];
-  if (celular) return [{ peca: 'principal', crescimento: 1, giro: { y: 0.05 * Math.PI } }];
+  if (celular) return [{ peca: 'principal', crescimento: 1.6, giro: { y: 0.15 } }];
   return [
-    { peca: 'principal', crescimento: 0.9, giro: { y: 0.1 * Math.PI } },
-    { peca: 'laje', crescimento: 1.2, giro: { y: -0.05 * Math.PI } },
-    { peca: 'pequena', crescimento: 0.82, giro: { z: -0.05 * Math.PI } },
+    { peca: 'principal', crescimento: 1.7, giro: { y: 0.3 } },
+    { peca: 'laje', crescimento: 1.8, giro: { y: -0.2 } },
+    { peca: 'pequena', crescimento: 1.6, giro: { z: -0.2 } },
   ];
 }

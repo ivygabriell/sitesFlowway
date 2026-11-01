@@ -44,7 +44,7 @@ export const MEDIDAS = {
   principal: { largura: 1.9, altura: 0.42 },
   laje: { largura: 1.4, altura: 0.42 },
   pequena: { largura: 1.1, altura: 0.36 },
-  profundidade: 0.2,
+  profundidade: 0.14,
   chanfro: 0.06,
 } as const;
 const PROFUNDIDADE = MEDIDAS.profundidade;

@@ -45,7 +45,8 @@ void main() {
   vec3 luz = normalize(vec3(0.0, 1.0, 1.2));
   float brilho = pow(max(dot(reflect(-luz, vNormal), -vVisao), 0.0), 24.0);
 
-  vec3 vidro = mix(base, vec3(1.0), uVeu) * (1.0 - fresnel * 0.75) + brilho * 0.5;
+  // O fresnel clareia as bordas e só as escurece de leve (vidro quase branco, sem sombra pesada).
+  vec3 vidro = mix(base, vec3(1.0), uVeu + fresnel * 0.15) * (1.0 - fresnel * 0.3) + brilho * 0.5;
   gl_FragColor = vec4(vidro, uOpacidade * (0.9 + fresnel * 0.1));
   #include <colorspace_fragment>
 }
