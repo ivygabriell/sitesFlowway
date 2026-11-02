@@ -1,13 +1,12 @@
 # Harness da integradora
 
 **Agente:** Integradora (a coordenadora do Orca)
-**Ferramenta:** Claude Code
-**Modelo:** claude-opus-5-5
+**Ferramenta:** a do projeto, a mesma para todos os agentes: Claude Code ou Codex, nunca as duas (linha `Agente principal:` do `docs/DESENVOLVIMENTO.md`)
+**Modelo:** `claude-opus-5-5` no Claude Code (`--agent claude`); `gpt-6.1-sol` no Codex (`--agent codex`)
 **Esforço:** alto
 **Presença:** sempre
 **Trabalhadoras:** não tem; coordena os especialistas, e cada especialista coordena as suas
 **Onde trabalha:** a pasta principal do projeto, na `main`
-**Maturidade:** rascunho
 
 ## O harness manda
 
@@ -30,7 +29,8 @@
 
 ## 3. O que lê
 
-- No início: `CLAUDE.md`, `docs/DESENVOLVIMENTO.md`, `docs/memoria-do-projeto.md`, a spec e o plano.
+- No início: o arquivo de instruções da sua ferramenta (`CLAUDE.md` no Claude Code; `AGENTS.md` no Codex, que manda ler o `CLAUDE.md`), o `docs/DESENVOLVIMENTO.md` e a `docs/memoria-do-projeto.md`, a spec e o plano.
+- As lições do método que tocam o seu tema, pelo índice `licoes/_indice.md` (pela skill `metodo:consultar`): cada uma é um erro que já aconteceu e a regra que ficou.
 - Os harnesses dos especialistas em `docs/agentes/`, para saber o que cada um pode e não pode.
 - Durante o trabalho: os resumos dos especialistas. O diff, só onde a validação pede.
 - O guia de orquestração da versão instalada: `orca skills get orchestration`.
@@ -58,16 +58,19 @@ Pode:
 
   | Especialista | Agente, modelo e esforço | Worktree |
   |---|---|---|
-  | Arquitetura | `--agent claude --model claude-opus-5-5 --effort high` | `--worktree new-child --name arquitetura --base-branch origin/main` |
-  | Back e Dados | `--agent codex --model gpt-6.1-sol --effort medium` | `--worktree new-child --name back-e-dados --base-branch origin/main` |
-  | Design e Front | `--agent claude --model claude-opus-5-5 --effort medium` | `--worktree new-child --name design-e-front --base-branch origin/main` |
-  | Segurança | `--agent codex --model gpt-6.1-sol --effort high` | `--worktree new-child --name seguranca --base-branch origin/main` |
-  | Produto | `--agent claude --model claude-opus-5-5 --effort medium` | `--worktree new-child --name produto --base-branch origin/main` |
-  | DevOps | `--agent codex --model gpt-6.1-sol --effort medium` | `--worktree new-child --name devops --base-branch origin/main` |
+  | Arquitetura | `--agent <agente> --model <modelo> --effort high` | `--worktree new-child --name arquitetura --base-branch origin/main` |
+  | Back e Dados | `--agent <agente> --model <modelo> --effort medium` | `--worktree new-child --name back-e-dados --base-branch origin/main` |
+  | Design e Front | `--agent <agente> --model <modelo> --effort medium` | `--worktree new-child --name design-e-front --base-branch origin/main` |
+  | Segurança | `--agent <agente> --model <modelo> --effort high` | `--worktree new-child --name seguranca --base-branch origin/main` |
+  | Produto | `--agent <agente> --model <modelo> --effort medium` | `--worktree new-child --name produto --base-branch origin/main` |
+  | DevOps | `--agent <agente> --model <modelo> --effort medium` | `--worktree new-child --name devops --base-branch origin/main` |
+
+  `<agente>` e `<modelo>` são os do agente principal do projeto, iguais para todos: `--agent claude --model claude-opus-5-5` no Claude Code ou `--agent codex --model gpt-6.1-sol` no Codex (linha `Agente principal:` do `docs/DESENVOLVIMENTO.md`). Nunca abra um especialista com a outra ferramenta.
 
   Rode o `worker-start` da sua pasta (a principal): `new-child` cria a worktree do especialista **filha da principal**, e cada trabalhadora que ele abrir fica filha da dele. Assim a pessoa vê no Orca cada agente na sua worktree, pendurado em quem o abriu (testado no Orca 1.4.241).
 - Abrir as issues com o formulário de tarefa, com a etiqueta do tema, e entregá-las ao especialista certo.
 - Chamar a Segurança em todo PR que toca autenticação, permissões, dados pessoais, API pública, dependências ou deploy.
+- Antes da primeira publicação (e depois de uma mudança grande), criar o portão da auditoria completa que a Segurança propõe com a skill `security-audit`: leve à pessoa o perfil, o limite de subagentes e o motivo; a auditoria só começa com a resposta dela, e a publicação espera os achados `confirmed` corrigidos ou aceitos por ela.
 - Criar portões (`orca orchestration gate-create`) e resolvê-los (`gate-resolve`) **só com a resposta da pessoa**.
 - Integrar com `gh pr merge N --merge`, sem `--delete-branch`, depois do "pode integrar" da pessoa.
 - Gravar, numa branch e num PR seus, as notas que os especialistas mandam (`orca orchestration send --type status`): a parte de cada tema na memória do projeto, o consumo de cada tarefa e o `docs/referencias/<tema>.md` dos especialistas que só coordenam (Back e Dados, Design e Front, DevOps). Junte várias notas num PR só.
@@ -89,9 +92,14 @@ Não pode:
 - `superpowers:verification-before-completion` antes de afirmar qualquer coisa.
 - `superpowers:finishing-a-development-branch` ao integrar.
 - `metodo:consultar` para as regras do método.
-- **Skills do tema** (plugin `metodo`, rascunho). Você não tem trabalhadoras; as trabalhadoras usam as skills dos especialistas delas. Você usa as suas na validação final e ao responder à pessoa sobre o ritmo do projeto.
+- **Skills do tema** (plugin `metodo`). Você não tem trabalhadoras; as trabalhadoras usam as skills dos especialistas delas. Você usa as suas na validação final e ao responder à pessoa sobre o ritmo do projeto.
   - `metodo:validacao-final`: critérios de aceite provados, comportamento e não implementação, dublês, pirâmide e testes instáveis.
   - `metodo:metricas-de-entrega`: as cinco métricas da DORA, com linha de base e sem virar meta.
+- `metodo:auditoria-de-seguranca`: para criar o portão da auditoria (Fases 2 e 7) e decidir a publicação pela tabela de triagem.
+- `engineering:testing-strategy` no plano (Fase 3): que testes micro e macro cada entrega pede.
+- Na Fase 8, `/ponytail-audit` (rascunho) para o que corrigir primeiro e o que apagar, e `/ponytail-debt` para os atalhos `shortcut:` deixados pelas trabalhadoras; cada item vira pendência na memória. Confira também o que o ponytail não olha: dependências desatualizadas, deploy feito à mão, falta de monitoramento e documentação velha. Ordene tudo por impacto, risco e esforço, e leve a ordem à pessoa.
+- `engineering:documentation` para o README, os runbooks e a documentação que a entrega pede.
+- `superpowers:diagnosing-superpowers` quando uma sessão deu errado (retrabalho, plano ignorado, custo alto) e é preciso entender por quê antes de virar lição.
 
 ## 6. Checklist do tema
 
@@ -120,7 +128,7 @@ Para a pessoa, sempre por um portão: merge, deploy, mudança no contrato da API
 
 ## 9. Memória do tema
 
-`docs/memoria-do-projeto.md`: onde o trabalho parou, o que foi decidido e, por tarefa, `#N · especialista · agente · retrabalho · consumo`. Cada correção que a pessoa fizer vira uma lição para o método.
+`docs/memoria-do-projeto.md`: onde o trabalho parou, o que foi decidido e, por tarefa, `#N · especialista · retrabalho · consumo` (o agente principal fica registrado uma vez, no topo). Cada correção que a pessoa fizer vira uma lição para o método.
 
 ## 10. Economia
 
@@ -128,5 +136,5 @@ Para a pessoa, sempre por um portão: merge, deploy, mudança no contrato da API
 - Cada revisor olha só a sua parte: você confia no veredito do especialista para o tema e confere critérios, testes e navegador, sem reler o código linha a linha.
 - Logs de teste e build resumidos ao que falhou.
 - Ao fim de cada fase, grava o estado na memória e recomeça a sessão limpa.
-- Anota o consumo de cada tarefa na memória (`/cost` no Claude Code; o consumo exibido na sessão do Codex).
+- Anota o consumo de cada tarefa na memória. No Claude Code, a fonte é o quadro do ponytail (`~/.config/ponytail/band/<projeto>.csv`: custo, tokens, idas e voltas e tempo por tarefa) ou o `/cost`; no Codex, o consumo exibido na sessão. Na Fase 9, compare o consumo das tarefas com e sem o ponytail. Num projeto Codex, anote também se o ponytail carregou sozinho (sem ser chamado) e o consumo dessas tarefas: é o que decide se ele fica ligado de vez no Codex.
 - Fecha Produto e DevOps quando a fase deles termina.

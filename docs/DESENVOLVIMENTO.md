@@ -1,6 +1,7 @@
 # Como desenvolvemos este projeto
 
-Versão do método: 2.12.0
+Versão do método: 3.1.0
+Agente principal: Codex
 Cenários aplicados:
 - site-estatico (testado em 1 projeto)
 
@@ -33,11 +34,19 @@ Next.js 15.5 (App Router), React 19, Three.js r180, @react-three/fiber 9, @14isl
 - Tarefas: issues com o formulário de tarefa (`.github/ISSUE_TEMPLATE/tarefa.yml`).
 - Worktrees: `scripts/nova-tarefa.sh <tipo> <slug>` e `scripts/remover-tarefa.sh <tipo> <slug>`.
 - Com o Orca (modo em rascunho): a coordenadora é a integradora e distribui as tarefas aos agentes (`orca orchestration worker-start`); o Orca cria e remove as worktrees, e os scripts acima ficam para quem trabalha sem ele. Prompt: `modelos/prompt-coordenadora-orca.md` do método.
-- Back com o Codex e front com o Claude (modo em rascunho): a coordenadora Claude inicia os agentes do back com `--agent codex`; o Codex lê o `AGENTS.md`, com as mesmas regras do `CLAUDE.md`. O contrato da API é aprovado antes de qualquer tarefa de construção.
+- Agente principal: todas as sessões deste projeto usam Codex, nunca as duas ferramentas; no Orca, todo agente abre com `--agent codex`. O Claude Code lê o `CLAUDE.md`; o Codex lê o `AGENTS.md`, que manda ler o `CLAUDE.md`. Trocar de ferramenta é uma decisão da pessoa, registrada na memória. Com back e front em tarefas paralelas, o contrato da API é aprovado antes de qualquer tarefa de construção.
 - Para trazer este projeto à versão mais nova do método: `/metodo:atualizar-projeto`.
 - Memória do projeto: `docs/memoria-do-projeto.md`.
 - Com agentes especialistas (modo em rascunho): cada agente lê primeiro o seu harness em `docs/agentes/` e atua dentro dele. A integradora coordena os especialistas, e cada especialista abre as suas trabalhadoras. Exige no Orca: Settings → Orchestration → Nested worker depth = 2.
 - Especialistas deste projeto (site sem back-end próprio): Integradora, Arquitetura, Design e Front (até 2 trabalhadoras Claude) e Segurança, sempre; DevOps só na publicação (C5) e Back e Dados só se a rota do formulário ou a IA do contato pedirem; Produto, sob demanda.
+
+## Método de desenvolvimento
+
+A pessoa escolheu o Codex como agente principal e aprovou a atualização dos sete harnesses em 2026-11-02. As referências anteriores a trabalhadoras Claude e ao selo de rascunho dos modos Orca e com especialistas ficam como histórico: todas as sessões usam Codex, inclusive a integradora, os especialistas e as até duas trabalhadoras de Design e Front. Os papéis, os limites de sessões e a presença de cada especialista definidos para este site continuam valendo.
+
+- Com o Orca: a coordenadora é a integradora e distribui as tarefas aos agentes (`orca orchestration worker-start`); o Orca cria e remove as worktrees, e os scripts acima ficam para quem trabalha sem ele. Prompt: `modelos/prompt-coordenadora-orca.md` do método.
+- Com agentes especialistas: cada agente lê primeiro o seu harness em `docs/agentes/` e atua dentro dele. A integradora coordena os especialistas, e cada especialista abre as suas trabalhadoras. Exige no Orca: Settings → Orchestration → Nested worker depth = 2.
+- Os harnesses atualizados incluem a leitura das lições do método, as skills de cada papel e o fluxo de auditoria de segurança com aprovação própria. No Codex, Ponytail fica sob demanda, conforme o `AGENTS.md`; esta atualização não instala nem ativa ferramentas.
 
 ## Antes do primeiro push para um repositório público
 
