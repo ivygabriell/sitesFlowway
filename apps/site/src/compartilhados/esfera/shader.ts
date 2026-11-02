@@ -58,6 +58,9 @@ void main() {
   if (dist > 0.0) q.xy += d / dist * k;
 
   vec4 mv = modelViewMatrix * vec4(q, 1.0);
+  // A perspectiva só age em volta do centro da esfera: fora do eixo da câmera, ela esticaria o globo numa elipse.
+  vec3 centro = modelViewMatrix[3].xyz;
+  mv.xy += centro.xy * (mv.z / centro.z - 1.0);
   gl_Position = projectionMatrix * mv;
   // Todas as letras com o mesmo tamanho, como no protótipo (a perspectiva só mexe nas posições).
   gl_PointSize = min(uTamanho * uDpr, ${glsl(ESFERA.tetoDoPonto)});

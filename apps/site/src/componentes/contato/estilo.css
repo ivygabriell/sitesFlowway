@@ -101,3 +101,5 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
   .pagina-privacidade { padding: 80px 18px 32px; }
 }
 html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minmax(0, 1fr); }
+/* Em coluna estreita, o justificado abre buracos entre as palavras. */
+@media (max-width: 899px) { .pagina-contato .frase-contato { text-align: left; text-align-last: left; } }
