@@ -63,3 +63,41 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
   .rodape-cta { font-size: 1.2vw; line-height: 1.2vw; }
   .secao-contato .esfera { top: var(--topo); height: calc(100vh - var(--topo) - var(--pe)); margin-top: calc(var(--topo) - 100vh); }
 }
+
+/* ---------- página de contato (spec 4.6) ---------- */
+/* Uma tela só no desktop: frase, formulário à esquerda e esfera à direita (disposição B aberta), rodapé. No celular, empilha e rola. */
+.pagina-contato { position: relative; display: flex; flex-direction: column; gap: 24px; min-height: 100vh; padding: 70px 30px 20px; overflow: hidden; color: var(--escuro); }
+.pagina-contato .frase-contato { padding-right: 0; }
+.pagina-contato-corpo { flex: 1; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); gap: 4vw; align-items: stretch; }
+.pagina-contato .esfera { aspect-ratio: auto; min-height: 300px; height: 100%; }
+.pagina-contato .rodape { position: relative; bottom: auto; padding: 0; }
+.pagina-contato .circulo-escuro { position: fixed; pointer-events: none; animation: circulo-encolhe 1.5s cubic-bezier(0.7, 0, 0.3, 1) both; }
+@keyframes circulo-encolhe { to { transform: scale(0); } }
+@media (prefers-reduced-motion: reduce) { .pagina-contato .circulo-escuro { display: none; } }
+
+.formulario-contato { display: flex; flex-direction: column; gap: 14px; align-self: center; }
+.formulario-enviado { font: 400 20px/26px var(--sans); }
+.formulario-isca { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.formulario-campo { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--escuro); }
+.formulario-campo:focus-within { border-bottom-color: var(--azul); }
+.formulario-campo span { font: 400 11px/15px var(--mono); text-transform: uppercase; }
+.formulario-campo input, .formulario-campo textarea { width: 100%; padding: 4px 0 8px; border: 0; outline: 0; background: transparent; color: var(--escuro); font: 400 20px/26px var(--sans); resize: none; }
+.formulario-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.formulario-falha { flex: 1; font: 400 13px/18px var(--mono); text-transform: uppercase; }
+.formulario-acoes button { min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--escuro); cursor: pointer; font: 400 13px var(--mono); text-transform: uppercase; text-decoration: underline; text-decoration-color: var(--azul); text-underline-offset: 4px; }
+.formulario-acoes button:disabled { opacity: 0.35; cursor: default; }
+.formulario-acoes button:focus-visible, .formulario-aviso a:focus-visible { outline: 2px solid var(--azul); outline-offset: 4px; }
+.formulario-aviso { font: 400 10.5px/15px var(--mono); text-transform: uppercase; }
+.formulario-aviso a { color: inherit; text-decoration: underline; text-decoration-color: var(--azul); }
+
+.pagina-privacidade { display: flex; flex-direction: column; gap: 24px; min-height: 100vh; max-width: 760px; padding: 110px 30px 40px; color: var(--escuro); font: 400 18px/26px var(--sans); }
+.pagina-privacidade h1 { font: 500 clamp(28px, 3.1vw, 44px)/1 var(--sans); letter-spacing: -0.02em; text-transform: uppercase; }
+
+@media (max-width: 899px) {
+  .pagina-contato { padding: 60px 18px 16px; }
+  .pagina-contato-corpo { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .pagina-contato .esfera { height: 240px; min-height: 0; }
+  .formulario-campo input, .formulario-campo textarea { font-size: 16px; line-height: 22px; }
+  .pagina-privacidade { padding: 80px 18px 32px; }
+}
+html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minmax(0, 1fr); }
