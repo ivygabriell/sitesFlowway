@@ -48,3 +48,8 @@
 @media (prefers-reduced-motion: reduce) {
   .palavra-contorno { animation: none; }
 }
+
+/* O selo fixo tem 34 px e passa sobre o texto ao rolar; com a margem de 18 px, faltam 20 px à direita. */
+@media (max-width: 899px) {
+  .manifesto-texto, .manifesto-apoio, .unico { padding-right: 20px; }
+}

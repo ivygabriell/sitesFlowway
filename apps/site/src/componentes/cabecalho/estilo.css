@@ -60,3 +60,14 @@
   .cabecalho nav a { transition: opacity 320ms ease; }
   .cabecalho nav:has(a:hover) a:not(:hover) { opacity: 0.65; }
 }
+
+@media (max-width: 899px) {
+  /* Fora da Início, "Voltar ao início" já leva ao mesmo lugar que o nome, e os dois não cabem em 360 px. */
+  .cabecalho:has(.voltar) .nome { display: none; }
+  .cabecalho { white-space: nowrap; }
+  .cabecalho .idioma .menu-texto2 { pointer-events: auto; }
+  /* Alvo de toque de 44 px, sem mudar o desenho. */
+  .cabecalho nav a, .cabecalho .voltar, .cabecalho .idioma { padding: 15px 0; margin: -15px 0; }
+  .cabecalho .idioma .menu-texto2 { top: 37px; }
+  .rodape-cta { padding: 12px 0; margin-top: -12px; margin-bottom: 0; }
+}

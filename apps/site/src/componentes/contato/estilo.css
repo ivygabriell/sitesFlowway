@@ -103,3 +103,14 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
 html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minmax(0, 1fr); }
 /* Em coluna estreita, o justificado abre buracos entre as palavras. */
 @media (max-width: 899px) { .pagina-contato .frase-contato { text-align: left; text-align-last: left; } }
+
+/* No modo em grade do celular, display: contents anula o overflow da tela: o círculo de 130vw alargaria a página. */
+.secao-contato { overflow-x: clip; }
+
+
+/* ---------- 404 ---------- */
+.pagina-404 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 100vh; padding: 80px 18px; color: var(--escuro); text-align: center; }
+.pagina-404-codigo { font: 400 14px var(--mono); }
+.pagina-404 h1 { font: 500 clamp(32px, 4vw, 56px)/1 var(--sans); letter-spacing: -0.02em; text-transform: uppercase; }
+.pagina-404-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; font: 400 13px var(--mono); text-transform: uppercase; }
+.pagina-404-links a { padding: 15px 0; color: inherit; text-decoration: underline; text-decoration-color: var(--azul); text-underline-offset: 4px; }
