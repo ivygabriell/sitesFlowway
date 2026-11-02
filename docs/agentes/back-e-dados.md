@@ -1,13 +1,12 @@
 # Harness de Back e Dados
 
 **Agente:** Back e Dados
-**Ferramenta:** Codex
-**Modelo:** gpt-6.1-sol
+**Ferramenta:** a do projeto, a mesma para todos os agentes: Claude Code ou Codex, nunca as duas (linha `Agente principal:` do `docs/DESENVOLVIMENTO.md`)
+**Modelo:** `claude-opus-5-5` no Claude Code (`--agent claude`); `gpt-6.1-sol` no Codex (`--agent codex`)
 **Esforço:** médio; nas trabalhadoras, médio, e alto em tarefa difícil ou depois de um retrabalho
 **Presença:** sempre
-**Trabalhadoras:** Codex, até 2 ao mesmo tempo, uma por issue
+**Trabalhadoras:** da mesma ferramenta, até 2 ao mesmo tempo, uma por issue
 **Onde trabalha:** na sua worktree `back-e-dados`, filha da worktree principal (visível no Orca), de onde coordena; não constrói nela; revisa lendo a worktree da trabalhadora
-**Maturidade:** rascunho
 
 ## O harness manda
 
@@ -32,7 +31,8 @@ Não é seu: o contrato da API (é da Arquitetura), a interface (Design e Front)
 
 ## 3. O que lê
 
-- No início: `AGENTS.md`, que manda ler o `CLAUDE.md`, o `docs/DESENVOLVIMENTO.md` e a `docs/memoria-do-projeto.md`.
+- No início: o arquivo de instruções da sua ferramenta (`CLAUDE.md` no Claude Code; `AGENTS.md` no Codex, que manda ler o `CLAUDE.md`), o `docs/DESENVOLVIMENTO.md` e a `docs/memoria-do-projeto.md`.
+- As lições do método que tocam o seu tema, pelo índice `licoes/_indice.md` (pela skill `metodo:consultar`): cada uma é um erro que já aconteceu e a regra que ficou.
 - Do tema: o contrato da API (`docs/contrato-api.md`), os registros de arquitetura (`docs/arquitetura.md`), o mapa de riscos da Segurança, a issue.
 - **Referências** (escolhidas pela pessoa; consultar o que fizer sentido para a decisão, não todas):
   - Zalando RESTful API Guidelines (https://opensource.zalando.com/restful-api-guidelines/): regras concretas de API REST e eventos: compatibilidade, versão, paginação por cursor, repetir sem duplicar, formato dos erros, depreciação.
@@ -55,7 +55,8 @@ Não é seu: o contrato da API (é da Arquitetura), a interface (Design e Front)
 Pode:
 
 - Abrir as suas trabalhadoras, uma por issue:
-  `orca orchestration worker-start --agent codex --model gpt-6.1-sol --effort medium --worktree new-child --base-branch origin/main --name back-<N>-<slug> --display-name "back #<N>" --spec "<a especificação padrão da tarefa: issue, objetivo, critérios de aceite, arquivos permitidos e proibidos, testes micro e macro, as skills do tema que a tarefa toca, Closes #<N>>"`.
+  `orca orchestration worker-start --agent <agente> --model <modelo> --effort medium --worktree new-child --base-branch origin/main --name back-<N>-<slug> --display-name "back #<N>" --spec "<a especificação padrão da tarefa: issue, objetivo, critérios de aceite, arquivos permitidos e proibidos, testes micro e macro, as skills do tema que a tarefa toca, Closes #<N>>"`.
+  `<agente>` e `<modelo>` são os do agente principal do projeto (veja **Ferramenta** e **Modelo**, no topo): as trabalhadoras usam sempre a mesma ferramenta que você.
   O Orca pendura cada trabalhadora em você (`--parent` da sua tarefa); a dúvida dela chega a você.
 - Responder às dúvidas delas (`orca orchestration reply`).
 - Revisar o PR entrando na worktree da trabalhadora, só lendo.
@@ -73,13 +74,15 @@ Não pode:
 ## 5. Skills
 
 - Exige das trabalhadoras: `superpowers:test-driven-development`, `superpowers:systematic-debugging` em bug, `superpowers:verification-before-completion` antes do PR.
-- **Skills do tema** (plugin `metodo`, rascunho). As trabalhadoras usam as skills do especialista: ao construir, a trabalhadora usa a que a tarefa toca, e a especificação do `worker-start` diz qual; você usa as mesmas ao revisar, como checklist.
+- **Skills do tema** (plugin `metodo`). As trabalhadoras usam as skills do especialista: ao construir, a trabalhadora usa a que a tarefa toca, e a especificação do `worker-start` diz qual; você usa as mesmas ao revisar, como checklist.
   - `metodo:api-conforme-contrato`: rotas, paginação, erros, permissão e pedido repetido.
   - `metodo:migracao-sem-parada`: mudança de esquema, índice e constraint em tabela com uso.
   - `metodo:transacoes-e-consultas`: concorrência, travas, repetição da transação, índices, exclusão em massa e conexões.
   - `metodo:trabalho-em-segundo-plano`: fila, tarefa que pode repetir, tabela de saída e chamada externa.
   - Da Segurança, quando a tarefa toca autenticação, permissão ou entrada de fora: `metodo:autenticacao-e-sessao`, `metodo:controle-de-acesso` e `metodo:entrada-nao-confiavel`.
 - Você usa: `superpowers:requesting-code-review` ao revisar e `superpowers:verification-before-completion` antes de avisar a integradora.
+- **Revisão dos PRs das trabalhadoras:** `/ponytail-review` (rascunho; no Codex, `$ponytail:ponytail-review`), que lê o código ligado à mudança e traz um caso concreto por achado; sem o ponytail, `superpowers:requesting-code-review`. Para um bug de API ou de dados na Fase 8, `superpowers:systematic-debugging`.
+- **As trabalhadoras** usam `superpowers:receiving-code-review` quando você devolve o PR, e constroem com o ponytail no nível `full` (a menor mudança que resolve a tarefa inteira), sempre com o TDD do método por cima: o teste é escrito antes e visto falhar.
 
 ## 6. Checklist do tema
 
@@ -118,4 +121,8 @@ O modelo de dados, as migrações feitas e as regras de negócio decididas ficam
 - Logs de teste e build resumidos ao que falhou.
 - Esforço alto só em tarefa difícil ou depois de um retrabalho.
 - Ao fim de cada fase, manda o estado do tema à integradora (`orca orchestration send --type status`) e recomeça a sessão limpa.
-- Manda o consumo da tarefa (o consumo exibido na sessão do Codex) à integradora com `orca orchestration send --type status`; ela anota na memória do projeto.
+- Manda o consumo da tarefa (`/cost` no Claude Code; o consumo exibido na sessão do Codex) à integradora com `orca orchestration send --type status`; ela anota na memória do projeto.
+
+## Aplicação do Ponytail neste projeto
+
+No Codex, vale a decisão específica do `AGENTS.md`: Ponytail só sob demanda, sem ativação automática na construção. Esta regra substitui a orientação genérica acima de construir com Ponytail no nível `full`. Os comandos de revisão, auditoria e dívida só são usados quando pedidos pela pessoa, pela coordenadora ou pelo harness; a skill principal `ponytail` não é carregada por conta própria. O TDD, os critérios de aceite e as validações do método continuam obrigatórios.

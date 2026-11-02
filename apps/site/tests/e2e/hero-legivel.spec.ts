@@ -49,6 +49,28 @@ test.describe('desktop', () => {
     console.log('hero-legivel recorte da issue:', JSON.stringify(medida));
     legivel(medida);
   });
+
+  test('com quadros lentos e sem abertura, a palavra termina a entrada e fica legível', async ({ page }) => {
+    await page.addInitScript(() => {
+      sessionStorage.setItem('abertura-tocou', '1');
+      const pedir = window.requestAnimationFrame.bind(window);
+      let ultimo = -1;
+      window.requestAnimationFrame = (cb) =>
+        pedir((t) => {
+          if (t !== ultimo) {
+            ultimo = t;
+            const fim = performance.now() + 700;
+            while (performance.now() < fim);
+          }
+          cb(t);
+        });
+    });
+    await page.goto('/');
+    await page.waitForTimeout(ESPERA);
+    const medida = await luminancias(page, { x: 100, y: 150, width: 1240, height: 280 });
+    console.log('hero-legivel com quadros lentos:', JSON.stringify(medida));
+    legivel(medida);
+  });
 });
 
 test.describe('movimento reduzido', () => {

@@ -31,7 +31,6 @@ const INTENSIDADE = { passoBorrao: 2, veu: 0.005, forca: 0.3, serra: 1 };
 const T = TEMPOS;
 const C = CURVAS;
 
-
 export function CenaHero() {
   const { gl, scene, camera, size } = useThree();
   const { terminou } = useAbertura();
@@ -115,7 +114,7 @@ export function CenaHero() {
     const principal = refPrincipal.current!;
     const palavras = document.querySelectorAll('.secao-hero .palavra-intro');
 
-    const entrada = gsap.timeline();
+    const entrada = gsap.timeline({ paused: true });
     entrada.set('.secao-hero .intro', { opacity: 1 }, 0);
     if (celular) {
       s.yPrincipal = -3 * un;
@@ -136,6 +135,15 @@ export function CenaHero() {
         .to('.secao-hero .role-para-baixo', { opacity: 1, duration: T['tempo-esmaecer'] }, 1);
       palavras.forEach((p) => entrada.from(p, { opacity: 0, duration: T['tempo-piscar'], repeat: 5 }, INTERVALOS['intervalo-intro'] + Math.random()));
     }
+
+    // A entrada segue o tempo real mesmo com quadros acima de 500 ms. Controla só esta timeline,
+    // sem alterar o lagSmoothing global e disputar sua restauração com a transição de página.
+    const inicio = performance.now();
+    const avancarEntrada = () => {
+      entrada.totalTime((performance.now() - inicio) / 1000);
+    };
+    entrada.eventCallback('onComplete', () => gsap.ticker.remove(avancarEntrada));
+    gsap.ticker.add(avancarEntrada);
 
     let saida: gsap.core.Timeline | undefined;
     const mostrar = (sim: boolean) => {
@@ -169,6 +177,7 @@ export function CenaHero() {
 
     return () => {
       clearTimeout(atraso);
+      gsap.ticker.remove(avancarEntrada);
       entrada.kill();
       saida?.scrollTrigger?.kill();
       saida?.kill();
