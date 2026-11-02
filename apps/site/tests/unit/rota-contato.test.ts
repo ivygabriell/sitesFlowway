@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '../../app/api/contato/route';
 import { entregarPedido, limparLimite } from '@/lib/pedidoDeContato';
@@ -14,7 +13,8 @@ const VALIDO = { nome: 'Ana', empresa: 'ACME', contato: 'ana@exemplo.com', mensa
 function pedido(campos: Record<string, string> = VALIDO, cabecalhos: Record<string, string> = { accept: 'application/json' }) {
   const corpo = new FormData();
   for (const [k, v] of Object.entries(campos)) corpo.set(k, v);
-  return new Request('http://localhost/api/contato', { method: 'POST', body: corpo, headers: { 'x-forwarded-for': '10.0.0.1', ...cabecalhos } });
+  // O FormData do jsdom não passa pelo Request do Node; a rota só usa estas três partes.
+  return { url: 'http://localhost/api/contato', formData: async () => corpo, headers: new Headers({ 'x-forwarded-for': '10.0.0.1', ...cabecalhos }) } as unknown as Request;
 }
 
 beforeEach(() => {

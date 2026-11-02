@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { PNG } from 'pngjs';
 
 // A página de contato (spec 4.6): o selo e o CTA chegam nela, nas duas línguas, e o formulário cabe em qualquer tela.
 for (const [caminho, lang, privacidade] of [['/contato', 'pt-BR', '/privacidade'], ['/en/contact', 'en', '/en/privacy']] as const) {
@@ -87,3 +88,24 @@ test.describe('sem JavaScript', () => {
     await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
   });
 });
+
+// A esfera fica fora do eixo da câmera: sem correção, a perspectiva a estica na horizontal.
+for (const [largura, altura] of [[1440, 900], [1883, 703]] as const) {
+  test(`${largura}×${altura}: o globo é redondo`, async ({ page }) => {
+    await page.setViewportSize({ width: largura, height: altura });
+    await page.goto('/contato');
+    await page.waitForTimeout(3000); // antes da morfose, com o círculo já fora
+    const caixa = await page.locator('.pagina-contato .esfera').boundingBox();
+    const png = PNG.sync.read(await page.screenshot({ clip: caixa! }));
+    let [x0, x1, y0, y1] = [1e9, -1, 1e9, -1];
+    for (let y = 0; y < png.height; y++)
+      for (let x = 0; x < png.width; x++)
+        if (png.data[(y * png.width + x) * 4] < 120) {
+          x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+        }
+    expect(x1).toBeGreaterThan(0);
+    const razao = (x1 - x0) / (y1 - y0);
+    expect(razao).toBeGreaterThan(0.93);
+    expect(razao).toBeLessThan(1.07);
+  });
+}
