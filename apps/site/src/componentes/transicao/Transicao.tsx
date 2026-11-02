@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from '@/gsap';
 import { prefereMenosMovimento } from '@/lib/ambiente';
@@ -14,7 +14,6 @@ const SUAVIZAR_TRAVADAS = [500, 33] as const;
 // Transição de página (02-site): um círculo cresce do centro, logo abaixo do cabeçalho, e só então a página troca.
 // Com movimento reduzido não há círculo. Também marca o modo de exibição no <html>.
 export function Transicao() {
-  const router = useRouter();
   const caminho = usePathname() ?? '/';
   const [cor, setCor] = useState<string | null>(null);
   const circulo = useRef<HTMLDivElement>(null);
@@ -45,7 +44,8 @@ export function Transicao() {
       if (!destino) return;
       e.preventDefault();
       if (prefereMenosMovimento()) {
-        router.push(destino);
+        // Documento inteiro: as timelines e a cena da Início não suportam remontar no cliente (spec 2026-11-01, bug 2).
+              window.location.assign(destino);
         return;
       }
       indo.current = true;
@@ -62,7 +62,8 @@ export function Transicao() {
             ease: CURVAS['curva-padrao'],
             onComplete: () => {
               gsap.ticker.lagSmoothing(...SUAVIZAR_TRAVADAS);
-              router.push(destino);
+              // Documento inteiro: as timelines e a cena da Início não suportam remontar no cliente (spec 2026-11-01, bug 2).
+              window.location.assign(destino);
             },
           },
         );
@@ -70,7 +71,7 @@ export function Transicao() {
     };
     document.addEventListener('click', aoClicar);
     return () => document.removeEventListener('click', aoClicar);
-  }, [router]);
+  }, []);
 
   if (!cor) return null;
   return <div ref={circulo} className="transicao" style={{ background: cor }} aria-hidden="true" />;

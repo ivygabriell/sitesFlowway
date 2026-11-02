@@ -22,7 +22,7 @@ export function LayoutRaiz({ idioma, children }: { idioma: Idioma; children: Rea
         {/* Antes de pintar: se a abertura já tocou nesta sessão, ela não aparece nem por um quadro. */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_ABERTURA }} />
         <noscript>
-          <style>{'.abertura { display: none; }'}</style>
+          <style>{'.abertura, .secao-contato .circulo-escuro { display: none; } .rodape { display: flex; }'}</style>
         </noscript>
       </head>
       <body>

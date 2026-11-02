@@ -1,10 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PNG } from 'pngjs';
 
-// A esfera (raio 230 px numa tela de 900 px) fica no meio da tela enquanto o contato está preso.
-// Caixa no miolo da esfera e caixa logo abaixo dela, entre a esfera e o convite do rodapé.
+// A esfera (raio de 35% da altura da tela) fica no meio da tela enquanto o contato está preso.
+// Caixa no miolo da esfera e caixa ao lado dela, à esquerda, onde não há letras nem texto.
 const MIOLO = { x: 560, y: 340, width: 320, height: 220 };
-const ABAIXO = { x: 560, y: 705, width: 320, height: 40 };
+const AO_LADO = { x: 60, y: 400, width: 200, height: 200 };
 
 // Fração dos pixels da caixa que não são o claro do fundo (letras da esfera).
 async function tinta(page: Page, caixa: typeof MIOLO) {
@@ -32,11 +32,11 @@ test('a esfera acompanha a seção de contato presa: no meio da tela no início,
     await page.evaluate((y) => scrollTo(0, y), fim - recuo);
     await page.waitForTimeout(2500);
     await expect.poll(() => tinta(page, MIOLO), { message: `${nome}: letras no miolo`, timeout: 20_000 }).toBeGreaterThan(0.05);
-    expect(await tinta(page, ABAIXO), `${nome}: nada da esfera abaixo dela`).toBeLessThan(0.01);
+    expect(await tinta(page, AO_LADO), `${nome}: nada da esfera ao lado dela`).toBeLessThan(0.01);
   }
 });
 
-for (const viewport of [{ width: 820, height: 1180 }, { width: 390, height: 720 }]) {
+for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 720 }]) {
   test.describe(`contato legível em ${viewport.width}×${viewport.height}`, () => {
     test.use({ viewport });
     // Sem separar as áreas no contato, as partículas ficam atrás das últimas linhas da frase.

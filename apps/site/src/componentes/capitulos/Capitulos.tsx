@@ -47,7 +47,8 @@ export function Capitulos() {
       const fileira = secao.querySelector<HTMLElement>('.cartoes')!;
       const cartoes = secao.querySelectorAll<HTMLElement>('.cartao');
       const tracinhos = secao.querySelectorAll<HTMLElement>('.tracinho');
-      const extra = fileira.scrollWidth - window.innerWidth + 60;
+      // Só anda quando a fileira passa da tela; com poucos quadros ela fica centrada, parada.
+      const extra = Math.max(0, fileira.scrollWidth - window.innerWidth);
       const tl = gsap.timeline({
         defaults: { ease: LINEAR },
         scrollTrigger: {

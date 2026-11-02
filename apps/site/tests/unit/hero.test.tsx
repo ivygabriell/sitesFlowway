@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { alvosDeSaida, PARALAXE, repouso, SAIDA } from '@/componentes/hero/disposicao';
+import { alvoDeSaida, PARALAXE, repouso, SAIDA } from '@/componentes/hero/disposicao';
 import { Hero } from '@/componentes/hero/Hero';
 import { 'inicio-topo' as inicioTopo } from '@/conteudo/inicio-topo';
 import { t } from '@/conteudo/textos';
@@ -52,26 +52,21 @@ describe('Hero', () => {
   });
 });
 
-// Issue #15, pedido de 2026-11-01: lâminas no meio da tela, abraçando a palavra, e saída que cresce e gira no lugar.
-describe('disposição das lâminas do hero', () => {
+// Pedido de 2026-11-01: uma logo só, grande, com a barra de cima sobre a parte de baixo da palavra, e saída que cresce e gira no lugar.
+describe('disposição da logo de vidro do hero', () => {
   it.each([
-    [1440, 900],
-    [390, 844],
-  ])('em %i×%i, o centro da lâmina principal fica entre 45%% e 60%% da altura e a metade de cima da palavra fica livre', (largura, altura) => {
+    [1440, 900, 0.86],
+    [390, 844, 0.9],
+  ])('em %i×%i, a logo começa dentro da palavra, deixando o topo dela livre, e passa do pé dela', (largura, altura, fracao) => {
     const r = repouso(largura, altura);
-    expect(r.principal.centro / altura).toBeGreaterThanOrEqual(0.45);
-    expect(r.principal.centro / altura).toBeLessThanOrEqual(0.6);
-    expect(r.principal.topo).toBeGreaterThanOrEqual(r.palavra.centro);
+    const meiaPalavra = (0.5 * fracao * largura * 292) / 1360;
+    expect(r.principal.topo).toBeGreaterThan(r.palavra.centro - meiaPalavra);
+    expect(r.principal.topo).toBeLessThan(r.palavra.centro + meiaPalavra);
+    expect(r.principal.base).toBeGreaterThan(r.palavra.centro + meiaPalavra);
   });
 
-  it('no desktop, as duas lâminas menores ficam abaixo da principal, com vão', () => {
-    const r = repouso(1440, 900);
-    expect(r.laje.topo).toBeGreaterThan(r.principal.base);
-    expect(r.pequena.topo).toBeGreaterThan(r.principal.base);
-  });
-
-  it('a paralaxe é a da referência: palavra ×1,6 e lâminas ×0,1, ×0,9 e ×0,4 da rolagem', () => {
-    expect(PARALAXE).toEqual({ palavra: 1.6, principal: 0.1, laje: 0.9, pequena: 0.4 });
+  it('a paralaxe é a da referência: palavra ×1,6 e logo ×0,1 da rolagem', () => {
+    expect(PARALAXE).toEqual({ palavra: 1.6, principal: 0.1 });
   });
 
   it('a saída usa scrub 1, do topo do hero + 10 px até 2 alturas de tela (0,7 no celular)', () => {
@@ -80,20 +75,9 @@ describe('disposição das lâminas do hero', () => {
     expect(SAIDA.alturas).toEqual({ desktop: 2, celular: 0.7 });
   });
 
-  it.each([false, true])('na saída (celular: %s) as lâminas crescem pelo menos 1,6× e giram até ~0,3 rad, sem subir', (celular) => {
-    const alvos = alvosDeSaida(celular, false);
-    expect(alvos.map((a) => a.peca)).toEqual(celular ? ['principal'] : ['principal', 'laje', 'pequena']);
-    for (const a of alvos) {
-      expect(a.crescimento).toBeGreaterThanOrEqual(1.6);
-      const giros = Object.values(a.giro);
-      expect(giros.length).toBeGreaterThan(0);
-      giros.forEach((g) => expect(Math.abs(g)).toBeLessThanOrEqual(0.32));
-      expect(a).not.toHaveProperty('y');
-    }
-  });
-
-  it('com movimento reduzido não há saída animada', () => {
-    expect(alvosDeSaida(false, true)).toEqual([]);
-    expect(alvosDeSaida(true, true)).toEqual([]);
+  it.each([false, true])('na saída (celular: %s) a logo cresce pelo menos 1,6× e gira até ~0,3 rad', (celular) => {
+    const { crescimento, giro } = alvoDeSaida(celular);
+    expect(crescimento).toBeGreaterThanOrEqual(1.6);
+    Object.values(giro).forEach((g) => expect(Math.abs(g)).toBeLessThanOrEqual(0.32));
   });
 });

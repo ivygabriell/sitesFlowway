@@ -39,14 +39,17 @@ void main() {
   float m = uMorf * uMorf * (3.0 - 2.0 * uMorf);
   vec3 p = mix(aEsfera, aAlvo, m);
 
-  // A esfera gira em torno do eixo vertical; com o F formado, o giro é zero.
-  float a = uGiro * (1.0 - m);
+  // A esfera gira em torno do eixo vertical; com o F formado, ele balança devagar, como um planeta girando.
+  float a = uGiro * (1.0 - m) + sin(uTempo * 0.7) * 0.22 * m;
   float c = cos(a);
   float s = sin(a);
   p = vec3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
   // A profundidade é medida em distâncias de câmera, e não em raios: a câmera fica a 3 raios do centro, como no
   // protótipo, qualquer que seja o tamanho da esfera na tela.
   vec3 q = vec3(p.xy * uRaio, p.z * cameraPosition.z / ${glsl(ESFERA.cameraEmRaios)});
+
+  // No F, as letras também ondulam de leve, para o desenho nunca ficar parado.
+  q.xy += m * uRaio * 0.022 * (vec2(ruido3(aAlvo * 5.0 + uTempo * 0.5), ruido3(aAlvo * 5.0 - uTempo * 0.5 + 9.0)) - 0.5);
 
   // O cursor empurra as letras no plano da tela (unidades da cena = pixels).
   vec2 d = q.xy - uMouse;
@@ -55,18 +58,27 @@ void main() {
   if (dist > 0.0) q.xy += d / dist * k;
 
   vec4 mv = modelViewMatrix * vec4(q, 1.0);
+  // A perspectiva só age em volta do centro da esfera: fora do eixo da câmera, ela esticaria o globo numa elipse.
+  vec3 centro = modelViewMatrix[3].xyz;
+  mv.xy += centro.xy * (mv.z / centro.z - 1.0);
   gl_Position = projectionMatrix * mv;
   // Todas as letras com o mesmo tamanho, como no protótipo (a perspectiva só mexe nas posições).
   gl_PointSize = min(uTamanho * uDpr, ${glsl(ESFERA.tetoDoPonto)});
 
   // Buracos de ruído, presos à superfície da esfera e animados pelo tempo.
   float n = ruido3(aEsfera * ${glsl(ESFERA.frequenciaDosBuracos)} + vec3(uTempo * 0.3, uTempo * -0.4, uTempo * 0.5)) * 2.0 - 1.0;
+
+  // No F, cada letra é um ponto de um globo atrás do desenho, girando: as letras mudam em faixas que atravessam o F.
+  vec2 noGlobo = aAlvo.xy / 1.25;
+  float z = sqrt(max(1.0 - dot(noGlobo, noGlobo), 0.0));
+  float faixa = floor((atan(noGlobo.x, z) + uGiro * 3.0) * 4.0);
+
   if (m < 0.5 && n > ${glsl(ESFERA.corteDosBuracos)}) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
   }
 
-  vLetra = aLetra;
+  vLetra = m > 0.5 ? mod(aLetra + faixa, 6.0) : aLetra;
   vAzul = m > 0.5 ? aAzul.y : aAzul.x;
   // Na esfera, as letras de trás ficam mais claras (a opacidade do protótipo, sem transparência); no F, todas cheias.
   vTom = mix(clamp(0.75 + p.z * 0.55, 0.12, 1.0), 1.0, m);

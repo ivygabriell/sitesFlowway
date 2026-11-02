@@ -26,3 +26,6 @@
 }
 .secao-decisoes:not(.com-lencol) .titulo-decisoes { gap: 12px; }
 .secao-decisoes:not(.com-lencol) .titulo-decisoes .linha { width: 20vw; }
+
+/* Reserva as linhas das frases: a digitação não empurra a lista. */
+@media (max-width: 899px) { .frases { min-height: 92px; } }

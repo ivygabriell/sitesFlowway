@@ -10,4 +10,5 @@ export const casca = {
   },
   voltar: { pt: 'Voltar ao início', en: 'Back to home' },
   selo: { pt: 'Iniciar projeto', en: 'Start a project' },
+  naoEncontrada: { pt: 'Página não encontrada', en: 'Page not found' },
 } as const satisfies Textos;

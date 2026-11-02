@@ -11,7 +11,7 @@ import './estilo.css';
 const REPETICOES = 4;
 
 // Hero: a palavra e as lâminas de vidro vivem no canvas; aqui ficam a palavra em SVG (que aparece sem WebGL),
-// as faixas, a intro, o convite a rolar e o vidro em DOM.
+// as faixas, a intro e o convite a rolar.
 export function Hero() {
   const idioma = useIdioma();
   return (
@@ -45,9 +45,6 @@ export function Hero() {
           ))}
       </p>
       <p className="role-para-baixo">{t(inicioTopo.rolar, idioma)}</p>
-      <div className="vidro-dom" aria-hidden="true">
-        <div className="vidro-dom-recorte" />
-      </div>
       <UseCanvas>
         <CenaHero />
       </UseCanvas>
