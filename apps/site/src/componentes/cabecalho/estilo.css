@@ -54,3 +54,9 @@
   .ponto-relogio { animation: none; }
   .cabecalho a .menu-texto, .cabecalho a .menu-texto2 { transition: none; }
 }
+
+/* Foco no menu: com o mouse sobre um link, os outros recuam. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .cabecalho nav a { transition: opacity 320ms ease; }
+  .cabecalho nav:has(a:hover) a:not(:hover) { opacity: 0.65; }
+}

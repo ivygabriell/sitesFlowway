@@ -25,6 +25,7 @@ uniform float uOpacidade;
 uniform float uForca;
 uniform float uPassoBorrao;
 uniform float uVeu;
+uniform float uSerra;
 varying vec3 vNormal;
 varying vec3 vVisao;
 ${ruido}
@@ -34,8 +35,11 @@ void main() {
   uv += vNormal.xy * 0.04 * uForca;
   uv.x += sin(uv.y * 70.0 + uTempo * 0.8) * 0.006 * (ruido2(vec2(uv.y * 40.0, uTempo * 0.6)) - 0.3);
 
+  // Serra do glitch: faixas finas da tela saem do lugar na horizontal, mudando no tempo.
+  uv.x += sin(uv.y * 37.7) * 0.01 * (ruido2(vec2(uv.y * 800.0, uTempo)) - 0.5) * uSerra;
+
   float onda = ruido2(uv * vec2(5.0, 10.0) + uTempo * 0.3) - 0.5;
-  vec2 direcao = uPassoBorrao * vec2(1.0 + uBorrao.x + onda * 2.0, uBorrao.y) / uResolucao;
+  vec2 direcao = uPassoBorrao * vec2(1.0 + uBorrao.x + onda * (2.0 + 1.5 * uSerra), uBorrao.y) / uResolucao;
   vec4 soma = vec4(0.0);
   for (int i = -4; i <= 4; i++) soma += texture2D(uFundo, uv + direcao * float(i));
   soma /= 9.0;
@@ -46,8 +50,8 @@ void main() {
   float brilho = pow(max(dot(reflect(-luz, vNormal), -vVisao), 0.0), 24.0);
 
   // O fresnel clareia as bordas e só as escurece de leve (vidro quase branco, sem sombra pesada).
-  vec3 vidro = mix(base, vec3(1.0), uVeu + fresnel * 0.15) * (1.0 - fresnel * 0.3) + brilho * 0.5;
-  gl_FragColor = vec4(vidro, uOpacidade * (0.9 + fresnel * 0.1));
+  vec3 vidro = mix(base, vec3(1.0), uVeu + fresnel * 0.15) * (1.0 - fresnel * 0.3) + brilho * 0.5 * uForca;
+  gl_FragColor = vec4(vidro, uOpacidade * (0.97 + fresnel * 0.03));
   #include <colorspace_fragment>
 }
 `;

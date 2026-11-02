@@ -19,9 +19,9 @@ const GIRO_POR_SEGUNDO = 0.18;
 // a transição usa os tokens tempo-planos e curva-suave.
 const INTERVALO_MORFOSE = 7;
 
-// A div é o palco da esfera (a seção inteira, no protótipo 07): raio de 230 px numa tela de 900 px de altura,
-// e no máximo o que deixa o F (2.3 raios de largura) e o empurrão do cursor caberem na largura.
-const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8, (altura * 230) / 900);
+// A div é o palco da esfera, no contato só a área livre entre a frase e o rodapé: a esfera (cerca de 2,15 raios) enche a
+// altura dela sem encostar no texto, e o F (2.3 raios de largura) e o empurrão do cursor cabem na largura.
+const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8, altura / 2.2);
 
 // Quanto o cursor guardado anda até o real, por quadro a 60 qps (o atraso do protótipo).
 const SEGUIR_CURSOR = 0.15;
