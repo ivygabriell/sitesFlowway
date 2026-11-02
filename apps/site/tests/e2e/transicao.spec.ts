@@ -19,14 +19,20 @@ const esperarAbertura = async (page: Page) => {
 test('clique no selo: o círculo escuro cresce antes de a URL virar /contato', async ({ page }) => {
   await esperarAbertura(page);
   await expect(page.locator('html')).toHaveClass(/(^|\s)modo-desktop(\s|$)/);
+  // A troca carrega outro documento, e sem GPU a animação pode pular para o fim num quadro só: em vez de tentar ver o
+  // círculo a tempo, um vigia anota a cor e a URL quando ele nasce, no sessionStorage, que sobrevive à troca.
+  await page.evaluate(() => {
+    new MutationObserver(() => {
+      const c = document.querySelector<HTMLElement>('.transicao');
+      if (c && !sessionStorage.getItem('circulo')) sessionStorage.setItem('circulo', JSON.stringify({ cor: getComputedStyle(c).backgroundColor, caminho: location.pathname }));
+    }).observe(document.body, { childList: true, subtree: true });
+  });
   await page.locator('a.selo').click();
-  const circulo = page.locator('.transicao');
-  await expect(circulo).toBeVisible();
-  await expect(circulo).toHaveCSS('background-color', 'rgb(18, 18, 18)');
-  expect(new URL(page.url()).pathname).toBe('/');
   await page.waitForURL('**/contato');
+  const circulo = await page.evaluate(() => sessionStorage.getItem('circulo'));
+  expect(JSON.parse(circulo!)).toEqual({ cor: 'rgb(18, 18, 18)', caminho: '/' });
   // Na página nova o círculo some de uma vez.
-  await expect(circulo).toHaveCount(0);
+  await expect(page.locator('.transicao')).toHaveCount(0);
 });
 
 test('Cmd/Ctrl+clique no selo abre como o navegador faz, sem círculo, e a aba atual não muda', async ({ page, context }) => {
