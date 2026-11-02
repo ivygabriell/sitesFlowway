@@ -61,11 +61,16 @@ test('um link de protocolo relativo (//) não cria o círculo', async ({ page })
 test.describe('com movimento reduzido', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
   test('a URL muda sem círculo', async ({ page }) => {
+    // A navegação carrega outro documento: o vigia guarda no sessionStorage, que sobrevive à troca.
+    await page.addInitScript(() => {
+      new MutationObserver(() => {
+        if (document.querySelector('.transicao')) sessionStorage.setItem('houve-transicao', '1');
+      }).observe(document, { childList: true, subtree: true });
+    });
     await page.goto('/');
     await expect(page.locator('html')).toHaveClass(/(^|\s)modo-reduzido(\s|$)/);
-    await vigiarTransicao(page);
     await page.locator('a.selo').click();
     await page.waitForURL('**/contato');
-    expect(await houveTransicao(page)).toBe(false);
+    expect(await page.evaluate(() => sessionStorage.getItem('houve-transicao'))).toBeNull();
   });
 });

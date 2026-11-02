@@ -38,10 +38,9 @@ function useRestaurarRolagem() {
     const restaurar = primeira && (nav?.type === 'reload' || nav?.type === 'back_forward');
     const destino = restaurar ? posicaoGuardada(caminho) : 0;
     const aoRolar = () => guardar(caminho);
-    // Voltar ou avançar entre páginas recarrega o documento: remontadas no cliente, as timelines da Início recalculam
-    // em série e o ScrollTrigger recoloca a rolagem num ponto errado, brigando com a restauração.
-    const aoVoltar = () => {
-      if (window.location.pathname !== caminho) window.location.reload();
+    // Do cache de ida e volta a página voltaria com o círculo da transição cobrindo a tela: carrega de novo.
+    const aoMostrar = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload();
     };
     const ligarGuarda = () => window.addEventListener('scroll', aoRolar, { passive: true });
     // Os pins ainda aumentam a página depois de montar: insiste até chegar, com teto, e para se a pessoa rolar.
@@ -62,15 +61,14 @@ function useRestaurarRolagem() {
         if (--resta === 0 || Math.abs(window.scrollY - destino) < 2) parar();
       }, 250);
     }, destino ? ESPERA_RESTAURAR : 0);
-    // Na captura: o Next troca a página dentro do próprio popstate, antes de um ouvinte comum.
-    window.addEventListener('popstate', aoVoltar, { capture: true });
+    window.addEventListener('pageshow', aoMostrar);
     return () => {
       clearTimeout(inicio);
       clearInterval(tentativas);
       window.removeEventListener('wheel', parar);
       window.removeEventListener('touchstart', parar);
       window.removeEventListener('scroll', aoRolar);
-      window.removeEventListener('popstate', aoVoltar, { capture: true });
+      window.removeEventListener('pageshow', aoMostrar);
     };
   }, [caminho]);
 }

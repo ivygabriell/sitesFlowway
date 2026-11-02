@@ -21,7 +21,7 @@ Estado: 2026-11-01. Parte de `42b28e7`. Só entra bug reproduzido; relatórios c
 | # | Bug | Reprodução | Critério | Estado |
 |---|---|---|---|---|
 | 1 | Círculo do contato alarga a página (causa de 360 arrastando, selo fora da tela, 844×390 em modo desktop, esfera sobre o CTA) | Abrir `/` em 360×640, 375×667, 768×1024 ou 844×390: `innerWidth` cresce 15% | `innerWidth` igual à tela, modo celular | Resolvido |
-| 2 | Recarregar ou voltar perde o lugar | Rolar a 3840 e recarregar: cai em 994. Voltar de `/contato`: 8294 vira 5868 | Volta a menos de 150 px | Ver `rolagem.spec.ts` |
+| 2 | Recarregar ou voltar perde o lugar | Rolar a 3840 e recarregar: cai em 994. Voltar de `/contato`: 8294 vira 5868 | Volta a menos de 150 px | Resolvido: a transição passou a carregar o documento inteiro, e o site restaura o lugar |
 | 3 | Selo cobre o manifesto e "(O que é único)" | 390×844 | Texto termina antes do selo | Resolvido |
 | 4 | "EN" não responde ao toque; alvos de 14 px no cabeçalho | 390×844 | Toque troca a língua; alvos de 44 px | Resolvido |
 | 5 | Cartões passam 36 px da margem | 390×844 | Dentro da margem | Resolvido |
@@ -38,7 +38,6 @@ Estado: 2026-11-01. Parte de `42b28e7`. Só entra bug reproduzido; relatórios c
 | Faixa e "Role para baixo" somem ao recarregar no meio (`hero/CenaHero.tsx`) | O hero está com a sessão de origem, em paralelo |
 | Faixa corta a base de FLOWAY em 1883×703 (`hero/disposicao.ts`) | Idem |
 | Trabalhos prende rolagem sem a fileira andar em tela larga e baixa; rótulo desalinhado | Efeito do vão de 3vw, que não pode ser desfeito; espaçamento está com a sessão de origem |
-| Exceção `isReady` ao sair da Início pelo fundo (`compileAsync` do three segue após desmontar) | Vem de dentro da biblioteca; trocar por compilação síncrona traria engasgo. Precisa de decisão técnica própria |
 | Rolar no início da abertura move a página por trás | Intermitente, em 1883×703; sem reprodução estável para testar |
 | Selo e cabeçalho `inert` sem JavaScript | Só o CTA do rodapé ficou como caminho sem JS |
 | Selo com 34 px de largura | Medida fixada pela spec 4.2 |
