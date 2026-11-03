@@ -1,8 +1,10 @@
 /* ---------- trabalhos em destaque (o cartão fica em src/compartilhados/estilo.css) ---------- */
 .secao-capitulos { position: relative; height: 100vh; display: flex; align-items: center; overflow: hidden; }
 .capitulos-palco { position: relative; }
+.modo-galeria .capitulos-palco, .modo-estatica .capitulos-palco { margin: 0 auto; }
+.modo-estatica .cartao { pointer-events: auto; }
 .rotulo-capitulos { position: absolute; top: -35px; left: 30px; font: 400 18px var(--sans); letter-spacing: -0.02em; }
-.cartoes { display: flex; gap: 3vw; box-sizing: border-box; justify-content: center; min-width: 100vw; padding: 0 30px; width: max-content; }
+.cartoes { display: flex; gap: 3vw; box-sizing: border-box; justify-content: center; padding: 0 30px; width: max-content; }
 .com-webgl .cartao-img img { opacity: 0; }
 .barra-progresso { position: absolute; bottom: 30px; left: 50%; width: 253px; height: 16px; transform: translateX(-50%); transform-origin: top left; }
 .barra-ativa { position: relative; z-index: 2; width: 0; height: 16px; border: 1px solid var(--claro); background: var(--escuro); }

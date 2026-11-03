@@ -15,7 +15,7 @@ import { BarraProgresso } from './BarraProgresso';
 import { CenaCartoes, type EstadoCartoes } from './CenaCartoes';
 import './estilo.css';
 
-type Modo = 'galeria' | 'grade' | 'lista';
+type Modo = 'galeria' | 'estatica' | 'grade' | 'lista';
 const LINEAR = CURVAS['curva-linear'];
 const HOVER = CURVAS['curva-padrao'];
 
@@ -35,10 +35,10 @@ export function Capitulos() {
   const estado = useRef<EstadoCartoes>({ progresso: 0, hover: lista.map(() => 0) });
 
   useEffect(() => {
-    setModo(prefereMenosMovimento() ? 'grade' : ehCelular(window.innerWidth) ? 'lista' : 'galeria');
+    setModo((atual) => (prefereMenosMovimento() ? 'grade' : ehCelular(window.innerWidth) ? 'lista' : atual));
   }, []);
 
-  const comWebgl = modo === 'galeria' && isCanvasAvailable && capas.length > 0;
+  const comWebgl = (modo === 'galeria' || modo === 'estatica') && isCanvasAvailable && capas.length > 0;
 
   useEfeitoDeLayout(() => {
     if (modo !== 'galeria') return;
@@ -49,6 +49,11 @@ export function Capitulos() {
       const tracinhos = secao.querySelectorAll<HTMLElement>('.tracinho');
       // Só anda quando a fileira passa da tela; com poucos quadros ela fica centrada, parada.
       const extra = Math.max(0, fileira.scrollWidth - window.innerWidth);
+      if (extra === 0) {
+        estado.current.progresso = 1;
+        setModo('estatica');
+        return;
+      }
       const tl = gsap.timeline({
         defaults: { ease: LINEAR },
         scrollTrigger: {
