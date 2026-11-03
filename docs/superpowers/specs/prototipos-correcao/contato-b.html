@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' file:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>PROTÓTIPO · Contato B · Floway</title>
+<style>
+:root{--claro:#f7f7f5;--linha:#dcdcd8;--escuro:#121212;--azul:#002fa7;--sans:'Inter Tight',Arial,sans-serif;--mono:'Azeret Mono',monospace;--serif:'Instrument Serif',Georgia,serif}
+*{box-sizing:border-box}body{margin:0;background:var(--claro);color:var(--escuro);font-family:var(--sans)}[hidden]{display:none!important}button,input,textarea,select{font:inherit;color:inherit}button,a,input,textarea,select{touch-action:manipulation}button{cursor:pointer;background:transparent;border:1px solid var(--escuro);padding:10px 14px;min-height:44px}button:disabled{cursor:default;opacity:.55}a{color:inherit;text-underline-offset:4px;text-decoration-color:var(--azul)}:focus-visible{outline:3px solid var(--azul);outline-offset:4px}textarea,input{border:0;border-bottom:1px solid var(--escuro);background:transparent;padding:10px 0;border-radius:0;max-width:100%;min-width:0}textarea{resize:vertical}p{margin:0}button:hover{background:var(--linha)}.demo{border-bottom:1px solid var(--escuro);padding:14px 30px;display:grid;gap:10px;font:12px/1.5 var(--mono)}.demo strong{color:var(--azul)}.controles{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.controles select{max-width:100%;padding:10px;background:var(--claro)}.controles label{display:flex;align-items:center;gap:6px}.controles input{width:18px;height:18px}.apenas-js{display:none}.js .apenas-js{display:flex}.pagina{min-height:calc(100svh - 180px);padding:16px 30px 20px;display:flex;flex-direction:column;gap:24px}.cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;font:12px/1.5 var(--mono);text-transform:uppercase}.frase{margin:0;font-size:clamp(24px,3.1vw,51px);line-height:.95;font-weight:500;letter-spacing:-.02em;text-transform:uppercase}.corpo{position:relative;flex:1;display:grid;grid-template-columns:minmax(0,1fr);align-content:center;gap:16px;min-height:450px}.visual{width:400px;max-width:100%;height:300px;margin:auto;display:grid;place-items:center;pointer-events:none}.visual svg,.visual img{width:100%;height:100%;object-fit:contain}.visual svg{font:bold 10px var(--sans)}.conversa{width:min(900px,100%);margin:0 auto;display:grid;gap:14px;min-width:0}.msgs{min-height:120px;max-height:230px;overflow:auto;overflow-wrap:anywhere;line-height:1.5;padding:6px}.rotulo,.privacidade,.estado,.etiqueta{font:11px/1.5 var(--mono);text-transform:uppercase}.rotulo{display:block;margin-bottom:6px}.mensagem{white-space:pre-wrap;text-align:right}.resumo{white-space:pre-wrap;border-top:1px solid var(--linha);padding-top:14px;overflow-wrap:anywhere}.atalhos,.acoes{display:flex;flex-wrap:wrap;gap:8px}.atalhos button{border-radius:30px;font:11px/1.4 var(--mono)}.entrada{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}.entrada textarea{width:100%;font-size:22px;line-height:1.3}.entrada label{min-width:0}.entrada button{border:0;border-bottom:1px solid var(--azul);font:12px var(--mono)}.aberta .corpo{grid-template-columns:minmax(0,900px) minmax(240px,360px);justify-content:space-between;column-gap:20px;padding:0 5vw}.aberta .conversa{grid-column:1;grid-row:1}.aberta .visual{grid-column:2;grid-row:1;width:360px;max-width:100%}.aberta .msgs{min-height:200px}.estado{min-height:18px}.respondendo .estado::before{content:'';display:inline-block;width:8px;height:8px;background:var(--azul);border-radius:50%;margin-right:8px}.respondendo .estado::after{content:'▍';animation:pisca 1.6s steps(1) infinite}.respondendo .visual svg{animation:giro 4s linear infinite}@keyframes pisca{50%{opacity:.2}}@keyframes giro{50%{transform:scaleX(.9)}100%{transform:scaleX(1)}}.falha .estado{border-left:3px solid var(--azul);padding:8px}.rodape{text-align:center;font:15px/1.4 var(--serif);text-transform:uppercase;display:grid;gap:4px}.rodape i{font-size:12px;text-transform:none;margin-right:6px}.alternativa{width:min(700px,100%);margin:0 auto;display:grid;gap:14px}.alternativa h2{font-size:20px;font-weight:500;margin:0}.campos{display:grid;grid-template-columns:1fr 1fr;gap:14px}.campos label{display:grid;min-width:0;gap:4px}.campos label:last-child{grid-column:1/-1}.campos input,.campos textarea{width:100%;font-size:18px}.nota{padding:20px 30px;border-top:1px solid var(--linha);font:12px/1.6 var(--mono)}.sem-esfera .visual{visibility:hidden}.sem-esfera .corpo{min-height:450px}
+@media(min-width:900px) and (max-height:760px){.corpo{min-height:340px}.visual{height:200px}.aberta .msgs{min-height:120px}.pagina{gap:18px}.frase{font-size:clamp(26px,2.5vw,46px)}}
+@media(max-width:899px){.demo{padding:14px 18px}.pagina{padding:16px 18px;gap:24px}.cab{font-size:10px}.frase{text-align:left;line-height:1.05}.corpo,.sem-esfera .corpo{min-height:0;align-content:start}.visual{width:280px;height:220px}.aberta .corpo{grid-template-columns:minmax(0,1fr);padding:0;gap:20px}.aberta .conversa{grid-column:1;grid-row:1}.aberta .visual{grid-column:1;grid-row:2;height:180px;width:240px}.aberta .msgs{min-height:100px;max-height:none}.entrada textarea{font-size:18px;min-height:72px}.entrada{gap:8px}.atalhos{gap:8px}.atalhos button{font-size:10px}.campos{grid-template-columns:minmax(0,1fr)}.rodape{font-size:12px}.rodape i{font-style:normal}.nota{padding:18px}.controles{align-items:start}.controles label{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.rodape i{font-style:normal}}
+</style>
+</head>
+<body>
+<aside class="demo" aria-label="Controles do protótipo">
+<strong>PROTÓTIPO DOCUMENTAL · DEMONSTRAÇÃO LOCAL · NÃO É O SITE PÚBLICO</strong>
+<p>Sem IA, rede ou envio real. Não insira dados pessoais. Os controles apenas exibem estados do desenho aprovado.</p>
+<div class="controles apenas-js">
+<label for="seletor">Estado <select id="seletor"><option value="vazio">Vazio B</option><option value="aberta">Conversa aberta</option><option value="respondendo">Respondendo · demonstração</option><option value="resumo">Resumo / confirmação</option><option value="ajuste">Ajuste</option><option value="enviado">Enviado · demonstração</option><option value="falha">Falha · texto preservado</option><option value="formulario">Sem IA · formulário</option></select></label>
+<label><input type="checkbox" id="sem-esfera">Ocultar esfera · verificar independência</label>
+<button type="button" id="reiniciar">Recomeçar demonstração</button>
+</div>
+<noscript><p>JavaScript desativado: formulário simples disponível abaixo; envio desativado neste protótipo.</p></noscript>
+</aside>
+<main class="pagina" id="pagina">
+<header class="cab"><span>Voltar ao início · referência visual</span><span>©FLOWAY</span><span>PT · TRABALHOS · CONTATO</span></header>
+<h1 class="frase">Na Floway, estratégia e desenvolvimento caminham juntos. Unimos visão criativa, engenharia de software e inteligência artificial para transformar desafios em soluções inteligentes.</h1>
+<div class="corpo" id="corpo" hidden>
+<div class="visual" aria-hidden="true"><svg id="esfera" viewBox="0 0 400 300" focusable="false"></svg><img id="simbolo" src="../../../../assets/brand/floway-simbolo-fundo-claro.svg" alt="" hidden></div>
+<section class="conversa" aria-label="Demonstração da conversa">
+<div class="msgs" id="msgs" hidden><span class="rotulo">Você · texto local</span><p class="mensagem" id="mensagem"></p><div id="resumo" class="resumo" hidden><span class="rotulo">Resumo do seu pedido · demonstração sem IA</span><p id="texto-resumo"></p><p class="etiqueta">Apenas espelha o texto digitado. Campos e conteúdo do resumo dependem da etapa da IA.</p></div></div>
+<div class="atalhos" id="atalhos"><button type="button">Quero uma landing page</button><button type="button">Preciso de um site institucional</button><button type="button">Quero automatizar um processo</button><button type="button">Ainda não sei</button></div>
+<div class="entrada" id="entrada"><label for="texto"><span class="rotulo" id="rotulo-entrada">Sua mensagem</span><textarea id="texto" rows="1" placeholder="Conte o que você quer construir…"></textarea></label><button type="button" id="abrir">Enviar →<span class="rotulo">Demonstração</span></button></div>
+<p class="privacidade">Aviso de privacidade pendente · <a href="#privacidade">Política de Privacidade · nota do desenho</a></p>
+<p class="estado" id="estado" role="status" tabindex="-1"></p>
+<div class="acoes" id="acoes" hidden><button type="button" id="confirmar">Confirmar e enviar · demonstração</button><button type="button" id="ajustar">Ajustar</button></div>
+<div class="acoes" id="recuperar" hidden><button type="button" id="tentar">Tentar de novo · demonstração</button><button type="button" id="alternar">Usar formulário simples</button></div>
+</section>
+</div>
+<section class="alternativa" id="alternativa" aria-labelledby="titulo-formulario">
+<h2 id="titulo-formulario">Sem IA / sem JavaScript · formulário simples</h2>
+<p class="etiqueta">Desenho da alternativa temporária. Nenhum dado é enviado ou salvo.</p>
+<div class="campos" role="group" aria-label="Campos do formulário simples">
+<label for="nome"><span class="rotulo">Nome</span><input id="nome" autocomplete="off"></label>
+<label for="empresa"><span class="rotulo">Empresa</span><input id="empresa" autocomplete="off"></label>
+<label for="contato"><span class="rotulo">Contato</span><input id="contato" autocomplete="off"></label>
+<label for="mensagem-form"><span class="rotulo">Mensagem</span><textarea id="mensagem-form" rows="3"></textarea></label>
+</div>
+<button type="button" disabled>Enviar → · desativado no protótipo</button>
+<p class="privacidade">Aviso de privacidade pendente · <a href="#privacidade">Política de Privacidade · nota do desenho</a></p>
+</section>
+<footer class="rodape"><p><i>especialidades</i>Estratégia digital, desenvolvimento web, inteligência artificial, automações e experiências digitais</p><p><i>localização</i>Brasil · <i>instagram</i>@floway · © 2026 Floway</p></footer>
+</main>
+<aside class="nota" id="privacidade" tabindex="-1"><strong>Privacidade e dependências pendentes.</strong> Aviso completo, roteiro, contrato da conversa, entrega, limites e proteção contra abuso pertencem às etapas próprias. Este protótipo não define consentimento nem base legal. O F indica somente o estado visual “enviado” selecionado na demonstração, sem comprovar entrega. Esfera esquemática em SVG, sem WebGL; movimento reduzido mantém todos os textos e controles.</aside>
+<script>
+// Controles exclusivos do desenho: sem roteiro, temporizador de resposta ou integração.
+document.documentElement.classList.add('js');
+const $=id=>document.getElementById(id);
+const pagina=$('pagina'), seletor=$('seletor'), texto=$('texto');
+let mensagem='', alternativaEditada=false;
+function mostrar(estado){
+ seletor.value=estado;
+ const formulario=estado==='formulario', vazia=estado==='vazio', enviado=estado==='enviado';
+ pagina.className='pagina'+(!vazia&&!formulario?' aberta':'')+' '+estado;
+ $('corpo').hidden=formulario;$('alternativa').hidden=!formulario;
+ $('msgs').hidden=vazia;$('atalhos').hidden=!vazia;
+ $('entrada').hidden=enviado||estado==='resumo';
+ $('resumo').hidden=!['resumo','enviado'].includes(estado);
+ $('acoes').hidden=estado!=='resumo';$('recuperar').hidden=estado!=='falha';
+ $('esfera').hidden=enviado;$('simbolo').hidden=!enviado;
+ $('mensagem').textContent=mensagem||'[Sua mensagem — sem conteúdo de conversa inventado]';
+ $('texto-resumo').textContent=mensagem||'[Texto informado pela pessoa]';
+ $('estado').setAttribute('role',estado==='falha'?'alert':'status');
+ $('estado').textContent=({vazio:'',aberta:'Conversa aberta · nenhum retorno gerado.',respondendo:'Respondendo · demonstração visual; resposta e roteiro pendentes.',resumo:'Resumo para confirmar · demonstração.',ajuste:'Ajuste o texto local e abra o resumo para conferir.',enviado:'Enviado · somente demonstração, sem entrega real.',falha:'Não conseguimos responder agora. Texto preservado nesta página.',formulario:''})[estado];
+ $('abrir').disabled=!texto.value.trim();
+}
+function primeiraMensagem(valor){if(!valor.trim())return;mensagem=valor;texto.value=valor;mostrar('aberta');texto.focus();}
+seletor.addEventListener('change',()=>mostrar(seletor.value));
+texto.addEventListener('input',()=>{mensagem=texto.value;$('abrir').disabled=!texto.value.trim();});
+$('abrir').addEventListener('click',()=>primeiraMensagem(texto.value));
+$('atalhos').addEventListener('click',e=>{if(e.target.tagName==='BUTTON')primeiraMensagem(e.target.textContent);});
+$('ajustar').addEventListener('click',()=>{mostrar('ajuste');texto.focus();});
+$('confirmar').addEventListener('click',()=>{mostrar('enviado');$('estado').focus();});
+$('tentar').addEventListener('click',()=>{mostrar('respondendo');texto.focus();});
+$('mensagem-form').addEventListener('input',()=>{alternativaEditada=true;});
+$('alternar').addEventListener('click',()=>{if(!alternativaEditada)$('mensagem-form').value=texto.value;mostrar('formulario');$('nome').focus();});
+$('sem-esfera').addEventListener('change',e=>document.body.classList.toggle('sem-esfera',e.target.checked));
+$('reiniciar').addEventListener('click',()=>{mensagem='';texto.value='';mostrar('vazio');});
+// Esquema estático da esfera de letras do protótipo12; não substitui a esfera de produto.
+const ns='http://www.w3.org/2000/svg', n=850, ga=Math.PI*(3-Math.sqrt(5));
+for(let i=0;i<n;i++){const y=1-i/(n-1)*2,r=Math.sqrt(1-y*y),a=ga*i,z=Math.sin(a)*r;const t=document.createElementNS(ns,'text');t.setAttribute('x',200+Math.cos(a)*r*120);t.setAttribute('y',150+y*120);t.setAttribute('opacity',Math.max(.15,(1-z)/2));t.setAttribute('fill',i%25===0?'#002fa7':'#121212');t.textContent='FLOWAY'[i%6];$('esfera').appendChild(t);}
+mostrar('vazio');
+</script>
+</body>
+</html>
