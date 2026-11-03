@@ -106,9 +106,9 @@
 
 ## Entrega da coordenação
 
-- [ ] Revisar diffs das duas filhas somente por leitura e comparar com os escopos; exigir evidência antes de afirmar conclusão (`superpowers:verification-before-completion`).
-- [ ] Repassar achados para a trabalhadora antes de seu `worker_done`; se já tiver concluído, solicitar novo despacho, sem tentar reabrir por mensagem solta.
-- [ ] Receber os `worker_done` de hero, galeria e nova filha do contato, conferir IDs/evidências e informar à integradora arquivos, commits locais, estados, riscos, decisões da pessoa e pendências.
+- [x] Revisar diffs das três entregas somente por leitura e comparar com os escopos; exigir evidência antes de afirmar conclusão (`superpowers:verification-before-completion`).
+- [x] Repassar achados para a trabalhadora antes de seu `worker_done`; se já tiver concluído, solicitar novo despacho, sem tentar reabrir por mensagem solta.
+- [x] Conferir os encerramentos de hero/galeria acompanhados pela integradora e receber `worker_done` da filha do contato, verificar IDs/evidências e informar à integradora arquivos, commits locais, estados, riscos e pendências.
 - [ ] Mandar `worker_done` próprio uma única vez e idlar. Sem merge, edição de memória ou nova tarefa.
 
 ## Estado da execução
@@ -145,3 +145,15 @@ Slot confirmado pela integradora: galeria → hero → QA independente da galeri
 **Contato visual despachado após a galeria concluir:** `task_4db4e7cd0c56` / `ctx_ad124c9db7bd`, worktree filha `front-27-contato-b-prototipo` de `origin/main`, Codex `gpt-6.1-sol`, esforço médio, mesmo Run. A filha recebeu somente os dois arquivos autorizados, os estados B e a fila de navegador após hero e QAroot; nenhuma construção pública/IA/envio está autorizada. O especialista acompanha o lifecycle desta filha; a integradora acompanha os retries de hero/galeria.
 
 **Hero fase 1 entregue localmente:** `ae2145e`, somente os dois documentos autorizados, com descrição `Refs #22`. Design e Front conferiu os quatro paths oficiais, método de medidas e capturas A nos três tamanhos e B em 1440. Sem bloqueante documental; F inteiro e faixas separadas. Inspeção da trabalhadora registra A/B, teclado, reduzido, fallback manual e diagnóstico SVG ≥25%/p10≤0,25. Essa evidência não prova shader, perda real de contexto ou produto; escala/posição/faixas continuam para conferência da pessoa. Slot foi devolvido à integradora antes do contato.
+
+
+## Fechamento da rodada documental e de revisão · 2026-11-03
+
+- **Plano:** commit inicial `f088656`; somente este arquivo foi alterado na worktree do especialista. Conteúdo final confrontado com as issues e fontes, escopo e `git diff --check`.
+- **Galeria:** `8fd8b19`, entrega de produto. A integradora repetiu independentemente 170 unitários, check, build e 82 E2E com saída 0 e a contraprova contra o build original da main (esperado 300 / observado 0), além da captura larga. Sem bloqueante; capas reais/hover/shader não foram explorados visualmente. CI da branch não acionado, pois não houve push.
+- **Hero:** `ae2145e`, proposta visual somente, `Refs #22`, origem oficial conferida; A/B, escala/posição e composição das faixas permanecem para a pessoa. Não encerra produto nem autoriza fase 2.
+- **Contato B:** `0d7c1a4`, somente os dois documentos exclusivos, `Refs #27`, revisão sem bloqueante documental. A filha registrou 24 combinações (oito estados nos três formatos), repetição dos oito estados móveis, teclado/foco, reduzido, sem JS e sem WebGL; zero erros de página/console e requisições HTTP. Design e Front abriu capturas 1440 vazio, 1883 aberta e 390 vazio/sem JS e leu código, método e medidas. Corrigido o achado da revisão que sobrescrevia edição ou apagamento deliberado na alternativa, com contraprova antes/depois; convite móvel também corrigido após inspeção. Fontes substitutas, esfera SVG e altura de demonstração não certificam encaixe de produto. Evidências temporárias em `/tmp/floway-contato-b-20261103`; método e medidas ficam duráveis na spec.
+- **Lifecycle:** hero e galeria `succeeded/completed`, acompanhados pela integradora. Contato `worker_done` aceito de `task_4db4e7cd0c56` / `ctx_ad124c9db7bd`; `worker-release` solicitado, retorno `retained`, motivo `user_takeover`, `processAction: none`. Não forçar encerramento nem apagar worktree; decisão de cleanup registrada e encaminhada à integradora. Navegador da filha fechado e slot devolvido.
+- **Pendências próprias das próximas etapas:** conferência humana dos desenhos, produto do hero/contato com novos despachos, contrato de conversa/envio, entrega, privacidade, traduções e validação final de publicação. Nenhum serviço, IA, marca ou código público do contato alterado; sem push, PR, comentários no GitHub, merge ou publicação nesta rodada. Descrições locais ficam no fim das specs e neste plano.
+
+Suíte/build de produto não foram executados pelo especialista para um plano; resultados de produto acima são atribuídos à trabalhadora da galeria e à contraprova independente da integradora. Consumo numérico desta sessão não foi exposto pelo ambiente; não há valor estimado para registrar.
