@@ -1,3 +1,6 @@
+import { gsap } from '@/gsap';
+import { useFrame, useThree, type RootState } from '@react-three/fiber';
+import * as shader from '@/compartilhados/esfera/shader';
 import { ScrollScene, useCanvasStore } from '@14islands/r3f-scroll-rig';
 import { StickyScrollScene } from '@14islands/r3f-scroll-rig/powerups';
 import { act, cleanup, render } from '@testing-library/react';
@@ -8,6 +11,13 @@ import { desenharAtlas, LETRAS } from '@/compartilhados/esfera/atlas';
 import { atributosDaEsfera, pontosEsfera, QUANTIDADE, tamanhoDaLetra } from '@/compartilhados/esfera/geometria';
 import { criarMaterialDaEsfera } from '@/compartilhados/esfera/shader';
 import { pontosSimbolo, semente } from '@/marca/amostrar';
+
+const cenaControlada = vi.hoisted(() => ({ ativa: false }));
+vi.mock('@react-three/fiber', async (original) => ({ ...await original<typeof import('@react-three/fiber')>(), useFrame: vi.fn(), useThree: vi.fn() }));
+vi.mock('@14islands/r3f-scroll-rig', async (original) => {
+  const real = await original<typeof import('@14islands/r3f-scroll-rig')>();
+  return { ...real, ScrollScene: (props: React.ComponentProps<typeof real.ScrollScene>) => cenaControlada.ativa ? props.children?.({ track: props.track, scale: [500, 500, 1], inViewport: true } as never) : null };
+});
 
 // O setup instala um document.fonts simples (o jsdom não tem); cada teste troca load e ready e devolve no fim.
 type Fontes = { load?: unknown; ready: Promise<unknown> };
@@ -183,5 +193,57 @@ describe('CenaEsfera fixa', () => {
     const atributos = atributosDaEsfera(10, pontosSimbolo(10, semente(1)), semente(2));
     const resultado = CenaEsfera({ track: { current: el }, atributos, modo: 'desktop', fixa: true });
     expect(resultado.type).toBe(cena);
+  });
+});
+
+describe('props pelo túnel do canvas', () => {
+  it('atualiza formarAlvo no UseCanvas existente', () => {
+    useCanvasStore.setState({ isCanvasAvailable: true });
+    vi.stubGlobal('IntersectionObserver', undefined);
+    const alvo = (n: number) => pontosSimbolo(n, semente(1));
+    try {
+      const { rerender } = render(<EsferaDeLetras alvo={alvo} formarAlvo={false} />);
+      const props = () => Object.values(useCanvasStore.getState().canvasChildren).map((c) => c.props);
+      expect(props()).toEqual(expect.arrayContaining([expect.objectContaining({ formarAlvo: false })]));
+      rerender(<EsferaDeLetras alvo={alvo} formarAlvo />);
+      expect(props()).toEqual(expect.arrayContaining([expect.objectContaining({ formarAlvo: true })]));
+    } finally {
+      useCanvasStore.setState({ isCanvasAvailable: false }); vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe('morfose controlada', () => {
+  it.each(['desktop', 'reduzido', 'celular'] as const)('%s: uMorf só segue confirmação e retorna à esfera', (modo) => {
+    cenaControlada.ativa = true;
+    const timeline = vi.spyOn(gsap, 'timeline');
+    const material = criarMaterialDaEsfera();
+    vi.spyOn(shader, 'criarMaterialDaEsfera').mockReturnValue(material);
+    vi.mocked(useThree).mockReturnValue({ gl: { compileAsync: () => Promise.resolve(), getPixelRatio: () => 1 }, camera: {}, scene: {} } as unknown as RootState);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const atributos = atributosDaEsfera(10, pontosSimbolo(10, semente(1)), semente(2));
+    const track = { current: document.createElement('div') };
+    try {
+      const { rerender } = render(<CenaEsfera track={track} atributos={atributos} modo={modo} formarAlvo={false} />);
+      act(() => { vi.mocked(useFrame).mock.lastCall![0]({} as RootState, 8); });
+      expect(material.uniforms.uMorf.value).toBe(0);
+      expect(timeline).not.toHaveBeenCalled();
+      rerender(<CenaEsfera track={track} atributos={atributos} modo={modo} formarAlvo />);
+      act(() => { vi.mocked(useFrame).mock.lastCall![0]({} as RootState, 2); });
+      expect(material.uniforms.uMorf.value).toBe(1);
+      rerender(<CenaEsfera track={track} atributos={atributos} modo={modo} formarAlvo={false} />);
+      act(() => { vi.mocked(useFrame).mock.lastCall![0]({} as RootState, 2); });
+      expect(material.uniforms.uMorf.value).toBe(0);
+      expect(timeline).not.toHaveBeenCalled();
+      if (modo === 'desktop') {
+        rerender(<CenaEsfera track={track} atributos={atributos} modo={modo} />);
+        expect(timeline).toHaveBeenCalledWith({ repeat: -1, paused: true });
+        act(() => {
+          timeline.mock.results.at(-1)!.value.time(7);
+          vi.mocked(useFrame).mock.lastCall![0]({} as RootState, 0);
+        });
+        expect(material.uniforms.uMorf.value).toBe(1);
+      }
+    } finally { cenaControlada.ativa = false; }
   });
 });

@@ -87,6 +87,12 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
 .formulario-acoes button { min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--escuro); cursor: pointer; font: 400 13px var(--mono); text-transform: uppercase; text-decoration: underline; text-decoration-color: var(--azul); text-underline-offset: 4px; }
 .formulario-acoes button:disabled { opacity: 0.35; cursor: default; }
 .formulario-acoes button:focus-visible, .formulario-aviso a:focus-visible { outline: 2px solid var(--azul); outline-offset: 4px; }
+.formulario-erros, .formulario-campo p { font: 400 13px/18px var(--mono); }
+.formulario-erros h2 { font: inherit; text-transform: uppercase; }
+.formulario-erros ul { list-style: none; }
+.formulario-erros a { display: block; min-height: 44px; padding: 13px 0; color: inherit; text-decoration-color: var(--azul); text-underline-offset: 4px; }
+.formulario-erros:focus, .formulario-falha:focus, .formulario-enviado:focus, .formulario-erros a:focus-visible { outline: 2px solid var(--azul); outline-offset: 4px; }
+.formulario-erro-prefixo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .formulario-aviso { font: 400 10.5px/15px var(--mono); text-transform: uppercase; }
 .formulario-aviso a { color: inherit; text-decoration: underline; text-decoration-color: var(--azul); }
 

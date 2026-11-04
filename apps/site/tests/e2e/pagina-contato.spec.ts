@@ -47,7 +47,7 @@ test('sem destino configurado, o envio real mostra a falha e mantém o texto', a
   await expect(page.locator('[name=mensagem]')).toHaveValue('Meu texto');
 });
 
-for (const [largura, altura] of [[1440, 900], [1883, 703], [390, 844], [360, 640]] as const) {
+for (const [largura, altura] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]] as const) {
   test(`${largura}×${altura}: sem rolagem lateral, e nada se sobrepõe ao formulário`, async ({ page }) => {
     await page.setViewportSize({ width: largura, height: altura });
     await page.goto('/contato');
@@ -107,5 +107,70 @@ for (const [largura, altura] of [[1440, 900], [1883, 703]] as const) {
     const razao = (x1 - x0) / (y1 - y0);
     expect(razao).toBeGreaterThan(0.93);
     expect(razao).toBeLessThan(1.07);
+  });
+}
+
+for (const caminho of ['/contato', '/en/contact']) {
+  test(`${caminho}: espera, rede, recuperação e foco com resposta simulada`, async ({ page }) => {
+    let liberar!: () => void;
+    let chamadas = 0;
+    await page.route('**/api/contato', async (r) => {
+      chamadas++;
+      if (chamadas === 1) { await new Promise<void>((resolver) => { liberar = resolver; }); await r.abort(); }
+      else await r.fulfill({ status: 200, json: { ok: true } });
+    });
+    await page.goto(caminho);
+    await expect(page.locator('form')).toHaveAttribute('novalidate', '');
+    for (const nome of ['nome', 'empresa', 'contato', 'mensagem']) await page.locator(`[name=${nome}]`).fill(`Texto ${nome}`);
+    await page.getByRole('button', { name: 'Enviar →' }).click();
+    await expect(page.getByRole('status')).toHaveText('Enviando…');
+    await expect(page.locator('[aria-busy=true]').filter({ has: page.getByRole('status') })).toHaveCount(0);
+    await expect(page.getByRole('button')).toBeDisabled();
+    for (const nome of ['nome', 'empresa', 'contato', 'mensagem']) await expect(page.locator(`[name=${nome}]`)).toHaveJSProperty('readOnly', true);
+    await page.locator('form').evaluate((form) => { form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
+    expect(chamadas).toBe(1);
+    liberar();
+    await expect(page.locator('form [role=alert]')).toBeFocused();
+    for (const nome of ['nome', 'empresa', 'contato', 'mensagem']) await expect(page.locator(`[name=${nome}]`)).toHaveValue(`Texto ${nome}`);
+    await page.locator('[name=mensagem]').fill('Edição depois da falha');
+    await page.getByRole('button', { name: 'Tentar de novo' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('status')).toContainText('Pedido enviado');
+    await expect(page.getByRole('status')).toBeFocused();
+    expect(chamadas).toBe(2);
+  });
+}
+
+test('URL enviada não comprova entrega', async ({ page }) => {
+  await page.goto('/contato?estado=enviado');
+  await expect(page.getByRole('status')).toContainText('Não é possível confirmar a entrega');
+  await expect(page.getByText(/Pedido enviado/)).toHaveCount(0);
+});
+
+for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]]) {
+  test(`${width}×${height}: validação com foco, links alcançáveis e áreas separadas`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto('/contato');
+    await expect(page.locator('form')).toHaveAttribute('novalidate', '');
+    await page.getByRole('button', { name: 'Enviar →' }).click();
+    const resumo = page.locator('.formulario-erros');
+    await expect(resumo).toBeFocused();
+    await expect(page).toHaveTitle(/^Erro: /);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    for (const link of await resumo.locator('a').all()) {
+      await link.scrollIntoViewIfNeeded();
+      const caixa = (await link.boundingBox())!;
+      expect(caixa.height, 'alvo de teclado/toque tem 44px').toBeGreaterThanOrEqual(44);
+      await link.click();
+      const id = (await link.getAttribute('href'))!.slice(1);
+      await expect(page.locator(`[id="${id}"]`)).toBeFocused();
+    }
+    const form = (await page.locator('form').boundingBox())!;
+    const esfera = (await page.locator('.pagina-contato .esfera').boundingBox())!;
+    const rodape = (await page.locator('.rodape').boundingBox())!;
+    expect(rodape.y).toBeGreaterThanOrEqual(form.y + form.height);
+    expect(form.x + form.width <= esfera.x || form.y + form.height <= esfera.y).toBe(true);
+    await page.getByRole('button', { name: 'Enviar →' }).scrollIntoViewIfNeeded();
+    await expect(page.getByRole('button', { name: 'Enviar →' })).toBeInViewport();
   });
 }

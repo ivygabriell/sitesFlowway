@@ -27,30 +27,30 @@ const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8,
 const SEGUIR_CURSOR = 0.15;
 const LONGE = 1e5;
 
-type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao };
+type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao; formarAlvo?: boolean };
 
 // fixa: a div.esfera é position: sticky dentro de uma seção mais alta (o contato preso). O ScrollScene posiciona a
 // cena pela posição da div no documento e a faria rolar com a página; o StickyScrollScene acompanha a parte presa.
 // O cursor continua medido pela própria div (o StickyScrollScene passa adiante a seção, não a div).
-export function CenaEsfera({ track, atributos, modo, fixa = false }: Props & { fixa?: boolean }) {
+export function CenaEsfera({ track, atributos, modo, fixa = false, formarAlvo }: Props & { fixa?: boolean }) {
   const estilo = fixa && track.current ? getComputedStyle(track.current) : null;
   // O powerup exige sticky e converte top com parseFloat: auto/NaN faria a cena desaparecer.
   // Sem esse contrato no CSS, a esfera continua acompanhando a própria div com ScrollScene.
   if (estilo?.position === 'sticky' && /^-?(?:\d+\.?\d*|\.\d+)px$/.test(estilo.top) && Number.isFinite(parseFloat(estilo.top))) {
     return (
       <StickyScrollScene track={track} hideOffscreen>
-        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} />}
+        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} formarAlvo={formarAlvo} />}
       </StickyScrollScene>
     );
   }
   return (
     <ScrollScene track={track} hideOffscreen>
-      {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} />}
+      {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} formarAlvo={formarAlvo} />}
     </ScrollScene>
   );
 }
 
-function Pontos({ track, scale, inViewport, atributos, modo }: ScrollSceneChildProps & Omit<Props, 'track'>) {
+function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo }: ScrollSceneChildProps & Omit<Props, 'track'>) {
   const { gl, camera, scene } = useThree();
   const pontos = useRef<THREE.Points>(null);
   const [atlas, setAtlas] = useState<THREE.Texture | null>(null);
@@ -122,7 +122,7 @@ function Pontos({ track, scale, inViewport, atributos, modo }: ScrollSceneChildP
   // Morfose automática só no desktop: esfera e alvo se alternam a cada INTERVALO_MORFOSE.
   const morfose = useRef<gsap.core.Timeline | null>(null);
   useEffect(() => {
-    if (modo !== 'desktop') return;
+    if (modo !== 'desktop' || formarAlvo !== undefined) return;
     const s = estado.current;
     const dur = TEMPOS['tempo-planos'];
     const tl = gsap
@@ -135,8 +135,8 @@ function Pontos({ track, scale, inViewport, atributos, modo }: ScrollSceneChildP
       morfose.current = null;
       s.morf = 0;
     };
-  }, [modo]);
-  useEffect(() => void morfose.current?.paused(!inViewport), [modo, inViewport]);
+  }, [modo, formarAlvo]);
+  useEffect(() => void morfose.current?.paused(!inViewport), [modo, inViewport, formarAlvo]);
 
   // O cursor (ou o toque, no celular) empurra as letras; com movimento reduzido, nada se mexe.
   useEffect(() => {
@@ -166,9 +166,17 @@ function Pontos({ track, scale, inViewport, atributos, modo }: ScrollSceneChildP
 
   // Fora da tela, nenhum uniforme é atualizado (a cena some com hideOffscreen).
   useFrame((_, delta) => {
-    if (!inViewport || parado) return;
+    if (!inViewport) return;
     const u = material.uniforms;
     const s = estado.current;
+    // Sem prop, a Início mantém a alternância; na página só a confirmação permite o F.
+    if (formarAlvo !== undefined) {
+      const alvo = formarAlvo ? 1 : 0;
+      const passo = delta / TEMPOS['tempo-planos'];
+      s.morf = parado ? alvo : alvo > s.morf ? Math.min(alvo, s.morf + passo) : Math.max(alvo, s.morf - passo);
+      u.uMorf.value = s.morf;
+    }
+    if (parado) return;
     u.uTempo.value += delta;
     u.uGiro.value += delta * GIRO_POR_SEGUNDO;
     u.uMorf.value = s.morf;

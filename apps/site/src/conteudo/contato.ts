@@ -25,6 +25,18 @@ const contato = {
     contato: { pt: 'Contato' },
     mensagem: { pt: 'Mensagem' },
     enviar: { pt: 'Enviar →' },
+    // Inglês destes estados segue pendente de C2, com o fallback PT do índice.
+    enviando: { pt: 'Enviando…' },
+    retorno: { pt: 'Retorno do formulário. Não é possível confirmar a entrega nesta página.' },
+    erro: { pt: 'Erro:' },
+    problema: { pt: 'Há um problema' },
+    preencher: {
+      nome: { pt: 'Digite seu nome' },
+      contato: { pt: 'Digite seu contato' },
+      mensagem: { pt: 'Digite sua mensagem' },
+    },
+    limiteCampo: { pt: 'Use até 200 caracteres' },
+    limiteMensagem: { pt: 'Use até 5000 caracteres' },
     tentar: { pt: 'Tentar de novo' },
     falha: { pt: 'Não conseguimos responder agora.' },
     enviado: { pt: 'Pedido enviado. A equipe da Floway responde pelo contato que você deixou. Obrigado pela conversa.' },
