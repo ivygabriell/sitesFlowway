@@ -115,3 +115,10 @@ Depois do build de teste e com slot3100, executar em `apps/site`: `npx playwrigh
 ## Retomada
 
 O próximo trabalho é a etapa 1, seguida da proposta de Arquitetura da etapa 2. Não reabrir a rodada de galeria, escolher A/B do hero, recriar Produto ou construir IA por inferência do “PROSSIGA”. Este documento organiza o contato B e torna explícito o que precisa ser decidido antes do despacho de produto.
+
+
+## Progresso autorizado e validado · 2026-11-05
+
+A pessoa autorizou construção depois deste plano. A frente independente #38 foi construída e validada localmente em `3933ae1`: alternativa temporária acessível/recuperável e esfera controlada, com 183 unitários, check, build e 91 E2E verdes na execução independente da integradora, mais inspeção própria dos cinco tamanhos e modos alternativos. Isso não conclui a conversa B nem conecta entrega real.
+
+A proposta de Arquitetura #39 está em `9a1ce73` mais `62ec98a`, na branch `ivygabriell/arquitetura-contato-b`, com revisão leve de Back/Front e Segurança. O contrato observado não mudou. Portão `gate_a9c750e8db8e` pendente para adoção da interface; serviço/destino, modalidade/modelo Gemini, orçamento e privacidade/copy continuam com suas decisões próprias. Próxima construção consumidora exige esse portão; merge/deploy não foram autorizados nesta retomada.
