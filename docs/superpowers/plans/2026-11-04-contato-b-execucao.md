@@ -122,3 +122,17 @@ O próximo trabalho é a etapa 1, seguida da proposta de Arquitetura da etapa 2.
 A pessoa autorizou construção depois deste plano. A frente independente #38 foi construída e validada localmente em `3933ae1`: alternativa temporária acessível/recuperável e esfera controlada, com 183 unitários, check, build e 91 E2E verdes na execução independente da integradora, mais inspeção própria dos cinco tamanhos e modos alternativos. Isso não conclui a conversa B nem conecta entrega real.
 
 A proposta de Arquitetura #39 está em `9a1ce73` mais `62ec98a`, na branch `ivygabriell/arquitetura-contato-b`, com revisão leve de Back/Front e Segurança. O contrato observado não mudou. Portão `gate_a9c750e8db8e` pendente para adoção da interface; serviço/destino, modalidade/modelo Gemini, orçamento e privacidade/copy continuam com suas decisões próprias. Próxima construção consumidora exige esse portão; merge/deploy não foram autorizados nesta retomada.
+
+
+## Construção da conversa autorizada · 2026-11-05
+
+O portão `gate_a9c750e8db8e` foi resolvido com a resposta “aprovado pode seguir”: contrato #39 e Resend aprovados. O contrato normativo adotado em `30a0099` é a entrada obrigatória, preservando a API legada. Esta seção substitui o bloqueio documental anterior; sem merge/deploy ou ativação real por consequência.
+
+### Execução concreta
+
+1. #40, Back e Dados: uma filha a partir de `ivygabriell/contato-b-construcao`, TDD antes dos módulos exclusivos `src/lib/contato/**` e handlers aprovados; documentar DTOs server-only, configuração e renderer HTML para a consumidora. Testes de protocolo/limites/assinatura/replay/timeout/HTML e adaptadores com dependências falsas só na borda. Arquivos, critérios e limites completos na issue; nenhuma mudança de front/contrato/CI/dependências.
+2. Revisão do backend e incorporação local da entrega pela integradora, preservando main; testes/limites e interfaces publicados à consumidora. Front pode mapear testes durante essa etapa, mas não abre sua filha antes da liberação.
+3. #41, Design e Front: uma filha a partir da base local com backend; TDD do vazio B/abertura/resumo/ajuste/confirmar, preservação da alternativa e pendência 202→429. Consumir DTOs e estados do contrato sem segredos no cliente. Testar UI configurada e fallback sem introduzir modo de IA falsa no produto; pedido prévio à integradora para mudar configuração comum de testes.
+4. Segurança focada, revisão independente e os três comandos completos na versão reunida; explorar estados/teclado/idiomas nos cinco tamanhos e nos modos reduzido/sem JS/sem WebGL. Sucesso interceptado é prova de interface. Serviços reais, hardware/leitor de tela físico e ativação dependem de configuração/decisões próprias, sem esconder limitações.
+
+Interfaces internas e nomes de arquivos auxiliares serão registrados pelos especialistas antes de suas filhas começarem; não criar abstrações, novos serviços ou duplicar a validação do contrato por suposição. Escrita nos mesmos arquivos fica em sequência. Entregas locais com commit/descrição de PR e evidência; nenhum push/PR/merge/deploy sem autorização aplicável.
