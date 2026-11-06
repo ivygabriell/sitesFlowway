@@ -136,3 +136,8 @@ O portão `gate_a9c750e8db8e` foi resolvido com a resposta “aprovado pode segu
 4. Segurança focada, revisão independente e os três comandos completos na versão reunida; explorar estados/teclado/idiomas nos cinco tamanhos e nos modos reduzido/sem JS/sem WebGL. Sucesso interceptado é prova de interface. Serviços reais, hardware/leitor de tela físico e ativação dependem de configuração/decisões próprias, sem esconder limitações.
 
 Interfaces internas e nomes de arquivos auxiliares serão registrados pelos especialistas antes de suas filhas começarem; não criar abstrações, novos serviços ou duplicar a validação do contrato por suposição. Escrita nos mesmos arquivos fica em sequência. Entregas locais com commit/descrição de PR e evidência; nenhum push/PR/merge/deploy sem autorização aplicável.
+
+
+### Checkpoint de construção · 2026-11-06
+
+#40 entregue em `385fb4b`, incorporada localmente como `20cb8d8`, com revisão de Back, 234 unitários/check/build e91E2E verdes e12casos HTML reais com provedores dublados. A integradora repetiu234unitários/check na base; testou em cópia temporária que o teste rejeita aceitação sem ID válido. Evidência e limites registrados na memória. #41 está liberada para uma filha sobre essa base; Segurança revisa o backend congelado. A próxima saída é a interface B completa, perfis de teste sequenciais ligados no pacote e QA independente integrado. Não reabrir o portão de contrato/Resend aprovado.
