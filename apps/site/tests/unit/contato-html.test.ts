@@ -1,0 +1,64 @@
+import { describe, expect, it } from 'vitest';
+import { responderContatoHtml, type EstadoHtml } from '@/lib/contato/html';
+
+const base: EstadoHtml = { status: 200, idioma: 'pt', acao: 'revisar', estado: 'revisao', pedido: { nome: '<b>"Pessoa"</b>', empresa: '</textarea><script>bad()</script>', contato: 'pessoa@example.test', mensagem: '<b>literal</b>\nOutra linha' }, intencao: 'token-original', chave: 'contato/10000000-0000-4000-8000-000000000001', repetirAte: '2026-11-06T11:00:00.000Z', agora: Date.parse('2026-11-05T12:00:00Z') };
+async function dom(estado: EstadoHtml) { const r = responderContatoHtml(estado); return { r, d: new DOMParser().parseFromString(await r.text(), 'text/html') }; }
+
+describe('HTML nativo do contato', () => {
+  it.each(['pt', 'en'] as const)('revisão %s preserva valores como texto e confirma no POST sem recursos terceiros', async idioma => {
+    const { r, d } = await dom({ ...base, idioma });
+    expect(r.status).toBe(200);
+    expect(r.headers.get('cache-control')).toBe('private, no-store');
+    expect(r.headers.get('referrer-policy')).toBe('no-referrer');
+    expect(r.headers.get('x-robots-tag')).toBe('noindex');
+    expect(d.documentElement.lang).toBe(idioma);
+    expect(d.querySelector('script,b,iframe,img')).toBeNull();
+    expect(d.body.textContent).toContain('<b>literal</b>');
+    expect(d.querySelector<HTMLInputElement>('[name=nome]')?.value).toBe(base.pedido.nome);
+    expect(d.querySelector('[name=intencao]')?.getAttribute('value')).toBe('token-original');
+    expect(d.querySelector('form')?.getAttribute('action')).toBe('/api/contato');
+    expect(d.querySelector('[name=confirmar]')?.getAttribute('value')).toBe('true');
+    for (const a of d.querySelectorAll('a')) expect(a.getAttribute('href')).not.toContain('pessoa');
+    expect(d.querySelector('details input[name=nome]') || d.querySelector('details textarea[name=mensagem]')).not.toBeNull();
+  });
+  it('erro de revisão conserva campos editáveis e resumo com foco e rótulos associados', async () => {
+    const { r, d } = await dom({ ...base, estado: 'falha', status: 422, codigo: 'VALIDACAO', campos: { contato: 'OBRIGATORIO' } });
+    expect(r.status).toBe(422);
+    expect(d.querySelector('[role=alert][tabindex="-1"]')).not.toBeNull();
+    const input = d.querySelector<HTMLInputElement>('#pedido-contato')!;
+    expect(input.value).toBe(base.pedido.contato);
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(d.querySelector('label[for=pedido-contato]')).not.toBeNull();
+    expect(d.getElementById(input.getAttribute('aria-describedby')!)).not.toBeNull();
+    expect(d.querySelector('[name=intencao]')?.getAttribute('value')).toBe('token-original');
+  });
+  it.each([202, 429, 503, 409])('envio %i mantém cópia imutável e repetição conservadora sem Ajustar', async status => {
+    const { r, d } = await dom({ ...base, acao: 'enviar', estado: status === 202 ? 'incerto' : 'falha', status, codigo: 'RESULTADO_INCERTO', retryAfter: 120 });
+    expect(r.status).toBe(status);
+    expect(r.headers.get('retry-after')).toBe('120');
+    expect(d.querySelector('details')).toBeNull();
+    expect(d.querySelector('input:not([type=hidden]),textarea')).toBeNull();
+    expect(d.querySelector('[name=mensagem]')?.getAttribute('value')).toBe(base.pedido.mensagem);
+    expect(d.querySelector('[name=chave]')?.getAttribute('value')).toBe(base.chave);
+    expect(d.querySelector('[name=acao]')?.getAttribute('value')).toBe('enviar');
+    expect(d.querySelector('[name=confirmar]')?.getAttribute('value')).toBe('true');
+    expect(d.body.textContent).toContain('120');
+    expect(d.body.textContent).not.toMatch(/Pedido enviado|Ajustar/);
+  });
+  it('prazo esgotado ou espera além do corte conserva pendência sem nova submissão', async () => {
+    for (const agora of [Date.parse(base.repetirAte!), Date.parse(base.repetirAte!) - 100000]) {
+      const { d } = await dom({ ...base, status: 410, codigo: 'INTENCAO_EXPIRADA', acao: 'enviar', estado: 'incerto', agora, retryAfter: 120 });
+      expect(d.querySelector('form,button,details')).toBeNull();
+      expect(d.querySelector('[name=intencao]')?.getAttribute('value')).toBe(base.intencao);
+      expect(d.querySelector('[name=chave]')?.getAttribute('value')).toBe(base.chave);
+      expect(d.querySelector('[name=idioma]')?.getAttribute('value')).toBe('pt');
+      expect(d.body.textContent).toContain(base.pedido.mensagem);
+      expect(d.body.textContent).toContain('conferência');
+    }
+  });
+  it('aceitação verificável encerra pendência sem formulário', async () => {
+    const { d } = await dom({ ...base, acao: 'enviar', estado: 'aceito' });
+    expect(d.querySelector('form')).toBeNull();
+    expect(d.querySelector('[role=status]')?.textContent).toContain('aceito');
+  });
+});
