@@ -27,30 +27,30 @@ const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8,
 const SEGUIR_CURSOR = 0.15;
 const LONGE = 1e5;
 
-type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao; formarAlvo?: boolean };
+type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao; formarAlvo?: boolean; respondendo?: boolean };
 
 // fixa: a div.esfera é position: sticky dentro de uma seção mais alta (o contato preso). O ScrollScene posiciona a
 // cena pela posição da div no documento e a faria rolar com a página; o StickyScrollScene acompanha a parte presa.
 // O cursor continua medido pela própria div (o StickyScrollScene passa adiante a seção, não a div).
-export function CenaEsfera({ track, atributos, modo, fixa = false, formarAlvo }: Props & { fixa?: boolean }) {
+export function CenaEsfera({ track, atributos, modo, fixa = false, formarAlvo, respondendo = false }: Props & { fixa?: boolean }) {
   const estilo = fixa && track.current ? getComputedStyle(track.current) : null;
   // O powerup exige sticky e converte top com parseFloat: auto/NaN faria a cena desaparecer.
   // Sem esse contrato no CSS, a esfera continua acompanhando a própria div com ScrollScene.
   if (estilo?.position === 'sticky' && /^-?(?:\d+\.?\d*|\.\d+)px$/.test(estilo.top) && Number.isFinite(parseFloat(estilo.top))) {
     return (
       <StickyScrollScene track={track} hideOffscreen>
-        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} formarAlvo={formarAlvo} />}
+        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} formarAlvo={formarAlvo} respondendo={respondendo} />}
       </StickyScrollScene>
     );
   }
   return (
     <ScrollScene track={track} hideOffscreen>
-      {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} formarAlvo={formarAlvo} />}
+      {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} formarAlvo={formarAlvo} respondendo={respondendo} />}
     </ScrollScene>
   );
 }
 
-function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo }: ScrollSceneChildProps & Omit<Props, 'track'>) {
+function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respondendo }: ScrollSceneChildProps & Omit<Props, 'track'>) {
   const { gl, camera, scene } = useThree();
   const pontos = useRef<THREE.Points>(null);
   const [atlas, setAtlas] = useState<THREE.Texture | null>(null);
@@ -178,7 +178,7 @@ function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo }: Scrol
     }
     if (parado) return;
     u.uTempo.value += delta;
-    u.uGiro.value += delta * GIRO_POR_SEGUNDO;
+    u.uGiro.value += delta * GIRO_POR_SEGUNDO * (respondendo ? 4 : 1);
     u.uMorf.value = s.morf;
     const mouse = u.uMouse.value as THREE.Vector2;
     if (s.mouse.x === LONGE || mouse.x === LONGE) mouse.copy(s.mouse);

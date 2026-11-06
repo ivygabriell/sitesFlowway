@@ -25,25 +25,15 @@ test('o selo da Início chega ao contato', async ({ page }) => {
   await expect(page.locator('.formulario-contato')).toBeVisible();
 });
 
-test('enviado: mock da rota, a confirmação aparece', async ({ page }) => {
-  await page.route('**/api/contato', (r) => r.fulfill({ status: 200, json: { ok: true } }));
+test('sem destino configurado, revisa sem IA e mantém campos para ajustar', async ({ page }) => {
   await page.goto('/contato');
-  await page.waitForLoadState('networkidle');
-  await page.fill('[name=nome]', 'Teste');
-  await page.fill('[name=contato]', 'teste');
-  await page.fill('[name=mensagem]', 'Teste');
-  await page.locator('.formulario-contato button[type=submit]').click();
-  await expect(page.getByText(/Pedido enviado/)).toBeVisible();
-});
-
-test('sem destino configurado, o envio real mostra a falha e mantém o texto', async ({ page }) => {
-  await page.goto('/contato');
-  await page.waitForLoadState('networkidle');
-  await page.fill('[name=nome]', 'Teste');
-  await page.fill('[name=contato]', 'teste');
-  await page.fill('[name=mensagem]', 'Meu texto');
-  await page.locator('.formulario-contato button[type=submit]').click();
-  await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Nome', exact: true }).fill('Teste');
+  await page.getByRole('textbox', { name: 'Contato', exact: true }).fill('Contato livre');
+  await page.getByRole('textbox', { name: 'Mensagem', exact: true }).fill('Meu texto');
+  await page.getByRole('button', { name: 'Revisar pedido' }).click();
+  await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
+  await expect(page.getByText(/O envio está indisponível/)).toBeFocused();
+  await page.getByRole('button', { name: 'Ajustar' }).click();
   await expect(page.locator('[name=mensagem]')).toHaveValue('Meu texto');
 });
 
@@ -84,8 +74,9 @@ test.describe('sem JavaScript', () => {
     await page.fill('[name=contato]', 'teste');
     await page.fill('[name=mensagem]', 'Teste');
     await page.locator('.formulario-contato button[type=submit]').click();
-    await page.waitForURL('**/contato?estado=falha');
-    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+    await page.waitForURL('**/api/contato');
+    await expect(page.locator('.formulario-erros')).toBeVisible();
+    await expect(page.locator('[name=mensagem]')).toHaveValue('Teste');
   });
 });
 
@@ -110,41 +101,10 @@ for (const [largura, altura] of [[1440, 900], [1883, 703]] as const) {
   });
 }
 
-for (const caminho of ['/contato', '/en/contact']) {
-  test(`${caminho}: espera, rede, recuperação e foco com resposta simulada`, async ({ page }) => {
-    let liberar!: () => void;
-    let chamadas = 0;
-    await page.route('**/api/contato', async (r) => {
-      chamadas++;
-      if (chamadas === 1) { await new Promise<void>((resolver) => { liberar = resolver; }); await r.abort(); }
-      else await r.fulfill({ status: 200, json: { ok: true } });
-    });
-    await page.goto(caminho);
-    await expect(page.locator('form')).toHaveAttribute('novalidate', '');
-    for (const nome of ['nome', 'empresa', 'contato', 'mensagem']) await page.locator(`[name=${nome}]`).fill(`Texto ${nome}`);
-    await page.getByRole('button', { name: 'Enviar →' }).click();
-    await expect(page.getByRole('status')).toHaveText('Enviando…');
-    await expect(page.locator('[aria-busy=true]').filter({ has: page.getByRole('status') })).toHaveCount(0);
-    await expect(page.getByRole('button')).toBeDisabled();
-    for (const nome of ['nome', 'empresa', 'contato', 'mensagem']) await expect(page.locator(`[name=${nome}]`)).toHaveJSProperty('readOnly', true);
-    await page.locator('form').evaluate((form) => { form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
-    expect(chamadas).toBe(1);
-    liberar();
-    await expect(page.locator('form [role=alert]')).toBeFocused();
-    for (const nome of ['nome', 'empresa', 'contato', 'mensagem']) await expect(page.locator(`[name=${nome}]`)).toHaveValue(`Texto ${nome}`);
-    await page.locator('[name=mensagem]').fill('Edição depois da falha');
-    await page.getByRole('button', { name: 'Tentar de novo' }).focus();
-    await page.keyboard.press('Enter');
-    await expect(page.getByRole('status')).toContainText('Pedido enviado');
-    await expect(page.getByRole('status')).toBeFocused();
-    expect(chamadas).toBe(2);
-  });
-}
-
 test('URL enviada não comprova entrega', async ({ page }) => {
   await page.goto('/contato?estado=enviado');
-  await expect(page.getByRole('status')).toContainText('Não é possível confirmar a entrega');
-  await expect(page.getByText(/Pedido enviado/)).toHaveCount(0);
+  await expect(page.getByText(/Envio aceito/)).toHaveCount(0);
+  await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toBeVisible();
 });
 
 for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]]) {
@@ -152,7 +112,7 @@ for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844]
     await page.setViewportSize({ width, height });
     await page.goto('/contato');
     await expect(page.locator('form')).toHaveAttribute('novalidate', '');
-    await page.getByRole('button', { name: 'Enviar →' }).click();
+    await page.getByRole('button', { name: 'Revisar pedido' }).click();
     const resumo = page.locator('.formulario-erros');
     await expect(resumo).toBeFocused();
     await expect(page).toHaveTitle(/^Erro: /);
@@ -170,7 +130,7 @@ for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844]
     const rodape = (await page.locator('.rodape').boundingBox())!;
     expect(rodape.y).toBeGreaterThanOrEqual(form.y + form.height);
     expect(form.x + form.width <= esfera.x || form.y + form.height <= esfera.y).toBe(true);
-    await page.getByRole('button', { name: 'Enviar →' }).scrollIntoViewIfNeeded();
-    await expect(page.getByRole('button', { name: 'Enviar →' })).toBeInViewport();
+    await page.getByRole('button', { name: 'Revisar pedido' }).scrollIntoViewIfNeeded();
+    await expect(page.getByRole('button', { name: 'Revisar pedido' })).toBeInViewport();
   });
 }

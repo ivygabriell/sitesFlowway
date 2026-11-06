@@ -24,7 +24,7 @@ describe('HTML nativo do contato', () => {
   it('erro de revisão conserva campos editáveis e resumo com foco e rótulos associados', async () => {
     const { r, d } = await dom({ ...base, estado: 'falha', status: 422, codigo: 'VALIDACAO', campos: { contato: 'OBRIGATORIO' } });
     expect(r.status).toBe(422);
-    expect(d.querySelector('[role=alert][tabindex="-1"]')).not.toBeNull();
+    expect(d.querySelector('.formulario-erros[tabindex="-1"] h2[role=alert]')).not.toBeNull();
     const input = d.querySelector<HTMLInputElement>('#pedido-contato')!;
     expect(input.value).toBe(base.pedido.contato);
     expect(input.getAttribute('aria-invalid')).toBe('true');
@@ -61,4 +61,26 @@ describe('HTML nativo do contato', () => {
     expect(d.querySelector('form')).toBeNull();
     expect(d.querySelector('[role=status]')?.textContent).toContain('aceito');
   });
+});
+
+it('apresentação nativa reutiliza frase/rodapé e mostra erros humanos iguais no link e campo com foco no resumo', async () => {
+  const { d } = await dom({ ...base, estado: 'falha', status: 422, campos: { nome: 'OBRIGATORIO', mensagem: 'LONGO' } });
+  expect(d.querySelector('h1.frase-contato')).not.toBeNull();
+  expect(d.querySelector('footer.rodape')).not.toBeNull();
+  const resumo = d.querySelector('.formulario-erros')!;
+  expect(resumo.hasAttribute('autofocus')).toBe(true); expect(resumo.getAttribute('tabindex')).toBe('-1');
+  expect(resumo.querySelector('h2[role=alert]')).not.toBeNull();
+  for (const campo of ['nome', 'mensagem']) {
+    const erro = d.getElementById(`erro-${campo}`)!;
+    expect(erro.textContent).toMatch(/^Erro:/);
+    expect(resumo.querySelector(`a[href="#pedido-${campo}"]`)?.textContent).toBe(erro.textContent);
+    expect(erro.textContent).not.toMatch(/OBRIGATORIO|LONGO/);
+  }
+});
+it('Ajustar nativo não corta texto nem antecipa validação do servidor por atributo', async () => {
+  const { d } = await dom(base);
+  for (const campo of ['nome', 'empresa', 'contato', 'mensagem']) {
+    const el = d.querySelector(`details [name=${campo}]`)!;
+    expect(el.hasAttribute('maxlength')).toBe(false); expect(el.hasAttribute('required')).toBe(false);
+  }
 });
