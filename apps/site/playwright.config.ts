@@ -25,7 +25,7 @@ export default defineConfig({
       CONTATO_CHAVE_HMAC: 'chave-exclusiva-de-e2e-sem-servico-externo-2026',
       CONTATO_CANAL: 'e2e-v1',
       RESEND_API_KEY: 're_e2e_sem_servico_externo',
-      CONTATO_REMETENTE: 'Floway <noreply@example.com>',
+      CONTATO_REMETENTE: 'noreply@example.com',
       CONTATO_DESTINO: 'equipe@example.com',
       GEMINI_API_KEY: 'gemini_e2e_sem_servico_externo',
       GEMINI_MODELO: 'gemini-e2e-sem-servico',

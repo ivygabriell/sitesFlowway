@@ -26,7 +26,7 @@ it('a alternativa desliga servicos e substitui credenciais herdadas do ambiente'
 
 it('a conversa usa configuracao exclusiva de teste e executa os cenarios B', async () => {
   const { config, servidor } = await lerConfiguracao('conversa');
-  expect(servidor.env).toMatchObject({ CONTATO_IA_ATIVA: 'true', CONTATO_ENVIO_ATIVO: 'true', CONTATO_IA_CONTROLES_APROVADOS: 'true', GEMINI_API_VERSAO: 'v1beta', RESEND_API_KEY: 're_e2e_sem_servico_externo', GEMINI_API_KEY: 'gemini_e2e_sem_servico_externo', GEMINI_MODELO: 'gemini-e2e-sem-servico', CONTATO_DESTINO: 'equipe@example.com' });
+  expect(servidor.env).toMatchObject({ CONTATO_IA_ATIVA: 'true', CONTATO_ENVIO_ATIVO: 'true', CONTATO_IA_CONTROLES_APROVADOS: 'true', GEMINI_API_VERSAO: 'v1beta', RESEND_API_KEY: 're_e2e_sem_servico_externo', GEMINI_API_KEY: 'gemini_e2e_sem_servico_externo', GEMINI_MODELO: 'gemini-e2e-sem-servico', CONTATO_REMETENTE: 'noreply@example.com', CONTATO_DESTINO: 'equipe@example.com' });
   expect(servidor.reuseExistingServer).toBe(false);
   expect(config.testMatch).toBe('**/contato-b.spec.ts');
   expect(config.testIgnore).toEqual([]);
