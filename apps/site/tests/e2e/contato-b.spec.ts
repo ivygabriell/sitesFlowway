@@ -173,3 +173,64 @@ test('pixels WebGL acompanham a caixa da esfera ao abrir B, sem sobrepor entrada
   for (let i = 0; i < png.data.length; i += 4) if (png.data[i] < 120 && png.data[i + 1] < 120 && png.data[i + 2] < 120) escuros++;
   expect(escuros).toBeGreaterThan(1000);
 });
+
+for (const idioma of ['pt', 'en'] as const) {
+  test(`${idioma}: HTML nativo HTTPS sem JS revisa, confirma e repete com Origin exato`, async ({ browser }) => {
+    // SSR carrega o handler real com o mesmo alias server-only dos unitários.
+    const { createServer } = await import('vite');
+    const runner = await createServer({ configFile: false, server: { middlewareMode: true }, resolve: { alias: { '@': `${process.cwd()}/src`, 'server-only': `${process.cwd()}/tests/unit/somenteServidor.ts` } } });
+    const contexto = await browser.newContext({ javaScriptEnabled: false, serviceWorkers: 'block' });
+    try {
+      const { receberContato } = await runner.ssrLoadModule('/src/lib/contato/servidor.ts') as typeof import('../../src/lib/contato/servidor');
+      const { criarIntencao } = await runner.ssrLoadModule('/src/lib/contato/intencao.ts') as typeof import('../../src/lib/contato/intencao');
+      const { lerConfiguracao } = await runner.ssrLoadModule('/src/lib/contato/configuracao.ts') as typeof import('../../src/lib/contato/configuracao');
+      const { responderContatoHtml } = await runner.ssrLoadModule('/src/lib/contato/html.ts') as typeof import('../../src/lib/contato/html');
+      const origem = 'https://floway.example';
+      const configuracao = lerConfiguracao({ CONTATO_ORIGEM: origem, CONTATO_CHAVE_HMAC: 'chave-ficticia-exclusiva-do-runner-nativo-2026', CONTATO_CANAL: 'nativo-e2e', CONTATO_ENVIO_ATIVO: 'true', RESEND_API_KEY: 're_ficticia', CONTATO_REMETENTE: 'sender@example.test', CONTATO_DESTINO: 'dest@example.test' });
+      const agora = Date.now();
+      const intencao = criarIntencao(idioma, configuracao, agora);
+      const origens: (string | null)[] = [], corpos: string[] = [], chaves: (string | null)[] = [];
+      const deps = { configuracao, agora: () => agora, fetch: (async (url, init) => {
+        expect(String(url)).toBe('https://api.resend.com/emails');
+        corpos.push(String(init?.body)); chaves.push(new Headers(init?.headers).get('Idempotency-Key'));
+        return corpos.length === 1 ? Response.json({}, { status: 500 }) : Response.json({ id: '20000000-0000-4000-8000-000000000001' });
+      }) as typeof fetch };
+      await contexto.route('**/*', async route => {
+        const request = route.request();
+        if (new URL(request.url()).origin !== origem) return route.abort('blockedbyclient');
+        let resposta: Response;
+        if (request.method() === 'GET' && new URL(request.url()).pathname === '/inicio-nativo') {
+          resposta = responderContatoHtml({ status: 422, idioma, acao: 'revisar', estado: 'falha', pedido: { nome: '', empresa: '', contato: '', mensagem: '' }, intencao, chave: '', repetirAte: null, agora });
+          // A fixture de entrada representa a página inicial Next, antes do primeiro POST.
+          resposta.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        } else if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/contato') {
+          // Cabeçalhos/corpo são os gerados pelo navegador; Origin nunca é corrigido pelo runner.
+          const req = new Request(request.url(), { method: request.method(), headers: await request.allHeaders(), body: request.postData() });
+          origens.push(req.headers.get('origin'));
+          resposta = await receberContato(req, deps);
+        } else return route.abort('blockedbyclient');
+        await route.fulfill({ status: resposta.status, headers: Object.fromEntries(resposta.headers), body: await resposta.text() });
+      });
+      const page = await contexto.newPage();
+      await page.goto(`${origem}/inicio-nativo`);
+      for (const [campo, valor] of [['nome', 'Pessoa de teste'], ['contato', 'Contato livre'], ['mensagem', '<b>Texto literal</b>']]) await page.locator(`[name=${campo}]`).fill(valor);
+      const revisar = page.waitForResponse(r => r.request().method() === 'POST');
+      await page.getByRole('button', { name: idioma === 'pt' ? 'Revisar' : 'Review', exact: true }).click();
+      expect((await revisar).status()).toBe(200);
+      await expect(page.getByRole('definition').filter({ hasText: '<b>Texto literal</b>' })).toBeVisible();
+      const confirmar = page.waitForResponse(r => r.request().method() === 'POST');
+      await page.getByRole('button', { name: idioma === 'pt' ? 'Confirmar e enviar' : 'Confirm and send', exact: true }).click();
+      expect((await confirmar).status()).toBe(202);
+      await expect(page.getByRole('alert')).toContainText(idioma === 'pt' ? 'Resultado pendente' : 'Result pending');
+      await page.waitForTimeout(2100);
+      const repetir = page.waitForResponse(r => r.request().method() === 'POST');
+      await page.getByRole('button', { name: idioma === 'pt' ? 'Repetir o mesmo envio após a espera' : 'Repeat the same submission after waiting', exact: true }).click();
+      expect((await repetir).status()).toBe(200);
+      await expect(page.getByRole('status')).toContainText(idioma === 'pt' ? 'Envio aceito pelo serviço.' : 'Submission accepted by the delivery service.');
+      expect(origens).toEqual([origem, origem, origem]);
+      expect(corpos).toHaveLength(2); expect(corpos[1]).toBe(corpos[0]); expect(chaves[1]).toBe(chaves[0]); expect(chaves[0]).toMatch(/^contato\//);
+      await expect(page.locator('html')).toHaveAttribute('lang', idioma);
+      await expect(page.locator('script,b')).toHaveCount(0);
+    } finally { await contexto.close(); await runner.close(); }
+  });
+}
