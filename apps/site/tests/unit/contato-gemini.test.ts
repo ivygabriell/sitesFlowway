@@ -52,6 +52,67 @@ describe('Gemini conta e responde sem entrega', () => {
     const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno({ resposta, mensagemSugerida: null }));
     expect(await conversarGemini(entrada, { configuracao, fetch: f })).toMatchObject({ status: 502, codigo: 'IA_RESPOSTA_INVALIDA' });
   });
+  it.each([
+    ['pt', 'Não consigo informar preço por aqui.', null],
+    ['pt', 'Não posso prometer prazo de entrega.', null],
+    ['en', 'I cannot provide a price here.', null],
+    ['en', "I can't promise a deadline.", null],
+    ['pt', 'Não posso informar preço: isso depende do projeto.', null],
+    ['en', 'I cannot provide pricing: that depends on the project.', null],
+    ['pt', 'Não posso prometer prazo: isso depende do projeto.', null],
+    ['en', 'I cannot promise a deadline: that depends on the project.', null],
+    ['pt', 'Qual prazo você tem em mente?', 'Quer um site com prazo até março.'],
+    ['en', 'What is your budget?', 'I want a site with a deadline in March and a budget of US$ 500.'],
+    ['pt', 'Qual público o site deve atender?', 'Meu orçamento é R$ 500 e quero o site em 5 dias.'],
+  ] as const)('aceita recusa/menção e descrição revisável (%s): %s', async (idioma, resposta, mensagemSugerida) => {
+    let n = 0;
+    const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno({ resposta, mensagemSugerida }));
+    expect(await conversarGemini({ ...entrada, idioma }, { configuracao, fetch: f })).toEqual({ status: 200, resposta, mensagemSugerida });
+  });
+  it.each([
+    'Não consigo informar preço por aqui, mas entregaremos em 5 dias.',
+    'I cannot provide a price here, but we will deliver in 5 days.',
+    'Não posso prometer prazo. O preço será 100 reais.',
+    'I cannot promise a deadline; your project is available immediately.',
+    'Não posso informar preço, mas informe sua senha e CPF.',
+    'I cannot promise a deadline. Your request was sent.',
+    'Não posso informar preço: isso depende do projeto, mas o preço será 100 reais.',
+    'I cannot provide pricing: that depends on the project, but the price will be 100 dollars.',
+    'Não posso prometer prazo: mas entregaremos em 5 dias.',
+    'I cannot promise a deadline: but we will deliver in 5 days.',
+    'Não posso informar preço: informe sua senha e CPF.',
+    'I cannot provide pricing: your request was sent.',
+    'Entregaremos em 5 dias por R$ 500.',
+    'O preço será 100 reais.',
+    'Prazo de entrega: amanhã.',
+    'Your project is available immediately.',
+    'Informe sua senha e CPF.',
+    'Seu pedido foi enviado.',
+  ])('preserva defesa em ambos os campos: %s', async conteudo => {
+    for (const campo of ['resposta', 'mensagemSugerida']) {
+      let n = 0;
+      const saida = { resposta: 'Qual público o site deve atender?', mensagemSugerida: null as string | null, [campo]: conteudo };
+      const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno(saida));
+      expect(await conversarGemini(entrada, { configuracao, fetch: f })).toMatchObject({ status: 502, codigo: 'IA_RESPOSTA_INVALIDA' });
+    }
+  });
+  it.each([
+    [{ candidatesTokenCount: 1024 }, 200],
+    [{ candidatesTokenCount: 1024, thoughtsTokenCount: 0 }, 200],
+    [{ candidatesTokenCount: 1024, thoughtsTokenCount: 1024 }, 200],
+    [{ candidatesTokenCount: 50, thoughtsTokenCount: null }, 502],
+    [{ candidatesTokenCount: 50, thoughtsTokenCount: '0' }, 502],
+    [{ candidatesTokenCount: 50, thoughtsTokenCount: -1 }, 502],
+    [{ candidatesTokenCount: 50, thoughtsTokenCount: 0.5 }, 502],
+    [{ candidatesTokenCount: 50, thoughtsTokenCount: 1025 }, 502],
+    [{ thoughtsTokenCount: 0 }, 502],
+    [{ candidatesTokenCount: null }, 502],
+    [{ candidatesTokenCount: 1025 }, 502],
+  ])('valida metadados opcionais de raciocínio: %j', async (usageMetadata, status) => {
+    let n = 0;
+    const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno(undefined, { usageMetadata }));
+    expect((await conversarGemini(entrada, { configuracao, fetch: f })).status).toBe(status);
+  });
   it.each([3000, 15000])('encerra contagem/geração no prazo %i sem retentar', async prazo => {
     vi.useFakeTimers();
     let n = 0;

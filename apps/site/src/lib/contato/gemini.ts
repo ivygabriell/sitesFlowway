@@ -6,7 +6,13 @@ export type ResultadoConversa = { status: 200; resposta: string; mensagemSugerid
 const invalida = (): ResultadoConversa => ({ status: 502, codigo: 'IA_RESPOSTA_INVALIDA' });
 const inteiro = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 // Defesa adicional ao roteiro, sem pretender garantir veracidade de texto livre.
-const proibido = /(?:R\$|US\$|[$€£]|\b(?:preço|preços|prazo|prazos|price|pricing|deadline|garantimos|garanto|garantido|guaranteed|guarantee|senha|password|cpf|cnpj|cartão de crédito|credit card|dados bancários|bank account|bank details|financial information)\b|\b(?:em|within|in)\s+\d+\s*(?:dias?|days?|horas?|hours?|semanas?|weeks?)\b|\b(?:pedido|mensagem|request|message)\s+(?:foi\s+|was\s+)?(?:enviad[oa]|confirmad[oa]|aceit[oa]|entregue|sent|confirmed|accepted|delivered)\b|\b(?:we will|vamos|iremos)\s+(?:deliver|entregar|concluir)\b|available\s+(?:immediately|now)|disponível\s+(?:agora|imediatamente)|\d{3}\.\d{3}\.\d{3}-\d{2})/i;
+const proibido = /(?:\b(?:senha|password|cpf|cnpj|cartão de crédito|credit card|dados bancários|bank account|bank details|financial information)\b|\b(?:pedido|mensagem|request|message)\s+(?:foi\s+|was\s+)?(?:enviad[oa]|confirmad[oa]|aceit[oa]|entregue|sent|confirmed|accepted|delivered)\b|\d{3}\.\d{3}\.\d{3}-\d{2})/i;
+const promessa = /(?:\b(?:garantimos|garanto|garantido|guaranteed|guarantee|entregaremos|concluiremos)\b|\b(?:we will|vamos|iremos)\s+(?:deliver|entregar|concluir)\b|\b(?:preços?|prices?|pricing|prazos?|deadline)(?:\s+(?:de entrega|of delivery))?\s*(?::|(?:será|serão|é|são|is|are|will be)(?=\s|$)|\d)|available\s+(?:immediately|now)|disponível\s+(?:agora|imediatamente))/i;
+// A sugestão pode registrar orçamento/prazo desejados; compromissos continuam vedados nos dois campos.
+const cotacao = /(?:R\$|US\$|[$€£]|\b(?:em|within|in)\s+\d+\s*(?:dias?|days?|horas?|hours?|semanas?|weeks?)\b)/i;
+// Retira só a expressão recusada; o texto posterior e as defesas de sensíveis/envio continuam examinados.
+const recusa = /\b(?:não (?:posso|consigo|podemos) (?:informar|definir|prometer)|(?:cannot|can't|can not) (?:provide|give|promise))\s+(?:(?:o|um|a|the)\s+)?(?:preços?|prazos?|prices?|pricing|deadline)(?:\s+de entrega)?\b/gi;
+const temPromessa = (conteudo: string) => promessa.test(conteudo.replace(recusa, ''));
 
 export async function conversarGemini(entrada: EntradaConversa, dependencias: { configuracao: Configuracao; fetch: typeof fetch; agora?: () => number }): Promise<ResultadoConversa> {
   const c = dependencias.configuracao;
@@ -36,7 +42,8 @@ export async function conversarGemini(entrada: EntradaConversa, dependencias: { 
     const dados = geracao.dados;
     if (!objeto(dados) || (objeto(dados.promptFeedback) && dados.promptFeedback.blockReason) || !Array.isArray(dados.candidates) || dados.candidates.length !== 1 || !objeto(dados.usageMetadata)) return invalida();
     const uso = dados.usageMetadata;
-    if (!inteiro(uso.candidatesTokenCount) || !inteiro(uso.thoughtsTokenCount) || uso.candidatesTokenCount > 1024 || uso.thoughtsTokenCount > 1024 || uso.candidatesTokenCount + uso.thoughtsTokenCount > 2048) return invalida();
+    const pensamentos = Object.hasOwn(uso, 'thoughtsTokenCount') ? uso.thoughtsTokenCount : 0;
+    if (!inteiro(uso.candidatesTokenCount) || !inteiro(pensamentos) || uso.candidatesTokenCount > 1024 || pensamentos > 1024 || uso.candidatesTokenCount + pensamentos > 2048) return invalida();
     const candidato = dados.candidates[0];
     if (!objeto(candidato) || candidato.finishReason !== 'STOP' || !objeto(candidato.content) || !Array.isArray(candidato.content.parts) || !candidato.content.parts.length || (Array.isArray(candidato.safetyRatings) && candidato.safetyRatings.some(r => objeto(r) && r.blocked === true))) return invalida();
     let respostaBruta = '';
@@ -45,7 +52,8 @@ export async function conversarGemini(entrada: EntradaConversa, dependencias: { 
       respostaBruta += parte.text;
     }
     const saida = lerJson(respostaBruta);
-    if (!objeto(saida) || !somente(saida, ['resposta', 'mensagemSugerida']) || !texto(saida.resposta, 1, 1500) || !(saida.mensagemSugerida === null || texto(saida.mensagemSugerida, 0, 5000)) || proibido.test(saida.resposta) || (typeof saida.mensagemSugerida === 'string' && proibido.test(saida.mensagemSugerida))) return invalida();
+    if (!objeto(saida) || !somente(saida, ['resposta', 'mensagemSugerida']) || !texto(saida.resposta, 1, 1500) || !(saida.mensagemSugerida === null || texto(saida.mensagemSugerida, 0, 5000))) return invalida();
+    if (proibido.test(saida.resposta) || temPromessa(saida.resposta) || cotacao.test(saida.resposta) || (typeof saida.mensagemSugerida === 'string' && (proibido.test(saida.mensagemSugerida) || temPromessa(saida.mensagemSugerida)))) return invalida();
     return { status: 200, resposta: saida.resposta.trim(), mensagemSugerida: typeof saida.mensagemSugerida === 'string' ? saida.mensagemSugerida.trim() : null };
   } catch (e) {
     return e instanceof Error && e.message === 'PRAZO_EXCEDIDO' ? { status: 504, codigo: 'IA_TIMEOUT' } : invalida();
