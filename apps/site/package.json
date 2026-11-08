@@ -9,7 +9,7 @@
     "test": "vitest run",
     "test:publicacao": "vitest run --config vitest.publicacao.config.ts",
     "check": "tsc --noEmit && eslint .",
-    "test:build": "NEXT_DIST_DIR=.next-teste next build && playwright test"
+    "test:build": "NEXT_DIST_DIR=.next-teste next build && FLOWAY_E2E_PERFIL=alternativa playwright test && FLOWAY_E2E_PERFIL=conversa playwright test"
   },
   "dependencies": {
     "@14islands/r3f-scroll-rig": "8.15.0",

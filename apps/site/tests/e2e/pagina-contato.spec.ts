@@ -25,29 +25,19 @@ test('o selo da Início chega ao contato', async ({ page }) => {
   await expect(page.locator('.formulario-contato')).toBeVisible();
 });
 
-test('enviado: mock da rota, a confirmação aparece', async ({ page }) => {
-  await page.route('**/api/contato', (r) => r.fulfill({ status: 200, json: { ok: true } }));
+test('sem destino configurado, revisa sem IA e mantém campos para ajustar', async ({ page }) => {
   await page.goto('/contato');
-  await page.waitForLoadState('networkidle');
-  await page.fill('[name=nome]', 'Teste');
-  await page.fill('[name=contato]', 'teste');
-  await page.fill('[name=mensagem]', 'Teste');
-  await page.locator('.formulario-contato button[type=submit]').click();
-  await expect(page.getByText(/Pedido enviado/)).toBeVisible();
-});
-
-test('sem destino configurado, o envio real mostra a falha e mantém o texto', async ({ page }) => {
-  await page.goto('/contato');
-  await page.waitForLoadState('networkidle');
-  await page.fill('[name=nome]', 'Teste');
-  await page.fill('[name=contato]', 'teste');
-  await page.fill('[name=mensagem]', 'Meu texto');
-  await page.locator('.formulario-contato button[type=submit]').click();
-  await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Nome', exact: true }).fill('Teste');
+  await page.getByRole('textbox', { name: 'Contato', exact: true }).fill('Contato livre');
+  await page.getByRole('textbox', { name: 'Mensagem', exact: true }).fill('Meu texto');
+  await page.getByRole('button', { name: 'Revisar pedido' }).click();
+  await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
+  await expect(page.getByText(/O envio está indisponível/)).toBeFocused();
+  await page.getByRole('button', { name: 'Ajustar' }).click();
   await expect(page.locator('[name=mensagem]')).toHaveValue('Meu texto');
 });
 
-for (const [largura, altura] of [[1440, 900], [1883, 703], [390, 844], [360, 640]] as const) {
+for (const [largura, altura] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]] as const) {
   test(`${largura}×${altura}: sem rolagem lateral, e nada se sobrepõe ao formulário`, async ({ page }) => {
     await page.setViewportSize({ width: largura, height: altura });
     await page.goto('/contato');
@@ -84,8 +74,9 @@ test.describe('sem JavaScript', () => {
     await page.fill('[name=contato]', 'teste');
     await page.fill('[name=mensagem]', 'Teste');
     await page.locator('.formulario-contato button[type=submit]').click();
-    await page.waitForURL('**/contato?estado=falha');
-    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+    await page.waitForURL('**/api/contato');
+    await expect(page.locator('.formulario-erros')).toBeVisible();
+    await expect(page.locator('[name=mensagem]')).toHaveValue('Teste');
   });
 });
 
@@ -107,5 +98,39 @@ for (const [largura, altura] of [[1440, 900], [1883, 703]] as const) {
     const razao = (x1 - x0) / (y1 - y0);
     expect(razao).toBeGreaterThan(0.93);
     expect(razao).toBeLessThan(1.07);
+  });
+}
+
+test('URL enviada não comprova entrega', async ({ page }) => {
+  await page.goto('/contato?estado=enviado');
+  await expect(page.getByText(/Envio aceito/)).toHaveCount(0);
+  await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toBeVisible();
+});
+
+for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]]) {
+  test(`${width}×${height}: validação com foco, links alcançáveis e áreas separadas`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto('/contato');
+    await expect(page.locator('form')).toHaveAttribute('novalidate', '');
+    await page.getByRole('button', { name: 'Revisar pedido' }).click();
+    const resumo = page.locator('.formulario-erros');
+    await expect(resumo).toBeFocused();
+    await expect(page).toHaveTitle(/^Erro: /);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    for (const link of await resumo.locator('a').all()) {
+      await link.scrollIntoViewIfNeeded();
+      const caixa = (await link.boundingBox())!;
+      expect(caixa.height, 'alvo de teclado/toque tem 44px').toBeGreaterThanOrEqual(44);
+      await link.click();
+      const id = (await link.getAttribute('href'))!.slice(1);
+      await expect(page.locator(`[id="${id}"]`)).toBeFocused();
+    }
+    const form = (await page.locator('form').boundingBox())!;
+    const esfera = (await page.locator('.pagina-contato .esfera').boundingBox())!;
+    const rodape = (await page.locator('.rodape').boundingBox())!;
+    expect(rodape.y).toBeGreaterThanOrEqual(form.y + form.height);
+    expect(form.x + form.width <= esfera.x || form.y + form.height <= esfera.y).toBe(true);
+    await page.getByRole('button', { name: 'Revisar pedido' }).scrollIntoViewIfNeeded();
+    await expect(page.getByRole('button', { name: 'Revisar pedido' })).toBeInViewport();
   });
 }

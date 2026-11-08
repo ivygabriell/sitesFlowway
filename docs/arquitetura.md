@@ -2,7 +2,7 @@
 
 Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Quem escreve é o especialista Arquitetura, num PR próprio. As fontes ficam em [`referencias/arquitetura.md`](referencias/arquitetura.md).
 
-**Contrato da API:** não existe. O site não tem back-end próprio; a rota do formulário de contato, quando entrar, ganha um contrato em `docs/contrato-api.md`.
+**Contrato da API:** [contato B normativo e fluxo legado observado](contrato-api.md). O registro 007 foi aprovado pela pessoa; o contrato B orienta a construção, sem comprovar ativação ou mudar o app por esta adoção documental.
 
 | # | Decisão | Estado | Data |
 |---|---|---|---|
@@ -12,6 +12,7 @@ Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Que
 | 004 | Amostragem do símbolo por faixas de linha | Aceita pela integradora | 2026-10-31 |
 | 005 | Esfera de letras como `THREE.Points` com tudo no shader | Aceita pela integradora | 2026-10-31 |
 | 006 | Avisos do `npm audit`: aceitar com registro | Aceita pela pessoa | 2026-10-31 |
+| 007 | Contato B: conversa, resumo, confirmação e entrega | Aprovada pela pessoa; Resend escolhido | 2026-11-05 |
 
 ---
 
@@ -158,3 +159,29 @@ Num celular médio, a rejeição ocuparia a thread principal por meio segundo ou
 - Antes da publicação (C5), na revisão da Arquitetura com o DevOps e a Segurança.
 
 **O que se perde.** O audit continua mostrando os avisos até os upgrades.
+
+## 007 · Contato B: contrato aprovado e serviço de entrega
+
+**APROVADA pela pessoa em 2026-11-05 — issue #39, gate `gate_a9c750e8db8e`.** A integradora registrou “aprovado pode seguir” para a proposta completa dos commits `9a1ce73` + `62ec98a` e a escolha de **Resend**. As revisões de Back, Front e Segurança e o ajuste da preservação de incerteza antecederam esta adoção. O [texto completo adotado como contrato normativo](contrato-api.md#contato-b--protocolo-normativo-contato-b1) é a fonte das interfaces e garantias entre Front e Back; o [fluxo legado observado](contrato-api.md#fluxo-legado-observado-sem-versão-explícita) permanece documentado separadamente.
+
+**Contexto.** A composição B e sua alternativa precisam de conversa sem efeito externo, resumo editável e confirmação explícita antes da entrega; o formulário temporário atual não demonstra entrega real. Fontes: [spec base 4.6](superpowers/specs/2026-10-31-estrutura-site-design.md#46-contato-12), [reconciliação B](superpowers/specs/2026-11-02-contato-b-correcao-design.md), [protótipo B](superpowers/specs/prototipos-correcao/contato-b.html), [Segurança](seguranca.md) e [referências consultadas](referencias/arquitetura.md#2026-11-04--contato-b-proposta-não-aprovada-issue-39).
+
+**Decisão.** Reaproveitar Next e o formulário, acrescentar somente `POST /api/contato/conversa` com Gemini e evoluir `POST /api/contato` por `versao=contato-b.1`, preservando o legado sem versão. Front e Back compartilham a intenção assinada de 23 h, chave derivada, corpo confirmado, estados e códigos do contrato; somente aceitação verificável pelo Resend autoriza confirmação/F. O protocolo HTML privado sem JS mantém dados/tokens no próprio POST. Sem banco, fila, polling, consulta histórica, streaming ou serviço adicional.
+
+A cópia confirmada, a intenção e a chave ficam imutáveis enquanto qualquer tentativa puder ter sido aceita: 429/503/409 da repetição não apagam incerteza nem liberam Ajustar, nova intenção ou F. Repetir somente o mesmo envio, respeitando `Retry-After` e a janela; após expiração, conferência manual. A [tabela de ações JS/HTML e os exemplos](contrato-api.md#repetição-falha-recuperável-e-retorno-sem-js) são normativos.
+
+**Motivo.** A repetição da mesma operação evita duplicação sem persistir pedidos no site; a [Stripe fundamenta a idempotência](https://stripe.com/blog/idempotency) e o [Resend documenta a janela de 24 h e os conflitos](https://resend.com/docs/dashboard/emails/idempotency-keys). A intenção de 23 h limita a autorização dentro dessa janela, sem assumir garantias do `Map` por instância. Os demais fundamentos, prazos e modos de falha foram transferidos integralmente para o contrato.
+
+**O que se perde.** Não há deduplicação entre intenções, recuperação garantida sem token/cópia, retomada com aba fechada, revogação global de resumo nem comprovação de caixa de entrada/leitura. Timeout pode deixar aceitação desconhecida; o contrato limita repetição e exige conferência manual após expiração.
+
+**Ativação e impacto.** Esta aprovação libera despachos próprios para construção do Back/Front B; não implementa o app, não ativa Gemini/e-mail e não autoriza merge/deploy. Modelo/API/modalidade Gemini, orçamento, privacidade, conta/domínio Resend, destino/remetente e credenciais continuam pendentes; dados reais são somente configuração do servidor. Não há nome de variável de ambiente definido neste registro nem modelo padrão inferido. Controles efetivos de abuso/custo, integração/deduplicação e operação do canal precisam ser comprovados antes da ativação, conforme os [limites do contrato](contrato-api.md#limites-de-ativação-e-decisões-ainda-necessárias). Plano e memória são atualizados pela integradora em branch própria.
+
+**Verificação documental.** Conferir delta, exemplos JSON, links e `git diff --check`; nenhuma suíte, build, navegador ou chamada real integra esta adoção documental. TDD e revisão independente da implementação serão feitos nos despachos de construção.
+
+### Correção pontual · Referrer-Policy do HTML nativo · 2026-11-06
+
+**Aprovação e decisão.** Gate `gate_569de63d2fbf`, resposta “prossiga” da pessoa ao pedido explícito, conforme despacho da integradora: adotar somente a frase proposta pela Segurança para [respostas privadas nativas](contrato-api.md#repetição-falha-recuperável-e-retorno-sem-js). HTML usa `same-origin`; JSON conserva `no-referrer`; a exigência de `Origin` HTTPS exato permanece.
+
+**Motivo e fontes.** O diagnóstico fornecido reproduziu `Origin: null` no segundo POST nativo sob `no-referrer`, com 403 correto. A revisão focada da Segurança (`/private/tmp/floway-seguranca-referrer-contato.md`) fundamenta a causa no [Fetch Standard](https://fetch.spec.whatwg.org/#append-a-request-origin-header). Os resultados experimentais fornecidos em `/private/tmp/floway-front41-https-experimento-resultados-{pt,en}.json` registram `422 → 200 → 202 → 409 → 503 → 409 → 200` com `same-origin`, origem HTTPS exata e produto inalterado; não comprovam entrega real.
+
+**Limite e impacto.** Conforme [Referrer Policy: same-origin](https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-same-origin) e [remoção de componentes da URL](https://w3c.github.io/webappsec-referrer-policy/#strip-url), a referência interna pode conter caminho/query; destinos de outra origem não recebem `Referer`. Pedido/intenção/chave continuam fora da URL; cache privado, noindex, escapes, CSP e ausência de terceiros permanecem. Não mudam endpoints, campos, versão, garantias, HMAC, TTL ou provedor. O Front aplicará a propriedade HTML e os testes em despacho próprio após esta norma; este commit é somente documental, sem ativação, chamada real ou autorização de merge/deploy.

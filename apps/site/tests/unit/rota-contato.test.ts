@@ -11,10 +11,9 @@ const entregar = vi.mocked(entregarPedido);
 const VALIDO = { nome: 'Ana', empresa: 'ACME', contato: 'ana@exemplo.com', mensagem: 'Quero um site', idioma: 'pt' };
 
 function pedido(campos: Record<string, string> = VALIDO, cabecalhos: Record<string, string> = { accept: 'application/json' }) {
-  const corpo = new FormData();
+  const corpo = new URLSearchParams();
   for (const [k, v] of Object.entries(campos)) corpo.set(k, v);
-  // O FormData do jsdom não passa pelo Request do Node; a rota só usa estas três partes.
-  return { url: 'http://localhost/api/contato', formData: async () => corpo, headers: new Headers({ 'x-forwarded-for': '10.0.0.1', ...cabecalhos }) } as unknown as Request;
+  return new Request('http://localhost/api/contato', { method: 'POST', body: corpo.toString(), headers: { 'content-type': 'application/x-www-form-urlencoded', 'x-forwarded-for': '10.0.0.1', ...cabecalhos } });
 }
 
 beforeEach(() => {
@@ -24,6 +23,10 @@ beforeEach(() => {
 });
 
 describe('rota do contato', () => {
+  it('não deixa versão desconhecida cair na entrega legada', async () => {
+    expect((await POST(pedido({ ...VALIDO, versao: 'contato-b.2' }))).status).toBe(422);
+    expect(entregar).not.toHaveBeenCalled();
+  });
   it('entrega um pedido válido', async () => {
     expect((await POST(pedido())).status).toBe(200);
     expect(entregar).toHaveBeenCalledWith({ nome: 'Ana', empresa: 'ACME', contato: 'ana@exemplo.com', mensagem: 'Quero um site' });
