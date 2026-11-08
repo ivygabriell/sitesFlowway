@@ -112,6 +112,15 @@ it('timeout de envio preserva confirmação e duas retentativas, respeitando Ret
   await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
   expect(fetch).toHaveBeenCalledTimes(1); screen.getByText(/Prazo de repetição encerrado/);
 });
+it('digitação visual segue o tempo real, mesmo com poucos quadros por segundo', async () => {
+  const resposta = 'x'.repeat(1500);
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, op: RequestInit) => Response.json({ turnoId: JSON.parse(op.body as string).turnoId, resposta, mensagemSugerida: null })));
+  let t = 0; const relogio = vi.spyOn(performance, 'now').mockImplementation(() => (t += 60000));
+  const { container } = montar(true); fireEvent.click(screen.getByRole('button', { name: 'Ainda não sei' }));
+  await waitFor(() => expect(container.querySelector('.resposta-visual')?.textContent).toBe(resposta));
+  relogio.mockRestore();
+});
 it.each([false, true])('resposta tem digitação visual só sem movimento reduzido (%s), anúncio completo uma vez', async reduzido => {
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduzido })));
   vi.stubGlobal('fetch', vi.fn(async (_url: string, op: RequestInit) => Response.json({ turnoId: JSON.parse(op.body as string).turnoId, resposta: 'Resposta completa da conversa', mensagemSugerida: null })));

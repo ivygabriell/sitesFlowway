@@ -10,8 +10,9 @@ function Resposta({ texto }: { texto: string }) {
   const [visivel, setVisivel] = useState(() => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? texto.length : 0);
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    let tamanho = 0;
-    const timer = setInterval(() => { tamanho = Math.min(texto.length, tamanho + 2); setVisivel(tamanho); if (tamanho === texto.length) clearInterval(timer); }, 18);
+    // Pelo relógio, não por tique: com poucos quadros, uma resposta longa levaria minutos.
+    const inicio = performance.now();
+    const timer = setInterval(() => { const tamanho = Math.min(texto.length, Math.floor((performance.now() - inicio) / 9)); setVisivel(tamanho); if (tamanho === texto.length) clearInterval(timer); }, 18);
     return () => clearInterval(timer);
   }, [texto]);
   return <><span className="resposta-acessivel">{texto}</span><span className="resposta-visual" aria-hidden="true">{texto.slice(0, visivel)}</span></>;
