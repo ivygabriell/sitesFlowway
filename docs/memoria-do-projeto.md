@@ -140,3 +140,12 @@ Mantenha **uma linha por memória** no índice (`MEMORY.md`), com um gancho que 
 - **CI:** o `ubuntu-latest` passou a 26.04 e o Playwright 1.56 não instala o Chromium nele; o job foi fixado em `ubuntu-24.04` até atualizar o Playwright.
 - **Pendências para ligar o contato:** destino, credenciais, modelo Gemini, privacidade, controle de abuso e custo (o limite atual é de 10 turnos de IA a cada 10 min por instância, para o site todo). Sem chamada real a Gemini ou Resend até aqui. Hero A/B (#22) aguarda a escolha da pessoa.
 - **Consumo:** a sessão Claude registrou US$ 3,68 até a metade da rodada (quadro do Ponytail); o consumo das sessões Codex não foi exposto.
+
+## Rodada de 2026-11-09 (branch `feat/trabalhos-hover-logo`)
+
+- **Decisões da pessoa** (spec `superpowers/specs/2026-11-09-trabalhos-reload-f-design.md`): Trabalhos com as 5 peças de `Sites` (landing / site / landing / site / landing), nome por setor, vídeo da rolagem no hover; hero A (#22) com faixas abaixo do F; recarga sem a logo subir; nada vai à `main` sem o sim dela (marcas fictícias, INPI).
+
+## Harness² · 2026-11-09
+
+- **Decisão da pessoa:** harness² é o ciclo de melhorar o próprio harness. Retrabalho, correção da pessoa ou bug achado por ela vira "proposta de harness"; só entra em `docs/agentes` depois de uma sonda A/B com dois subagentes no mesmo caso (A sem a regra, B com ela). Adotar é decisão da pessoa. Resumo em `docs/DESENVOLVIMENTO.md`.
+- **Propostas de harness pendentes:** nenhuma.

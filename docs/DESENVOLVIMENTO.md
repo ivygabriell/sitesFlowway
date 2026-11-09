@@ -48,6 +48,13 @@ A pessoa escolheu o Codex como agente principal e aprovou a atualização dos se
 - Com agentes especialistas: cada agente lê primeiro o seu harness em `docs/agentes/` e atua dentro dele. A integradora coordena os especialistas, e cada especialista abre as suas trabalhadoras. Exige no Orca: Settings → Orchestration → Nested worker depth = 2.
 - Os harnesses atualizados incluem a leitura das lições do método, as skills de cada papel e o fluxo de auditoria de segurança com aprovação própria. No Codex, Ponytail fica sob demanda, conforme o `AGENTS.md`; esta atualização não instala nem ativa ferramentas.
 
+## Spec, harness e skills
+
+- **Spec:** mora em `docs/superpowers/specs/AAAA-MM-DD-<tema>-design.md`, com os protótipos ao lado. É escrita antes do código e só se implementa depois que a pessoa aprova.
+- **Harness:** as regras de cada agente, em `docs/agentes/*.md`. O harness manda.
+- **Harness²** (decidido em 2026-11-09): o ciclo que melhora o próprio harness. Um retrabalho, uma correção da pessoa ou um bug que ela achou antes vira regra candidata ("proposta de harness"). Só entra depois de uma sonda com dois subagentes no mesmo caso (A sem a regra, B com ela). As propostas pendentes ficam na `docs/memoria-do-projeto.md` até serem adotadas ou descartadas. Adotar muda `docs/agentes` e é decisão da pessoa.
+- **Ponytail** e **Superpowers:** as regras estão no `CLAUDE.md` e no `AGENTS.md` (seções de Skills e Ponytail); não se repetem aqui.
+
 ## Antes do primeiro push para um repositório público
 
 Rode a higiene de dados do método: nada de e-mail pessoal, telefone ou token em documentos, testes e commits.
