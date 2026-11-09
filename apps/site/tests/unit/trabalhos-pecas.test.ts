@@ -17,7 +17,7 @@ describe('peças de cada trabalho da lista', () => {
     expect(tr.conceito).toBe(true);
     expect(tr.capa).toMatch(/^\/trabalhos\/.+\.(webp|jpg)$/);
     expect(tr.previa?.length).toBeGreaterThan(0);
-    tr.previa!.forEach((v) => expect(v).toMatch(/^\/trabalhos\/.+\.(webm|mp4)$/));
+    tr.previa!.forEach((v) => expect(v).toMatch(/^\/trabalhos\/.+\.mp4$/));
   });
 
   it.each(listaDeTrabalhos.map((tr) => [tr.slug, tr] as const))('os arquivos de %s existem em public/ e cabem no orçamento', (_, tr) => {

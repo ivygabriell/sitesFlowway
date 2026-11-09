@@ -144,6 +144,7 @@ Mantenha **uma linha por memória** no índice (`MEMORY.md`), com um gancho que 
 ## Rodada de 2026-11-09 (branch `feat/trabalhos-hover-logo`)
 
 - **Decisões da pessoa** (spec `superpowers/specs/2026-11-09-trabalhos-reload-f-design.md`): Trabalhos com as 5 peças de `Sites` (landing / site / landing / site / landing), nome por setor, vídeo da rolagem no hover; hero A (#22) com faixas abaixo do F; recarga sem a logo subir; nada vai à `main` sem o sim dela (marcas fictícias, INPI).
+- **Lições (2026-11-09):** (1) o webm VP9 gerado de quadros do screencast travava no primeiro quadro no Chrome (`MEDIA_ERR_DECODE`), e o `<source>` não cai para o mp4 em erro de decodificação: prévias só em H.264, e o e2e confere `currentTime > 1` sem `error`. (2) No Windows, `npm run test:build` falha porque o `cmd` não aceita `NEXT_DIST_DIR=… comando` (no script e no `webServer` do Playwright); rodar as etapas pelo bash com o `env` no `webServer`. (3) `config-e2e.test.ts` estoura 5 s na suíte completa nesta máquina também na `main` (importa o `playwright.config` a frio); passa sozinho.
 
 ## Harness² · 2026-11-09
 

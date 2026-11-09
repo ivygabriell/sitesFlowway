@@ -34,7 +34,8 @@ const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabal
   oferta,
   conceito: true,
   capa: `/trabalhos/${slug}/capa.webp`,
-  previa: [`/trabalhos/${slug}/previa.webm`, `/trabalhos/${slug}/previa.mp4`],
+  // Só H.264: o webm VP9 gerado travava no primeiro quadro no Chrome (erro de decodificação), sem cair no mp4.
+  previa: [`/trabalhos/${slug}/previa.mp4`],
 });
 
 export const listaDeTrabalhos: Trabalho[] = [
