@@ -2,6 +2,8 @@
 
 Estado: **proposta visual de fase 1, aguardando conferência da pessoa**. Issue #22, coordenada pela #30. Nenhuma escala final foi fixada; não autoriza implementação nem fase 2.
 
+**Decisão de Rafael (2026-11-09):** opção A, com faixas e intro abaixo do F. Implementada pela spec `2026-11-09-trabalhos-reload-f-design.md` (P3).
+
 ## Intenção e limite
 
 Preservar o F de vidro e torná-lo reconhecível, inteiro, com FLOWAY legível. A direção confirmada em 2026-11-02 substitui a cobertura obrigatória da palavra inteira por três lâminas da redação antiga da #22. Fonte: issues #22 e #30 lidas integralmente, memória, harness Design e Front, spec aprovada de 2026-10-31 (4.3) e protótipo local `prototipos-estrutura/02-hero.html`. Execução conforme tarefa 1 do plano da coordenação `docs/superpowers/plans/2026-11-02-correcoes-inicio.md`, lido na worktree `design-e-front-correcao`.
