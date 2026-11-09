@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { type Idioma, t } from '@/conteudo/textos';
 import { type Trabalho, linhaDoCartao } from '@/conteudo/trabalhos';
 import { prefereMenosMovimento } from '@/lib/ambiente';
@@ -25,6 +25,23 @@ const podeTocar = () => window.matchMedia('(hover: hover) and (pointer: fine)').
 // página inteira cobrindo o cartão (spec 2026-11-09, Q2). Sem link nem foco: o cartão não tem ação.
 export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
   const video = useRef<HTMLVideoElement>(null);
+  // Perto da tela (com mouse), a prévia já carrega: no hover ela toca na hora, sem esperar o download (0,1 a 1,2 s).
+  useEffect(() => {
+    const v = video.current;
+    const cartao = v?.closest('.cartao');
+    if (!v || !cartao || !podeTocar()) return;
+    const observador = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        v.preload = 'auto';
+        v.load();
+        observador.disconnect();
+      },
+      { rootMargin: '50% 100%' },
+    );
+    observador.observe(cartao);
+    return () => observador.disconnect();
+  }, []);
   const nome = t(trabalho.nome, idioma);
   const [data, oferta] = linhaDoCartao(trabalho, idioma);
   const info = (

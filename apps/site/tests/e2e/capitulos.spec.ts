@@ -133,6 +133,8 @@ test('com o mouse sobre um cartão, a prévia cobre o cartão e toca; ao sair, p
   expect(indice).toBeGreaterThanOrEqual(0);
   const cartao = page.locator('.cartao').nth(indice);
   const video = cartao.locator('.cartao-previa video');
+  // Pedido de 2026-11-09 (o vídeo demorava a começar): com o cartão na tela, a prévia já está carregada antes do mouse.
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState >= 3), { timeout: 8000 }).toBe(true);
   const caixa = (await cartao.boundingBox())!;
   await page.mouse.move(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2);
   // Toca de verdade: passa de 1 s sem erro de decodificação (o webm VP9 travava no primeiro quadro no Chrome).
