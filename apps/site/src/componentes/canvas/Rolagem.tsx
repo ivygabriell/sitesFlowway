@@ -6,26 +6,12 @@ import { useEffect, useState } from 'react';
 import { ScrollTrigger } from '@/gsap';
 import { useAbertura } from '@/estado/abertura';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { guardarRolagem as guardar, mostrarPagina, posicaoGuardada } from '@/lib/restauracao';
 
 // Depois de a hero montar a saída (1 s) e os gatilhos recalcularem: antes disso, a altura dos pins ainda não existe.
 const ESPERA_RESTAURAR = 1300;
 const TENTATIVAS = 24;
-const CHAVE = 'rolagem:';
 let montou = false;
-
-function guardar(caminho: string) {
-  try {
-    sessionStorage.setItem(CHAVE + caminho, String(window.scrollY));
-  } catch {}
-}
-
-function posicaoGuardada(caminho: string) {
-  try {
-    return Number(sessionStorage.getItem(CHAVE + caminho)) || 0;
-  } catch {
-    return 0;
-  }
-}
 
 // Com scrollRestoration manual e pins montados depois, quem recoloca o lugar ao recarregar ou voltar é o site.
 function useRestaurarRolagem() {
@@ -45,14 +31,19 @@ function useRestaurarRolagem() {
     const ligarGuarda = () => window.addEventListener('scroll', aoRolar, { passive: true });
     // Os pins ainda aumentam a página depois de montar: insiste até chegar, com teto, e para se a pessoa rolar.
     let tentativas: ReturnType<typeof setInterval> | undefined;
+    // A página escondida pelo script do head (lib/restauracao) aparece quando a rolagem chega, ou quando a pessoa rola.
     const parar = () => {
       clearInterval(tentativas);
       window.removeEventListener('wheel', parar);
       window.removeEventListener('touchstart', parar);
       ligarGuarda();
+      mostrarPagina();
     };
     const inicio = setTimeout(() => {
-      if (!destino) return ligarGuarda();
+      if (!destino) {
+        mostrarPagina();
+        return ligarGuarda();
+      }
       let resta = TENTATIVAS;
       window.addEventListener('wheel', parar, { passive: true });
       window.addEventListener('touchstart', parar, { passive: true });

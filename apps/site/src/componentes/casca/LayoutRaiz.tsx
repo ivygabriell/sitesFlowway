@@ -3,6 +3,7 @@ import '@14islands/r3f-scroll-rig/css';
 import '../../../app/globals.css';
 import type { Idioma } from '@/conteudo/textos';
 import { classesDasFontes } from '@/fontes';
+import { SCRIPT_RESTAURANDO } from '@/lib/restauracao';
 import { Casca } from './Casca';
 
 // A metadata base (fora dos buscadores até C5) vem dos buscadores e sai daqui para os dois layouts.
@@ -21,6 +22,8 @@ export function LayoutRaiz({ idioma, children }: { idioma: Idioma; children: Rea
       <head>
         {/* Antes de pintar: se a abertura já tocou nesta sessão, ela não aparece nem por um quadro. */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_ABERTURA }} />
+        {/* Recarregar ou voltar no meio da página: escondida até a rolagem voltar, para o topo não aparecer antes. */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_RESTAURANDO }} />
         <noscript>
           <style>{'.abertura, .secao-contato .circulo-escuro { display: none; } .rodape { display: flex; }'}</style>
         </noscript>
