@@ -7,8 +7,10 @@ test('no celular não há abertura, os capítulos viram lista e as decisões, fo
   await page.waitForTimeout(1000);
   await expect(page.locator('.abertura')).toBeHidden();
   const topos = await page.$$eval('.cartao', (cs) => cs.map((c) => c.getBoundingClientRect().top));
-  expect(topos).toHaveLength(4);
+  expect(topos).toHaveLength(5);
   for (let i = 1; i < topos.length; i++) expect(topos[i]).toBeGreaterThan(topos[i - 1]);
+  // No toque, só a capa: a prévia em vídeo não aparece.
+  for (const previa of await page.locator('.cartao-previa').all()) await expect(previa).toBeHidden();
   await page.locator('.lista-decisoes').scrollIntoViewIfNeeded();
   await expect(page.locator('.lista-decisoes')).toBeVisible();
   await expect(page.locator('html')).not.toHaveClass(/js-smooth-scrollbar-enabled/);
