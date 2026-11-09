@@ -9,8 +9,8 @@ const testSemWebgl = test.extend({
 });
 
 // Com 5 cartões de 50vh, a fileira só cabe sem andar a partir de ~2066 px de largura numa tela de 703 px de altura.
-test.describe('2200×703, sem percurso horizontal', () => {
-  test.use({ viewport: { width: 2200, height: 703 } });
+test.describe('2300×703, sem percurso horizontal', () => {
+  test.use({ viewport: { width: 2300, height: 703 } });
 
   test('os cinco cartões cabem centrados e a seção passa sem prender nem indicar percurso', async ({ page }, info) => {
     await page.goto('/');
@@ -32,9 +32,9 @@ test.describe('2200×703, sem percurso horizontal', () => {
     await info.attach('galeria-sem-percurso', { body: await page.screenshot({ path: info.outputPath('galeria-sem-percurso.png') }), contentType: 'image/png' });
     expect(medidas.cartoes).toHaveLength(5);
     expect(medidas.cartoes[0].left).toBeGreaterThanOrEqual(30);
-    expect(medidas.cartoes[4].right).toBeLessThanOrEqual(2200 - 30);
-    expect(Math.abs(medidas.cartoes[0].left - (2200 - medidas.cartoes[4].right))).toBeLessThan(1);
-    expect(parseFloat(medidas.vao)).toBeCloseTo(66, 1);
+    expect(medidas.cartoes[4].right).toBeLessThanOrEqual(2300 - 30);
+    expect(Math.abs(medidas.cartoes[0].left - (2300 - medidas.cartoes[4].right))).toBeLessThan(1);
+    expect(parseFloat(medidas.vao)).toBeCloseTo(103.5, 1);
     const topoAntes = await secao.evaluate((e) => e.getBoundingClientRect().top);
     await page.evaluate((y) => scrollTo(0, y), inicio + 302);
     await page.waitForTimeout(1500);
@@ -54,7 +54,7 @@ test.describe('2200×703, sem percurso horizontal', () => {
 test.describe('1883×703, percurso curto', () => {
   test.use({ viewport: { width: 1883, height: 703 } });
 
-  test('os cinco cartões passam um pouco da tela: a seção prende e a fileira anda só o excedente (~160 px)', async ({ page }) => {
+  test('os cinco cartões passam um pouco da tela: a seção prende e a fileira anda só o excedente (~270 px)', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
     const secao = page.locator('.secao-capitulos');
@@ -64,8 +64,8 @@ test.describe('1883×703, percurso curto', () => {
     await expect(secao.locator('.cartao')).toHaveCount(5);
     await expect(page.locator('.pin-spacer > .secao-capitulos')).toHaveCount(1);
     const excedente = await page.locator('.cartoes').evaluate((e) => e.scrollWidth - innerWidth);
-    expect(excedente).toBeGreaterThan(100);
-    expect(excedente).toBeLessThan(250);
+    expect(excedente).toBeGreaterThan(200);
+    expect(excedente).toBeLessThan(350);
     await page.evaluate((y) => scrollTo(0, y), inicio + 703);
     await page.waitForTimeout(2000);
     const deslocamento = await page.locator('.cartoes').evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).m41);
@@ -92,7 +92,7 @@ test('os capítulos andam na horizontal enquanto a página rola, com a seção f
   expect(larguraDepois).toBeGreaterThan(larguraAntes);
   await expect(page.locator('.secao-capitulos .tracinho')).toHaveCount(29);
   const vao = await page.locator('.cartoes').evaluate((e) => parseFloat(getComputedStyle(e).gap));
-  expect(vao).toBeCloseTo(43.2, 1);
+  expect(vao).toBeCloseTo(64.8, 1);
   await page.evaluate((y) => scrollTo(0, y), inicio + 855);
   await page.waitForTimeout(2000);
   const ultimo = await page.locator('.cartao').last().boundingBox();
@@ -194,7 +194,7 @@ test.describe('movimento reduzido', () => {
 });
 
 test.describe('sem WebGL', () => {
-  testSemWebgl.use({ viewport: { width: 2200, height: 703 } });
+  testSemWebgl.use({ viewport: { width: 2300, height: 703 } });
 
   testSemWebgl('a galeria sem excedente exibe as capas como imagens comuns, com as informações, sem prender', async ({ page }) => {
     const erros: string[] = [];
