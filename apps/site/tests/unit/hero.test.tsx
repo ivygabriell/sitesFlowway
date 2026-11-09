@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { alvoDeSaida, PARALAXE, repouso, SAIDA } from '@/componentes/hero/disposicao';
+import { alvoDeSaida, INCLINACAO, PARALAXE, POSICAO, repouso, SAIDA } from '@/componentes/hero/disposicao';
 import { Hero } from '@/componentes/hero/Hero';
 import { 'inicio-topo' as inicioTopo } from '@/conteudo/inicio-topo';
 import { t } from '@/conteudo/textos';
@@ -63,6 +63,37 @@ describe('disposição da logo de vidro do hero', () => {
     expect(r.principal.topo).toBeGreaterThan(r.palavra.centro - meiaPalavra);
     expect(r.principal.topo).toBeLessThan(r.palavra.centro + meiaPalavra);
     expect(r.principal.base).toBeGreaterThan(r.palavra.centro + meiaPalavra);
+  });
+
+  // Opção A da spec 2026-11-02, escolhida por Rafael em 2026-11-09: F de frente, centrado, inteiro e reconhecível.
+  it.each([
+    [1440, 900],
+    [1883, 703],
+    [1024, 900],
+    [390, 844],
+  ])('em %i×%i, o F aparece inteiro na tela, com folga para as faixas e a intro embaixo', (largura, altura) => {
+    const r = repouso(largura, altura);
+    expect(r.principal.topo).toBeGreaterThan(0);
+    expect(r.principal.base).toBeLessThan(altura);
+    expect(r.principal.altura * (730 / 512)).toBeLessThan(largura);
+    expect(r.faixas).toBeGreaterThanOrEqual(r.principal.base + 25);
+    expect(r.faixas + 150).toBeLessThanOrEqual(altura);
+  });
+
+  it.each([
+    [1440, 900],
+    [1883, 703],
+  ])('no desktop %i×%i, o F tem cerca de 40%% da altura da tela', (largura, altura) => {
+    expect(repouso(largura, altura).principal.altura / altura).toBeCloseTo(0.4, 2);
+  });
+
+  it('no celular, o F tem 2/3 da largura da tela', () => {
+    expect((repouso(390, 844).principal.altura * (730 / 512)) / 390).toBeCloseTo(2 / 3, 2);
+  });
+
+  it('o F fica de frente e no centro (sem inclinação que achata a haste)', () => {
+    expect(INCLINACAO).toBe(0);
+    expect(POSICAO.x).toBe(0);
   });
 
   it('a paralaxe é a da referência: palavra ×1,6 e logo ×0,1 da rolagem', () => {

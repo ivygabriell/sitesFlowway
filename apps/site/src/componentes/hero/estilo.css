@@ -1,21 +1,25 @@
 /* ---------- hero ---------- */
-.secao-hero { position: relative; height: 100vh; overflow: hidden; pointer-events: none; }
+/* svh (com vh de reserva): a altura visível na carga, a mesma que o canvas usa (innerHeight), também no celular com a
+   barra do navegador aberta. */
+.secao-hero { position: relative; height: 100vh; height: 100svh; overflow: hidden; pointer-events: none; }
 /* A palavra em SVG ocupa o mesmo lugar do plano com glitch do canvas (86vw, centro 17,8% da altura acima do meio);
    com o canvas, fica transparente; sem WebGL, aparece em #121212. 292/1360 é a proporção do viewBox. */
-.titulo-hero { position: absolute; left: 7vw; width: 86vw; top: calc(50vh - 0.178 * 100vh - 43vw * 292 / 1360); margin: 0; line-height: 0; }
+.titulo-hero { position: absolute; left: 7vw; width: 86vw; top: calc(50vh - 0.178 * 100vh - 43vw * 292 / 1360); top: calc(50svh - 0.178 * 100svh - 43vw * 292 / 1360); margin: 0; line-height: 0; }
 .titulo-hero svg { display: block; width: 100%; height: auto; }
-.secao-hero .faixas { position: absolute; top: calc(50vh - 15px); left: 0; height: 30px; padding: 3px 0; background: var(--branco); z-index: 10; opacity: 0; overflow: hidden; width: 100%; }
+/* --faixas-y vem da CenaHero (disposicao.ts): logo abaixo do F de vidro. Sem WebGL, o meio da tela. */
+.secao-hero { --faixas-y: calc(50vh - 15px); }
+.secao-hero .faixas { position: absolute; top: var(--faixas-y); left: 0; height: 30px; padding: 3px 0; background: var(--branco); z-index: 10; opacity: 0; overflow: hidden; width: 100%; }
 .secao-hero .faixa { width: 9000px; display: flex; justify-content: space-between; padding: 0 30px; font: 500 11px/12px var(--sans); text-transform: uppercase; letter-spacing: -0.01em; color: var(--escuro); }
 .secao-hero .faixa-1 { animation: correr 200s linear infinite; }
 .secao-hero .faixa-2 { animation: correr-volta 200s linear infinite; }
 @keyframes correr { to { transform: translateX(-6000px); } }
 @keyframes correr-volta { from { transform: translateX(-6000px); } to { transform: translateX(0); } }
-.secao-hero .intro { position: absolute; top: calc(50vh + 64px); left: calc(50% - 350px); width: 700px; font: 400 13px/14px var(--mono); letter-spacing: -0.01em; text-transform: uppercase; text-align: center; z-index: 10; opacity: 0; }
+.secao-hero .intro { position: absolute; top: calc(var(--faixas-y) + 79px); left: calc(50% - 350px); width: 700px; font: 400 13px/14px var(--mono); letter-spacing: -0.01em; text-transform: uppercase; text-align: center; z-index: 10; opacity: 0; }
 .secao-hero .role-para-baixo { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); font: 400 14px/17px var(--sans); letter-spacing: 0.02em; text-transform: uppercase; z-index: 10; opacity: 0; }
 
 @media (max-width: 899px) {
-  .titulo-hero { left: 5vw; width: 90vw; top: calc(50vh - 0.178 * 100vh - 45vw * 292 / 1360); }
-  .secao-hero .intro { left: 18px; right: 18px; width: auto; top: calc(50vh + 50px); font: 400 13px/16px var(--sans); text-transform: none; text-align: left; }
+  .titulo-hero { left: 5vw; width: 90vw; top: calc(50vh - 0.178 * 100vh - 45vw * 292 / 1360); top: calc(50svh - 0.178 * 100svh - 45vw * 292 / 1360); }
+  .secao-hero .intro { left: 18px; right: 18px; width: auto; top: calc(var(--faixas-y) + 65px); font: 400 13px/16px var(--sans); text-transform: none; text-align: left; }
 }
 @media (prefers-reduced-motion: reduce) {
   .secao-hero .faixa { animation: none; }

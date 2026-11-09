@@ -7,12 +7,13 @@ import * as THREE from 'three';
 import { useAbertura } from '@/estado/abertura';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { restaurandoNestaCarga } from '@/lib/restauracao';
 import { CURVAS, INTERVALOS, TEMPOS } from '@/movimento/tokens';
 import { vertUv } from '@/shaders/comum';
 import { glitchFrag } from '@/shaders/glitch';
 import { refracaoFrag, refracaoVert } from '@/shaders/refracao';
 import { desenharPalavra } from '@/texturas/palavra';
-import { ESCALA, INCLINACAO, PALAVRA, PARALAXE, POSICAO, SAIDA, alvoDeSaida, repouso, unidade } from './disposicao';
+import { INCLINACAO, PALAVRA, PARALAXE, POSICAO, SAIDA, alvoDeSaida, repouso, unidade } from './disposicao';
 import { criarLogoDeVidro } from './laminas';
 
 const CLARO = new THREE.Color('#F7F7F5');
@@ -98,13 +99,14 @@ export function CenaHero() {
     };
   }, [celular, materialLogo]);
 
-  // Alvo da refração do tamanho da tela (em pixels do dispositivo).
+  // Alvo da refração do tamanho da tela (em pixels do dispositivo), a escala do F e as faixas logo abaixo dele.
   useEffect(() => {
     const v = gl.getDrawingBufferSize(new THREE.Vector2());
     alvo.setSize(v.x, v.y);
     vidro.uniforms.uResolucao.value.copy(v);
-    refPrincipal.current?.scale.setScalar((celular ? ESCALA.principalCelular : ESCALA.principal) * u());
-  }, [gl, size, alvo, vidro, celular]);
+    refPrincipal.current?.scale.setScalar(lugar.principal.escala);
+    document.querySelector<HTMLElement>('.secao-hero')?.style.setProperty('--faixas-y', `${lugar.faixas}px`);
+  }, [gl, alvo, vidro, lugar]);
 
   // Entrada (quando a abertura termina) e saída ligada à rolagem.
   useEffect(() => {
@@ -142,8 +144,12 @@ export function CenaHero() {
     const avancarEntrada = () => {
       entrada.totalTime((performance.now() - inicio) / 1000);
     };
-    entrada.eventCallback('onComplete', () => gsap.ticker.remove(avancarEntrada));
-    gsap.ticker.add(avancarEntrada);
+    // Recarga no meio da página: a entrada já vem pronta, sem a logo subir (a página aparece no lugar guardado).
+    if (restaurandoNestaCarga(window.location.pathname)) entrada.progress(1);
+    else {
+      entrada.eventCallback('onComplete', () => gsap.ticker.remove(avancarEntrada));
+      gsap.ticker.add(avancarEntrada);
+    }
 
     let saida: gsap.core.Timeline | undefined;
     const mostrar = (sim: boolean) => {
@@ -165,7 +171,7 @@ export function CenaHero() {
       });
       saida.to(['.secao-hero .role-para-baixo', '.secao-hero .faixas'], { opacity: 0, duration: T['tempo-rapido'] }, 0);
       const { crescimento, giro } = alvoDeSaida(celular);
-      const escala = (celular ? ESCALA.principalCelular : ESCALA.principal) * crescimento * un;
+      const escala = repouso(window.innerWidth, window.innerHeight).principal.escala * crescimento;
       const [rx, ry, rz] = ROTACAO;
       saida
         .to(principal.scale, { x: escala, y: escala, z: escala, duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto'])
