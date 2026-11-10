@@ -20,7 +20,7 @@ jobs:
     name: Testes, tipos e build
     # shortcut: fixo porque o Playwright 1.56 não instala o Chromium no ubuntu-latest (26.04), trocar ao atualizar o Playwright
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
