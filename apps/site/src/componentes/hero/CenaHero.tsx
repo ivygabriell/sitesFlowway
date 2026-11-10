@@ -13,7 +13,7 @@ import { vertUv } from '@/shaders/comum';
 import { glitchFrag } from '@/shaders/glitch';
 import { refracaoFrag, refracaoVert } from '@/shaders/refracao';
 import { desenharPalavra } from '@/texturas/palavra';
-import { INCLINACAO, PALAVRA, PARALAXE, POSICAO, SAIDA, alvoDeSaida, repouso, unidade } from './disposicao';
+import { ESCALA, INCLINACAO, PALAVRA, PARALAXE, POSICAO, SAIDA, alvoDeSaida, repouso, unidade } from './disposicao';
 import { criarLogoDeVidro } from './laminas';
 
 const CLARO = new THREE.Color('#F7F7F5');
@@ -25,8 +25,9 @@ const ROTACAO = [INCLINACAO, 0, 0] as const;
 
 // Intensidade do vidro: sobre a palavra, a logo arrasta as bordas das letras na horizontal sem apagá-las. passoBorrao é
 // a distância (px) entre as 9 amostras do borrão; veu, quanto do branco cobre o fundo; forca, quanto a normal desloca o
-// fundo; serra, quanto cada faixa sai do lugar.
-const INTENSIDADE = { passoBorrao: 2, veu: 0.005, forca: 0.3, serra: 1 };
+// fundo; serra, quanto cada faixa sai do lugar. Vidro limpo (Rafael, 2026-11-09): com serra e borrão de 2 px, a palavra
+// sob o F saía rasgada em estrias e parecia bug; fica só a refração das bordas e um borrão leve.
+const INTENSIDADE = { passoBorrao: 0.5, veu: 0.005, forca: 0.3, serra: 0 };
 
 // Atalhos para os tokens de movimento usados aqui.
 const T = TEMPOS;
@@ -51,8 +52,7 @@ export function CenaHero() {
   const lugar = useMemo(() => repouso(size.width, size.height), [size]);
   const alvo = useMemo(() => new THREE.WebGLRenderTarget(1, 1), []);
   const vidro = useMemo(() => {
-    // Com movimento reduzido, sem serra nem arrasto; no celular, mais suave.
-    const { passoBorrao, veu, forca, serra } = reduzido ? { ...INTENSIDADE, passoBorrao: 0.5, serra: 0 } : celular ? { ...INTENSIDADE, passoBorrao: 1, serra: 0.5 } : INTENSIDADE;
+    const { passoBorrao, veu, forca, serra } = INTENSIDADE;
     return new THREE.ShaderMaterial({
       vertexShader: refracaoVert,
       fragmentShader: refracaoFrag,
@@ -70,7 +70,7 @@ export function CenaHero() {
         uSerra: { value: serra },
       },
     });
-  }, [alvo, reduzido, celular]);
+  }, [alvo]);
   const materialLogo = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -99,14 +99,13 @@ export function CenaHero() {
     };
   }, [celular, materialLogo]);
 
-  // Alvo da refração do tamanho da tela (em pixels do dispositivo), a escala do F e as faixas logo abaixo dele.
+  // Alvo da refração do tamanho da tela (em pixels do dispositivo).
   useEffect(() => {
     const v = gl.getDrawingBufferSize(new THREE.Vector2());
     alvo.setSize(v.x, v.y);
     vidro.uniforms.uResolucao.value.copy(v);
-    refPrincipal.current?.scale.setScalar(lugar.principal.escala);
-    document.querySelector<HTMLElement>('.secao-hero')?.style.setProperty('--faixas-y', `${lugar.faixas}px`);
-  }, [gl, alvo, vidro, lugar]);
+    refPrincipal.current?.scale.setScalar((celular ? ESCALA.principalCelular : ESCALA.principal) * u());
+  }, [gl, size, alvo, vidro, celular]);
 
   // Entrada (quando a abertura termina) e saída ligada à rolagem.
   useEffect(() => {
@@ -171,7 +170,7 @@ export function CenaHero() {
       });
       saida.to(['.secao-hero .role-para-baixo', '.secao-hero .faixas'], { opacity: 0, duration: T['tempo-rapido'] }, 0);
       const { crescimento, giro } = alvoDeSaida(celular);
-      const escala = repouso(window.innerWidth, window.innerHeight).principal.escala * crescimento;
+      const escala = (celular ? ESCALA.principalCelular : ESCALA.principal) * crescimento * un;
       const [rx, ry, rz] = ROTACAO;
       saida
         .to(principal.scale, { x: escala, y: escala, z: escala, duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto'])
