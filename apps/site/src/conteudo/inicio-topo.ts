@@ -1,8 +1,9 @@
-import { pendente, type Textos } from './textos';
+import type { Textos } from './textos';
 
-// Textos da abertura e do hero da Início (spec 4.3). Os trechos e a intro são de C2.
+// Textos da abertura e do hero da Início (spec 4.3). Trechos e intro escolhidos por Rafael em 2026-11-10; o inglês
+// segue pendente (sem `en`, /en mostra o português e a trava aponta).
 const inicioTopo = {
-  trechos: [pendente('trecho 1 da abertura'), pendente('trecho 2'), pendente('trecho 3')],
+  trechos: [{ pt: 'Estratégia.' }, { pt: 'Design.' }, { pt: 'Tecnologia.' }],
   faixas: [
     [
       { pt: 'Landing pages' },
@@ -28,7 +29,7 @@ const inicioTopo = {
       { pt: 'Confiança' },
     ],
   ],
-  intro: pendente('intro do hero, até 30 palavras'),
+  intro: { pt: 'Sites, landing pages e automações para empresas que querem crescer com tecnologia.' },
   rolar: { pt: 'Role para baixo', en: 'Scroll down' },
 } as const satisfies Textos;
 

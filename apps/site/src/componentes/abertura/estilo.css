@@ -3,6 +3,9 @@
 .abertura .filme { width: 300px; height: 158px; display: block; }
 .abertura .trechos { font: 400 14px/16px var(--mono); letter-spacing: -0.02em; text-align: center; }
 .abertura .trecho { opacity: 0; }
-@media (max-width: 899px), (prefers-reduced-motion: reduce) { .abertura { display: none; } }
+.abertura .trecho + .trecho { margin-left: 0.8em; }
+/* Também no celular (Rafael, 2026-11-10); com movimento reduzido, não. */
+@media (prefers-reduced-motion: reduce) { .abertura { display: none; } }
+@media (max-width: 899px) { .abertura .trechos { padding: 0 18px; } }
 /* Já tocou nesta sessão (script no <head>) ou sem JavaScript: a abertura nem aparece. */
 .sem-abertura .abertura { display: none; }

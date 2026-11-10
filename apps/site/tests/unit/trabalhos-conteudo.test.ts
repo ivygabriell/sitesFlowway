@@ -21,12 +21,27 @@ const conceitoDeAutomacao: Trabalho = {
 };
 
 describe('conteúdo dos trabalhos', () => {
-  it('a lista real começa vazia', () => {
-    expect(listaDeTrabalhos).toEqual([]);
+  it('a lista real tem as 5 peças conceito, na ordem landing / site / landing / site / landing', () => {
+    expect(listaDeTrabalhos.map((tr) => tr.slug)).toEqual(['ferramenta-criativa', 'companhia-aerea', 'banco-digital', 'estudio-de-marca', 'plataforma-de-deploy']);
+    expect(listaDeTrabalhos.map((tr) => tr.oferta)).toEqual(['landing-page', 'site-institucional', 'landing-page', 'site-institucional', 'landing-page']);
+    expect(listaDeTrabalhos.map((tr) => tr.nome.pt)).toEqual(['Ferramenta criativa', 'Companhia aérea', 'Banco digital', 'Estúdio de marca', 'Plataforma de deploy']);
+    expect(trabalhosVisiveis()).toBe(listaDeTrabalhos);
+  });
+
+  it('nenhum título, setor ou endereço traz a marca fictícia da peça (spec 5)', () => {
+    const marcas = /tramo|al[ií]sio|prumo|taipa|lastro/i;
+    listaDeTrabalhos.forEach((tr) => {
+      [tr.slug, tr.nome.pt, tr.setor.pt, tr.capa ?? '', tr.site ?? ''].forEach((v) => expect(v).not.toMatch(marcas));
+    });
+  });
+
+  it('os textos de cada peça estão na árvore, para a trava apontar o inglês que falta', () => {
+    expect(pendencias({ trabalhos })).toContain('trabalhos.lista.0.nome (en)');
+    expect(pendencias({ trabalhos })).toContain('trabalhos.lista.4.mesAno (en)');
   });
 
   it('com a lista vazia, os visíveis são os 4 marcadores de construção', () => {
-    expect(trabalhosVisiveis()).toBe(marcadoresDeConstrucao);
+    expect(trabalhosVisiveis([])).toBe(marcadoresDeConstrucao);
     expect(marcadoresDeConstrucao).toHaveLength(4);
     marcadoresDeConstrucao.forEach((m) => {
       expect(m.nome.pt.startsWith('Conceito · ')).toBe(true);

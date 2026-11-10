@@ -6,53 +6,47 @@ import { useEffect, useState } from 'react';
 import { ScrollTrigger } from '@/gsap';
 import { useAbertura } from '@/estado/abertura';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { guardarRolagem as guardar, marcarVolta, mostrarPagina, posicaoGuardada, voltouNestaCarga } from '@/lib/restauracao';
 
 // Depois de a hero montar a saída (1 s) e os gatilhos recalcularem: antes disso, a altura dos pins ainda não existe.
 const ESPERA_RESTAURAR = 1300;
 const TENTATIVAS = 24;
-const CHAVE = 'rolagem:';
 let montou = false;
 
-function guardar(caminho: string) {
-  try {
-    sessionStorage.setItem(CHAVE + caminho, String(window.scrollY));
-  } catch {}
-}
-
-function posicaoGuardada(caminho: string) {
-  try {
-    return Number(sessionStorage.getItem(CHAVE + caminho)) || 0;
-  } catch {
-    return 0;
-  }
-}
-
-// Com scrollRestoration manual e pins montados depois, quem recoloca o lugar ao recarregar ou voltar é o site.
+// Com scrollRestoration manual e pins montados depois, quem recoloca o lugar ao voltar (navegador) é o site.
 function useRestaurarRolagem() {
   const caminho = usePathname() ?? '/';
   useEffect(() => {
-    const [nav] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
-    // O tipo da navegação vale só para a carga do documento, não para as trocas de página seguintes.
+    // O voltar (decidido no head) vale só para a carga do documento, não para as trocas de página seguintes.
     const primeira = !montou;
     montou = true;
-    const restaurar = primeira && (nav?.type === 'reload' || nav?.type === 'back_forward');
+    // Só o voltar do navegador devolve ao lugar; recarregar começa do topo (Rafael, 2026-11-09).
+    const restaurar = primeira && voltouNestaCarga();
     const destino = restaurar ? posicaoGuardada(caminho) : 0;
     const aoRolar = () => guardar(caminho);
-    // Do cache de ida e volta a página voltaria com o círculo da transição cobrindo a tela: carrega de novo.
+    // Do cache de ida e volta a página voltaria com o círculo da transição cobrindo a tela: carrega de novo, marcando
+    // que é um voltar (a carga nova é do tipo reload, que sozinha iria ao topo).
     const aoMostrar = (e: PageTransitionEvent) => {
-      if (e.persisted) window.location.reload();
+      if (!e.persisted) return;
+      marcarVolta();
+      window.location.reload();
     };
     const ligarGuarda = () => window.addEventListener('scroll', aoRolar, { passive: true });
     // Os pins ainda aumentam a página depois de montar: insiste até chegar, com teto, e para se a pessoa rolar.
     let tentativas: ReturnType<typeof setInterval> | undefined;
+    // A página escondida pelo script do head (lib/restauracao) aparece quando a rolagem chega, ou quando a pessoa rola.
     const parar = () => {
       clearInterval(tentativas);
       window.removeEventListener('wheel', parar);
       window.removeEventListener('touchstart', parar);
       ligarGuarda();
+      mostrarPagina();
     };
     const inicio = setTimeout(() => {
-      if (!destino) return ligarGuarda();
+      if (!destino) {
+        mostrarPagina();
+        return ligarGuarda();
+      }
       let resta = TENTATIVAS;
       window.addEventListener('wheel', parar, { passive: true });
       window.addEventListener('touchstart', parar, { passive: true });

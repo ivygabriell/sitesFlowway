@@ -14,12 +14,14 @@ export const PALAVRA = { z: -0.2, acimaDoMeio: 0.178 };
 
 // Escala de repouso (em unidades): a logo grande, quase da largura da tela, como a forma de vidro da referência.
 export const ESCALA = { principal: 1.57, principalCelular: 2 };
-// Inclinação (rotação em x, rad) da logo.
-export const INCLINACAO = -0.12;
+// Inclinação (rotação em x, rad) da logo: zero, de frente. Inclinada (−0,12), a perspectiva achatava o F e ele parecia uma laje.
+export const INCLINACAO = 0;
 
-// Posição de repouso: x em unidades; o centro vertical em fração da altura da tela, de cima para baixo. A barra de cima
-// do F pega só a parte de baixo da palavra; o topo dela fica livre.
-export const POSICAO = { x: -0.02, centro: 0.88, centroCelular: 0.55 };
+// Posição de repouso: x em unidades; na vertical, o topo do F entra 25% na altura da palavra, e a barra de cima cobre o
+// resto dela (Rafael, 2026-11-09: subir o F para pegar o FLOWAY; antes a barra cobria só o quarto de baixo).
+export const POSICAO = { x: -0.02, topoNaPalavra: 0.25 };
+// A palavra no canvas: 86% da largura da tela (90% no celular), na proporção do viewBox 1360×292.
+const PROPORCAO_PALAVRA = 292 / 1360;
 
 // Meia altura da logo na tela (px): a face inclinada mais a espessura vista de lado.
 function meiaAltura(escala: number) {
@@ -29,19 +31,24 @@ function meiaAltura(escala: number) {
   return 0.5 * (a * Math.cos(i) + p * Math.sin(i)) * escala;
 }
 
-// Repouso em px da tela (y de cima para baixo): centro, topo e base da logo e o centro da palavra.
+// Repouso em px da tela (y de cima para baixo): centro, topo e base da logo e a caixa da palavra.
 export function repouso(largura: number, altura: number) {
   const u = unidade(largura);
   const celular = ehCelular(largura);
-  const centro = (celular ? POSICAO.centroCelular : POSICAO.centro) * altura;
   const meia = meiaAltura((celular ? ESCALA.principalCelular : ESCALA.principal) * u);
+  // A palavra fica atrás (z < 0) e a câmera a mostra menor: a mesma perspectiva para o centro e a altura.
   const perspectiva = CAMERA_Z / (CAMERA_Z - PALAVRA.z * u);
+  const centroPalavra = altura / 2 - PALAVRA.acimaDoMeio * altura * perspectiva;
+  const alturaPalavra = (celular ? 0.9 : 0.86) * largura * PROPORCAO_PALAVRA * perspectiva;
+  const topoPalavra = centroPalavra - alturaPalavra / 2;
+  const topo = topoPalavra + POSICAO.topoNaPalavra * alturaPalavra;
+  const centro = topo + meia;
   return {
     u,
     celular,
     // y: posição no mundo do canvas (px acima do meio da tela).
-    principal: { y: altura / 2 - centro, centro, topo: centro - meia, base: centro + meia },
-    palavra: { centro: altura / 2 - PALAVRA.acimaDoMeio * altura * perspectiva },
+    principal: { y: altura / 2 - centro, centro, topo, base: centro + meia },
+    palavra: { centro: centroPalavra, topo: topoPalavra, altura: alturaPalavra },
   };
 }
 
@@ -51,8 +58,8 @@ export const PARALAXE = { palavra: 1.6, principal: 0.1 };
 // Saída ligada à rolagem (referência 3.2).
 export const SAIDA = { scrub: TEMPOS['tempo-scrub'], inicio: 'top+=10', alturas: { desktop: 2, celular: 0.7 } };
 
-// O que a logo faz na saída, como na referência: cresce (× a escala de repouso) e gira no lugar (rad, somado à rotação
-// de repouso), enchendo a tela enquanto o vidro some; o deslocamento vertical é só o da paralaxe.
-export function alvoDeSaida(celular: boolean): { crescimento: number; giro: { x?: number; y?: number; z?: number } } {
-  return celular ? { crescimento: 1.6, giro: { y: 0.15 } } : { crescimento: 1.7, giro: { y: 0.3 } };
+// O que a logo faz na saída: cresce pouco (× a escala de repouso) enquanto o vidro some, sem girar (rad, somado à
+// rotação de repouso). Rafael, 2026-11-09: crescendo 1,7× e girando, virava placas gigantes por cima do texto.
+export function alvoDeSaida(): { crescimento: number; giro: { x?: number; y?: number; z?: number } } {
+  return { crescimento: 1.15, giro: {} };
 }

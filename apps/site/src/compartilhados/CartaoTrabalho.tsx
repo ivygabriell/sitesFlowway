@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import { type Idioma, t } from '@/conteudo/textos';
 import { type Trabalho, linhaDoCartao } from '@/conteudo/trabalhos';
 import './estilo.css';
@@ -16,10 +15,10 @@ type Props = {
   aoPassar?: (indice: number, dentro: boolean) => void;
 };
 
-// Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII, sem prévia e sem link.
-// Com capa: a imagem (que a cena WebGL da seção revela em ASCII) e a prévia em vídeo de 250 px que abre na vertical.
+// Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII e sem ação.
+// Com capa: a imagem (que a cena WebGL da seção revela em ASCII e aproxima no hover); com site, o cartão é um link que
+// abre o site do conceito numa aba nova (Rafael, 2026-11-09: "deixa a imagem inicial e quando clica abre o site").
 export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
-  const video = useRef<HTMLVideoElement>(null);
   const nome = t(trabalho.nome, idioma);
   const [data, oferta] = linhaDoCartao(trabalho, idioma);
   const info = (
@@ -35,24 +34,33 @@ export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
 
   if (!trabalho.capa) return <article className="cartao sem-capa">{info}</article>;
 
-  const passar = (dentro: boolean) => {
-    aoPassar?.(indice, dentro);
-    const v = video.current;
-    if (!v) return;
-    if (dentro) void v.play().catch(() => {});
-    else v.pause();
-  };
-
-  return (
-    <article className="cartao com-capa" onMouseEnter={() => passar(true)} onMouseLeave={() => passar(false)}>
+  const conteudo = (
+    <>
       {info}
-      <div className="cartao-previa" aria-hidden="true">
-        {trabalho.previa && <video ref={video} src={trabalho.previa} muted loop playsInline preload="none" />}
-      </div>
       <div className="cartao-img">
         {/* eslint-disable-next-line @next/next/no-img-element -- a capa também é a textura do plano WebGL */}
         <img src={trabalho.capa} alt={nome} width={LARGURA_CAPA} height={ALTURA_CAPA} loading="lazy" decoding="async" />
       </div>
-    </article>
+    </>
+  );
+  const passar = { onMouseEnter: () => aoPassar?.(indice, true), onMouseLeave: () => aoPassar?.(indice, false) };
+
+  if (!trabalho.site)
+    return (
+      <article className="cartao com-capa" {...passar}>
+        {conteudo}
+      </article>
+    );
+  return (
+    <a
+      className="cartao com-capa"
+      href={trabalho.site}
+      target="_blank"
+      rel="noopener"
+      aria-label={`${nome}, ${oferta}, ${data} ${idioma === 'en' ? '(opens the site in a new tab)' : '(abre o site em nova aba)'}`}
+      {...passar}
+    >
+      {conteudo}
+    </a>
   );
 }

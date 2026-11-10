@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { alvoDeSaida, PARALAXE, repouso, SAIDA } from '@/componentes/hero/disposicao';
+import { alvoDeSaida, INCLINACAO, PARALAXE, repouso, SAIDA } from '@/componentes/hero/disposicao';
 import { Hero } from '@/componentes/hero/Hero';
 import { 'inicio-topo' as inicioTopo } from '@/conteudo/inicio-topo';
 import { t } from '@/conteudo/textos';
@@ -65,6 +65,22 @@ describe('disposição da logo de vidro do hero', () => {
     expect(r.principal.base).toBeGreaterThan(r.palavra.centro + meiaPalavra);
   });
 
+  // Rafael, 2026-11-09: o F do começo do projeto, do mesmo tamanho e lugar, mas de frente (inclinado, parecia uma laje).
+  // Rafael, 2026-11-09: o F sobe para a barra de cima pegar a palavra (antes cobria só o quarto de baixo dela).
+  it.each([
+    [1440, 900],
+    [1883, 703],
+    [1710, 1252],
+    [390, 844],
+  ])('em %i×%i, o topo do F entra só 25%% na palavra: a barra cobre o resto dela', (largura, altura) => {
+    const r = repouso(largura, altura);
+    expect((r.principal.topo - r.palavra.topo) / r.palavra.altura).toBeCloseTo(0.25, 2);
+  });
+
+  it('o F fica de frente, sem inclinação', () => {
+    expect(INCLINACAO).toBe(0);
+  });
+
   it('a paralaxe é a da referência: palavra ×1,6 e logo ×0,1 da rolagem', () => {
     expect(PARALAXE).toEqual({ palavra: 1.6, principal: 0.1 });
   });
@@ -75,9 +91,11 @@ describe('disposição da logo de vidro do hero', () => {
     expect(SAIDA.alturas).toEqual({ desktop: 2, celular: 0.7 });
   });
 
-  it.each([false, true])('na saída (celular: %s) a logo cresce pelo menos 1,6× e gira até ~0,3 rad', (celular) => {
-    const { crescimento, giro } = alvoDeSaida(celular);
-    expect(crescimento).toBeGreaterThanOrEqual(1.6);
-    Object.values(giro).forEach((g) => expect(Math.abs(g)).toBeLessThanOrEqual(0.32));
+  // Rafael, 2026-11-09: crescendo 1,7× e girando, o F virava placas gigantes por cima do texto ao rolar.
+  it('na saída a logo cresce pouco (até 1,2×) e não gira, no desktop e no celular', () => {
+    const { crescimento, giro } = alvoDeSaida();
+    expect(crescimento).toBeGreaterThan(1);
+    expect(crescimento).toBeLessThanOrEqual(1.2);
+    expect(giro).toEqual({});
   });
 });

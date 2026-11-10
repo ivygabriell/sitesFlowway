@@ -5,7 +5,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta.url)) });
 
 const configuracao = [
-  { ignores: ['.next/**', '.next-teste/**', 'node_modules/**', 'docs/**', '.superpowers/**', 'test-results/**', 'playwright-report/**', 'next-env.d.ts'] },
+  { ignores: ['.next/**', '.next-teste/**', 'node_modules/**', 'docs/**', '.superpowers/**', 'test-results/**', 'playwright-report/**', 'next-env.d.ts', 'public/conceitos/**'] }, // conceitos: build gerado (scripts/conceitos)
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
 ];
 

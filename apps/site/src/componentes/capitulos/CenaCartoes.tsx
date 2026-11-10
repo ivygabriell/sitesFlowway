@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { asciiFrag } from '@/shaders/ascii';
 import { vertUv } from '@/shaders/comum';
+import { gsap } from '@/gsap';
 
 export type EstadoCartoes = { progresso: number; hover: number[] };
 
@@ -15,10 +16,15 @@ export function CenaCartoes({ capas, indices, estado }: { capas: string[]; indic
   const { gl } = useThree();
   const planos = useRef<(THREE.Mesh | null)[]>([]);
   const materiais = useMemo(() => {
-    const carregador = new THREE.TextureLoader();
-    return capas.map((capa) => {
-      const textura = carregador.load(capa);
+    // A textura é o próprio <img> da capa (mesma ordem): carrega com ele, pelo loading=lazy perto da seção, e uma vez
+    // só. Antes um TextureLoader baixava as capas na montagem e o <img> baixava de novo (revisão de 2026-11-09).
+    const imagens = document.querySelectorAll<HTMLImageElement>('.secao-capitulos .cartao-img img');
+    return capas.map((_, k) => {
+      const img = imagens[k];
+      const textura = new THREE.Texture(img);
       textura.colorSpace = THREE.SRGBColorSpace;
+      if (img?.complete && img.naturalWidth) textura.needsUpdate = true;
+      else img?.addEventListener('load', () => void (textura.needsUpdate = true), { once: true });
       return new THREE.ShaderMaterial({
         glslVersion: THREE.GLSL3,
         vertexShader: vertUv,
@@ -46,6 +52,9 @@ export function CenaCartoes({ capas, indices, estado }: { capas: string[]; indic
   );
 
   useFrame(({ clock }) => {
+    // O GSAP (que anda a fileira) pode rodar depois deste quadro do canvas, quando acorda do repouso: sem isto, o plano
+    // usa a posição do quadro anterior e a capa fica até 70 px atrás do texto do cartão enquanto a fileira anda.
+    gsap.ticker.tick();
     const imagens = document.querySelectorAll<HTMLImageElement>('.secao-capitulos .cartao-img img');
     const W = window.innerWidth;
     const H = window.innerHeight;

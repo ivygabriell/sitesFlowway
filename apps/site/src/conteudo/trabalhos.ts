@@ -1,7 +1,7 @@
 import { type Idioma, type Texto, type Textos, pendente, t } from './textos';
 
 // Trabalhos em destaque da Início (spec 4.3 e 5). Cada trabalho com case pronto entra em listaDeTrabalhos;
-// enquanto ela estiver vazia, a Início mostra os marcadores de construção ("Conceito · …"), que a trava de
+// se ela ficar vazia, a Início mostra os marcadores de construção ("Conceito · …"), que a trava de
 // publicação (tests/publicacao/trava.test.ts) não deixa ir ao ar.
 
 export type Oferta = 'landing-page' | 'site-institucional' | 'automacao';
@@ -13,8 +13,8 @@ export type Trabalho = {
   mesAno: Texto;
   oferta: Oferta;
   conceito: boolean;
-  capa?: string; // imagem da capa: liga o ASCII, o hover e a prévia
-  previa?: string; // vídeo curto da prévia (hover)
+  capa?: string; // imagem da capa: liga o ASCII e o hover
+  site?: string; // o site do conceito, que o clique no cartão abre numa aba nova
 };
 
 export const NOMES_OFERTA = {
@@ -23,16 +23,37 @@ export const NOMES_OFERTA = {
   automacao: { pt: 'Automação' },
 } as const satisfies Record<Oferta, Texto>;
 
-// Árvore de textos da seção (o índice pede o export com o nome do arquivo). O inglês das ofertas e do
-// rótulo "Conceito" ainda não foi aprovado: sem `en`, /en mostra o português e a trava aponta cada um.
+// A lista real: as peças conceito do repositório de Sites (spec 2026-11-09, P1), nomeadas pelo setor, sem a
+// marca fictícia. Capa capturada do build de cada peça em 1280×1894 e reduzida a 730×1080; mês e ano do primeiro
+// commit da pasta da peça. O site é o build da peça (repositório CreateHubAI/sitesOfertas) com a base /conceitos/<slug>/, em
+// public/; o caminho leva o index.html porque o Next não serve o índice de uma pasta.
+const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabalho => ({
+  slug,
+  nome: { pt: nome },
+  setor: { pt: setor },
+  mesAno: { pt: 'Novembro 2026' },
+  oferta,
+  conceito: true,
+  capa: `/trabalhos/${slug}/capa.webp`,
+  site: `/conceitos/${slug}/index.html`,
+});
+
+export const listaDeTrabalhos: Trabalho[] = [
+  peca('ferramenta-criativa', 'Ferramenta criativa', 'Tecnologia', 'landing-page'),
+  peca('companhia-aerea', 'Companhia aérea', 'Aviação', 'site-institucional'),
+  peca('banco-digital', 'Banco digital', 'Finanças', 'landing-page'),
+  peca('estudio-de-marca', 'Estúdio de marca', 'Design', 'site-institucional'),
+  peca('plataforma-de-deploy', 'Plataforma de deploy', 'Tecnologia', 'landing-page'),
+];
+
+// Árvore de textos da seção (o índice pede o export com o nome do arquivo). O inglês das ofertas, do rótulo
+// "Conceito" e das peças ainda não foi aprovado: sem `en`, /en mostra o português e a trava aponta cada um.
 const trabalhos = {
   rotulo: { pt: '(Trabalhos)', en: '(Work)' },
   ofertas: NOMES_OFERTA,
   conceito: { pt: 'Conceito' },
+  lista: listaDeTrabalhos.map(({ nome, setor, mesAno }) => ({ nome, setor, mesAno })),
 } as const satisfies Textos;
-
-// A lista real, que começa vazia.
-export const listaDeTrabalhos: Trabalho[] = [];
 
 // Marcadores de construção: as ofertas do protótipo 05, sem data nem setor (a spec não fixa).
 const marcador = (n: number, oferta: Oferta): Trabalho => ({

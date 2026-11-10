@@ -5,7 +5,8 @@ import { desenharFilme } from '@/componentes/abertura/filmeAbertura';
 describe('deveTocarAbertura', () => {
   it('toca só no desktop, sem movimento reduzido e uma vez por sessão', () => {
     expect(deveTocarAbertura(1440, false, false)).toBe(true);
-    expect(deveTocarAbertura(390, false, false)).toBe(false);
+    // Rafael, 2026-11-10: a abertura toca também no celular.
+    expect(deveTocarAbertura(390, false, false)).toBe(true);
     expect(deveTocarAbertura(1440, true, false)).toBe(false);
     expect(deveTocarAbertura(1440, false, true)).toBe(false);
   });

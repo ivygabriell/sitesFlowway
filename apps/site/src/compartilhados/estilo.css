@@ -1,6 +1,7 @@
 /* ---------- cartão de trabalho ---------- */
-.cartao { position: relative; display: block; overflow: hidden; pointer-events: none; }
+.cartao { position: relative; display: block; overflow: hidden; color: inherit; text-decoration: none; }
 .cartao.com-capa { cursor: pointer; }
+.cartao.com-capa:focus-visible { outline: 2px solid var(--claro); outline-offset: 4px; }
 .cartao-info { position: absolute; inset: 15px 0; z-index: 2; color: var(--claro); mix-blend-mode: difference; display: flex; flex-direction: column-reverse; justify-content: space-between; align-items: center; text-align: center; }
 .cartao-subtitulo { font: 400 16px/17px var(--sans); letter-spacing: -0.02em; text-transform: uppercase; }
 .cartao-titulo { font: 500 17px/20px var(--sans); letter-spacing: -0.02em; margin: 0; }
@@ -8,8 +9,5 @@
 /* Sem capa: bloco liso no cinza dos estados apagados, do tamanho da capa. */
 .cartao.sem-capa { width: var(--cartao-largura, 50vh); height: var(--cartao-altura, 74vh); background: var(--c2); }
 
-/* Com capa: prévia de 250 px que abre na vertical no centro. */
-.cartao-previa { position: absolute; z-index: 3; width: 250px; height: 140px; left: calc(50% - 125px); top: calc(50% - 70px); background: var(--escuro); transform: scaleY(0); transition: transform var(--tempo-rapido) var(--curva-hover); }
-.cartao-previa video { display: block; width: 100%; height: 100%; object-fit: cover; }
-.cartao.com-capa:hover .cartao-previa { transform: scaleY(1); }
 .cartao-img img { display: block; width: var(--cartao-largura, 50vh); height: var(--cartao-altura, 74vh); object-fit: cover; }
+

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alísio Linhas Aéreas: marca fictícia, projeto de design</title>
+  <meta name="description" content="Alísio é uma companhia aérea fictícia, criada como projeto de design: uma viagem pela América Latina contada pela rolagem.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0e1620">
+  <link rel="icon" href="/conceitos/companhia-aerea/favicon.svg" type="image/svg+xml">
+  <link rel="preload" as="image" href="/conceitos/companhia-aerea/img/passageiro.webp">
+  <link rel="preload" as="image" href="/conceitos/companhia-aerea/img/santiago.webp">
+  <script>
+    // Recarregar sempre volta ao início, com a abertura completa.
+    history.scrollRestoration = 'manual'
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search)
+    scrollTo(0, 0)
+    document.documentElement.classList.add('js')
+    if (matchMedia('(prefers-reduced-motion: no-preference)').matches) document.documentElement.classList.add('motion', 'loading')
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "name": "Alísio Linhas Aéreas",
+    "description": "Marca fictícia de companhia aérea, criada como projeto de design.",
+    "inLanguage": "pt-BR"
+  }
+  </script>
+  <script type="module" crossorigin src="/conceitos/companhia-aerea/assets/index-DD8MEciN.js"></script>
+  <link rel="stylesheet" crossorigin href="/conceitos/companhia-aerea/assets/index-DGabdNTq.css">
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <svg width="0" height="0" class="defs" aria-hidden="true" focusable="false">
+    <symbol id="simbolo" viewBox="0 0 32 24">
+      <path fill="currentColor" d="M1 23C7 9 17 2 31 2 22 6 16 13 13.500 23ZM17 23c2-5 5.500-8.500 13-10-4.500 2.500-6.500 5.500-8 10Z"/>
+    </symbol>
+  </svg>
+
+  <div class="loader" id="loader" aria-hidden="true">
+    <span class="loader-logo" id="loader-logo"><svg><use href="#simbolo"/></svg><span>alísio</span></span>
+    <span class="loader-count"><span id="loader-count">0</span>%</span>
+  </div>
+
+  <nav class="nav" aria-label="Principal">
+    <a class="brand" id="brand" href="#topo" aria-label="Alísio, início"><svg aria-hidden="true"><use href="#simbolo"/></svg><span>alísio</span></a>
+    <ul id="menu" class="menu">
+      <li><a data-roll href="#destinos">Destinos</a></li>
+      <li><a data-roll href="#vista">A vista</a></li>
+      <li><a data-roll href="#antes">Antes de voar</a></li>
+      <li><a data-roll href="#duvidas">Dúvidas</a></li>
+    </ul>
+    <a class="nav-cta" data-roll href="#embarque">Embarcar</a>
+    <button type="button" class="burger" id="menu-toggle" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span><span></span></button>
+  </nav>
+
+  <header class="pin-track hero-track" id="topo">
+    <div class="pin-stage hero">
+      <p class="band">Alísio é uma marca fictícia. Este é um projeto de design, sem venda de passagens.</p>
+      <div class="sky-clip" id="sky-clip">
+        <img class="city" src="/conceitos/companhia-aerea/img/santiago.webp" alt="" decoding="sync">
+        <div class="city-shade" aria-hidden="true"></div>
+      </div>
+
+      <div class="cabin" id="cabin">
+        <img id="cabin-photo" src="/conceitos/companhia-aerea/img/passageiro.webp" alt="Passageiro olha pela janela do avião para uma cidade ao entardecer." decoding="sync">
+        <div class="floor" aria-hidden="true"></div>
+      </div>
+
+      <div class="hero-title">
+        <h1>Voe com o<br>vento a favor.</h1>
+        <p class="byline">A América Latina vista da melhor poltrona: a da janela.</p>
+      </div>
+
+      <a class="promo" href="#destinos">
+        <span class="promo-kicker">Nova temporada</span>
+        <span class="promo-title">Quatro destinos para ver de cima</span>
+        <span class="promo-cta">Conhecer destinos <span class="promo-arrow" aria-hidden="true">→</span></span>
+      </a>
+
+      <div class="after">
+        <span class="pin pin-a" aria-hidden="true"><i></i>Cordilheira dos Andes</span>
+        <span class="pin pin-b" aria-hidden="true"><i></i>Santiago, Chile</span>
+        <div class="sky-plane" aria-hidden="true"><img src="/conceitos/companhia-aerea/img/aviao.webp" alt=""></div>
+        <div class="after-copy">
+          <p class="after-title" id="after-title">Toda boa viagem começa pela janela.</p>
+          <a class="btn-pair after-cta" href="#manifesto"><span class="label">Continuar a bordo</span><span class="circle" aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" tabindex="-1">
+    <section class="manifesto" id="manifesto" aria-label="Manifesto">
+      <div class="wrap">
+        <p class="kicker">Nosso jeito de voar</p>
+        <p class="manifesto-text" id="manifesto-text">Em algum momento, voar virou fila, taxa e letra miúda. A Alísio veio devolver o que importa: você, a janela e o mundo passando lá embaixo.</p>
+      </div>
+    </section>
+
+    <section class="dest" id="destinos" aria-labelledby="t-destinos">
+      <div class="dest-body">
+        <div class="wrap dest-head">
+          <p class="kicker">Destinos</p>
+          <h2 id="t-destinos" data-goo>Onde você quer acordar amanhã?</h2>
+          <p class="lead" data-reveal>Quatro lugares em que a chegada começa antes do pouso.</p>
+        </div>
+        <div class="panels">
+          <a class="panel" href="#embarque">
+            <img src="/conceitos/companhia-aerea/img/rio.webp" alt="Vista aérea do Rio de Janeiro ao entardecer" loading="lazy">
+            <span class="panel-text"><span class="panel-country">Brasil</span><h3>Rio de Janeiro</h3><span class="panel-more"><span><span>Mar e montanha na mesma janela.</span></span></span></span>
+          </a>
+          <a class="panel" href="#embarque">
+            <img src="/conceitos/companhia-aerea/img/santiago.webp" alt="Santiago vista do alto, com os Andes ao fundo" loading="lazy">
+            <span class="panel-text"><span class="panel-country">Chile</span><h3>Santiago</h3><span class="panel-more"><span><span>Os Andes no fim de cada avenida.</span></span></span></span>
+          </a>
+          <a class="panel" href="#embarque">
+            <img src="/conceitos/companhia-aerea/img/machu.webp" alt="Ruínas de Machu Picchu entre montanhas e nuvens" loading="lazy">
+            <span class="panel-text"><span class="panel-country">Peru</span><h3>Machu Picchu</h3><span class="panel-more"><span><span>Uma cidade inteira acima das nuvens.</span></span></span></span>
+          </a>
+          <a class="panel" href="#embarque">
+            <img src="/conceitos/companhia-aerea/img/cartagena.webp" alt="Rua colorida de Cartagena, com sacadas floridas" loading="lazy">
+            <span class="panel-text"><span class="panel-country">Colômbia</span><h3>Cartagena</h3><span class="panel-more"><span><span>Cor em cada sacada, sal em cada esquina.</span></span></span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="pin-track window-track" id="vista">
+      <section class="pin-stage window-stage" aria-labelledby="t-janela">
+        <div class="window-intro" aria-hidden="true">
+          <span class="intro-word intro-left">Assento</span>
+          <span class="intro-word intro-right">janela.</span>
+          <span class="intro-hint">Role para abrir</span>
+        </div>
+        <div class="window-ring" aria-hidden="true"></div>
+        <div class="window-frame"><img src="/conceitos/companhia-aerea/img/motor.webp" alt="Motor e asa do avião vistos pela janela, acima das nuvens, ao pôr do sol"></div>
+        <div class="window-copy">
+          <h2 id="t-janela"><span class="window-clip"><span class="window-line">Toda poltrona</span></span><span class="window-clip"><span class="window-line">merece essa vista.</span></span></h2>
+          <div class="window-foot">
+            <p>Na Alísio, a janela é a atração principal.</p>
+            <a class="btn-pair" href="#embarque"><span class="label" data-roll>Quero essa vista</span><span class="circle" aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="board" id="antes" aria-labelledby="t-antes">
+      <div class="wrap board-head">
+        <div>
+          <p class="kicker">Antes de voar</p>
+          <h2 id="t-antes" data-goo>Tudo resolvido antes de sair de casa.</h2>
+        </div>
+        <div class="arrows">
+          <button type="button" id="prev" aria-label="Anterior">←</button>
+          <button type="button" id="next" aria-label="Próximo">→</button>
+        </div>
+      </div>
+      <div class="carousel" id="carousel" tabindex="0" role="group" aria-label="Serviços; o carrossel passa sozinho">
+        <div class="carousel-track" id="carousel-track">
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/checkin.webp" alt="Pessoa de costas olhando o painel de voos no aeroporto" loading="lazy"></div>
+            <h3>Check-in em um toque</h3>
+            <p>Sem fila e sem papel. Seu cartão chega ao celular e você só aparece no portão.</p>
+          </article>
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/bagagem.webp" alt="Mala de viagem no piso de um terminal de aeroporto" loading="lazy"></div>
+            <h3>Bagagem sem surpresa</h3>
+            <p>O que vai com você aparece claro na hora da compra, sem letra miúda no balcão.</p>
+          </article>
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/criancas.webp" alt="Criança correndo pelo corredor de um aeroporto" loading="lazy"></div>
+            <h3>Viagem em família</h3>
+            <p>Lugares juntos desde a reserva e embarque com calma para quem viaja com crianças.</p>
+          </article>
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/terminal.webp" alt="Viajantes com malas em um terminal de aeroporto" loading="lazy"></div>
+            <h3>Conexão tranquila</h3>
+            <p>Se o primeiro voo atrasa, a gente reorganiza o seguinte antes de você pedir.</p>
+          </article>
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/cabine.webp" alt="Corredor de uma cabine de avião com fileiras de assentos" loading="lazy"></div>
+            <h3>Cabine que respira</h3>
+            <p>Poltronas pensadas para o voo longo: espaço para as pernas e tela só se você quiser.</p>
+          </article>
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/poente.webp" alt="Asa do avião vista pela janela no pôr do sol" loading="lazy"></div>
+            <h3>Clube Alísio</h3>
+            <p>Quanto mais você voa, mais longe seus pontos levam, sem data de validade.</p>
+          </article>
+          <article class="card">
+            <div class="card-img"><img src="/conceitos/companhia-aerea/img/asa.webp" alt="Asa do avião sobre nuvens iluminadas pelo sol" loading="lazy"></div>
+            <h3>Céu mais limpo</h3>
+            <p>Cada rota é desenhada para gastar menos combustível e deixar menos rastro.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-sec" id="duvidas" aria-labelledby="t-duvidas">
+      <div class="wrap faq-grid">
+        <div>
+          <p class="kicker">Dúvidas</p>
+          <h2 id="t-duvidas" data-goo>Só para deixar claro.</h2>
+        </div>
+        <div class="faq">
+          <details name="faq"><summary>A Alísio existe?<i aria-hidden="true"></i></summary><p>Não. É uma companhia aérea fictícia, criada só para este projeto de design. Serviços e promessas fazem parte da história.</p></details>
+          <details name="faq"><summary>Consigo comprar passagem aqui?<i aria-hidden="true"></i></summary><p>Não. Este site não vende passagens nem coleta nenhum dado seu.</p></details>
+          <details name="faq"><summary>Os destinos são reais?<i aria-hidden="true"></i></summary><p>Os lugares sim, as rotas não. As fotos mostram cada lugar de verdade, mas a Alísio não voa para lá.</p></details>
+          <details name="faq"><summary>De onde vieram as fotos?<i aria-hidden="true"></i></summary><p>Da Unsplash. Os créditos estão no rodapé. A cidade na janela e o avião sobre a cidade são montagens.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="board-end" id="embarque" aria-labelledby="t-embarque">
+      <div class="end-card">
+        <img src="/conceitos/companhia-aerea/img/rio.webp" alt="" loading="lazy">
+        <div class="end-copy">
+          <h2 id="t-embarque">Se esta companhia existisse, seu assento já estaria na janela.</h2>
+          <a class="btn-pair" href="#destinos"><span class="label" data-roll>Rever os destinos</span><span class="circle" aria-hidden="true">↑</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="brand" href="#topo" aria-label="Alísio, voltar ao início"><svg aria-hidden="true"><use href="#simbolo"/></svg><span>alísio</span></a>
+          <p>Voe com o vento a favor.</p>
+        </div>
+        <nav class="footer-col" aria-label="Rodapé">
+          <p class="footer-label">Navegar</p>
+          <a data-roll href="#destinos">Destinos</a>
+          <a data-roll href="#vista">A vista</a>
+          <a data-roll href="#antes">Antes de voar</a>
+          <a data-roll href="#duvidas">Dúvidas</a>
+        </nav>
+        <div class="footer-col">
+          <p class="footer-label">Sobre o projeto</p>
+          <p>Alísio é uma marca fictícia. Logo, textos e serviços foram criados para este projeto de design, e não vendemos passagens.</p>
+        </div>
+      </div>
+      <div class="footer-credits">
+        <p>Fotos na Unsplash: Luke Porter, Nikolai Kolosov, Davi Costa, Willian Justen de Vasconcellos, Ricardo Gomez Angel, Raul G, Erik Odiin, Fujiphilm, Hanson Lu, Edwin Petrus, Mohammad Arrahmanur, Ross Parmly, Leonardo Yip e Pedro Cunha. A cidade na janela e o avião sobre a cidade são montagens.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

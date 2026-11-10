@@ -14,6 +14,8 @@
 * { box-sizing: border-box; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 html { scrollbar-width: none; }
+/* Enquanto a rolagem guardada volta (lib/restauracao.ts): visibility não mexe no layout, e os gatilhos medem certo. */
+html.restaurando { visibility: hidden; }
 body { margin: 0; background: var(--claro); color: var(--escuro); font: 400 20px/1.25 var(--sans), system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 ::selection { background: var(--azul); color: var(--branco); }
 a { color: inherit; text-decoration: none; }
