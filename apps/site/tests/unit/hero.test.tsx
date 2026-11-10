@@ -66,6 +66,17 @@ describe('disposição da logo de vidro do hero', () => {
   });
 
   // Rafael, 2026-11-09: o F do começo do projeto, do mesmo tamanho e lugar, mas de frente (inclinado, parecia uma laje).
+  // Rafael, 2026-11-09: o F sobe para a barra de cima pegar a palavra (antes cobria só o quarto de baixo dela).
+  it.each([
+    [1440, 900],
+    [1883, 703],
+    [1710, 1252],
+    [390, 844],
+  ])('em %i×%i, o topo do F entra só 25%% na palavra: a barra cobre o resto dela', (largura, altura) => {
+    const r = repouso(largura, altura);
+    expect((r.principal.topo - r.palavra.topo) / r.palavra.altura).toBeCloseTo(0.25, 2);
+  });
+
   it('o F fica de frente, sem inclinação', () => {
     expect(INCLINACAO).toBe(0);
   });

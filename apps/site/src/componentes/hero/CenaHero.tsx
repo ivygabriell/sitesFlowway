@@ -187,7 +187,6 @@ export function CenaHero() {
 
     const un = u();
     const t = reduzido ? 0 : estadoR3f.clock.elapsedTime;
-    const m = reduzido ? { x: 0, y: 0 } : estadoR3f.pointer;
     const sy = rolagemSuave ? scroll.y : window.scrollY;
     // Com movimento reduzido tudo anda com a página (×1) e some com a seção.
     const px = (fator: number) => (reduzido ? 1 : fator) * sy;
@@ -195,18 +194,11 @@ export function CenaHero() {
     materialLogo.uniforms.uProgresso.value = s.progresso;
     refLogo.current.position.y = 0.178 * window.innerHeight + px(PARALAXE.palavra);
 
+    // Só a flutuação lenta move o F: o mouse não mexe nele (Rafael, 2026-11-09).
     const r = lugar;
-    if (celular) {
-      principal.position.set(POSICAO.x * un + 0.07 * Math.sin(0.9 * t) * un, r.principal.y + 0.03 * Math.sin(0.7 * t) * un + s.yPrincipal + px(PARALAXE.principal), 0);
-    } else {
-      principal.position.x = POSICAO.x * un + 0.07 * Math.sin(0.9 * t) * un + 0.1 * m.x * un;
-      principal.position.y = r.principal.y + 0.03 * Math.sin(0.6 * t) * un + 0.03 * m.y * un + s.yPrincipal + px(PARALAXE.principal);
-      principal.rotation.z = -0.04 * m.x;
-    }
-    // O mouse empurra o borrão em proporção ao passo de cada lâmina (no passo 7, até 5 px na horizontal e 3 na vertical).
+    principal.position.set(POSICAO.x * un + 0.07 * Math.sin(0.9 * t) * un, r.principal.y + 0.03 * Math.sin(celular ? 0.7 * t : 0.6 * t) * un + s.yPrincipal + px(PARALAXE.principal), 0);
     const { uniforms } = vidro;
     uniforms.uTempo.value = t;
-    uniforms.uBorrao.value.set((5 / 7) * m.x, (3 / 7) * m.y);
     uniforms.uOpacidade.value = s.opacidade;
 
     // Fora do hero (inclusive com movimento reduzido, quando não há gatilho de saída) o passo da refração para.
