@@ -1,6 +1,7 @@
 /* ---------- cartão de trabalho ---------- */
-.cartao { position: relative; display: block; overflow: hidden; pointer-events: none; }
+.cartao { position: relative; display: block; overflow: hidden; }
 .cartao.com-capa { cursor: pointer; }
+.cartao.com-capa:focus-visible { outline: 2px solid var(--claro); outline-offset: 4px; }
 .cartao-info { position: absolute; inset: 15px 0; z-index: 2; color: var(--claro); mix-blend-mode: difference; display: flex; flex-direction: column-reverse; justify-content: space-between; align-items: center; text-align: center; }
 .cartao-subtitulo { font: 400 16px/17px var(--sans); letter-spacing: -0.02em; text-transform: uppercase; }
 .cartao-titulo { font: 500 17px/20px var(--sans); letter-spacing: -0.02em; margin: 0; }
@@ -8,12 +9,14 @@
 /* Sem capa: bloco liso no cinza dos estados apagados, do tamanho da capa. */
 .cartao.sem-capa { width: var(--cartao-largura, 50vh); height: var(--cartao-altura, 74vh); background: var(--c2); }
 
-/* Com capa: no hover, a prévia (rolagem da página inteira) cobre o cartão, por cima do plano ASCII e sob o texto.
-   Só com mouse fino e sem movimento reduzido; no toque e no celular fica só a capa. */
-.cartao-previa { display: none; }
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .cartao-previa { display: block; position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity var(--tempo-rapido) var(--curva-hover); }
-  .cartao-previa video { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .cartao.com-capa:hover .cartao-previa { opacity: 1; }
-}
 .cartao-img img { display: block; width: var(--cartao-largura, 50vh); height: var(--cartao-altura, 74vh); object-fit: cover; }
+
+/* Pop-up do trabalho (PopupTrabalho): a página inteira em vídeo, na proporção da capa, no centro da tela. */
+.popup-trabalho-fundo { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgb(18 18 18 / 0.6); }
+/* Altura: 90% da tela, ou o que couber em 92% da largura; a largura sai da altura do vídeo, na proporção da capa. */
+.popup-trabalho { --alto: min(90svh, calc(92vw * 1080 / 730 + 44px)); display: flex; flex-direction: column; height: var(--alto); width: calc((var(--alto) - 44px) * 730 / 1080); background: var(--escuro); color: var(--claro); }
+.popup-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 44px; padding: 0 0 0 14px; font: 400 13px/16px var(--sans); letter-spacing: -0.01em; text-transform: uppercase; }
+.popup-cabeca p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.popup-fechar { flex: none; width: 44px; height: 44px; border: 0; background: transparent; color: inherit; font: 300 30px/1 var(--sans); cursor: pointer; }
+.popup-fechar:focus-visible { outline: 2px solid var(--claro); outline-offset: -6px; }
+.popup-trabalho video { display: block; flex: 1; min-height: 0; width: 100%; object-fit: cover; background: var(--escuro); }

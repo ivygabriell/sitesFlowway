@@ -3,45 +3,32 @@
 import { useEffect, useRef } from 'react';
 import { type Idioma, t } from '@/conteudo/textos';
 import { type Trabalho, linhaDoCartao } from '@/conteudo/trabalhos';
-import { prefereMenosMovimento } from '@/lib/ambiente';
 import './estilo.css';
 
 // Medidas da capa (a imagem do DOM, que o plano WebGL cobre com o ASCII).
 export const LARGURA_CAPA = 730;
 export const ALTURA_CAPA = 1080;
 
+// Quanto o mouse precisa parar sobre o cartão para abrir o pop-up: cruzar a fileira não abre nada sem querer.
+const ESPERA_ABRIR = 250;
+
 type Props = {
   trabalho: Trabalho;
   idioma: Idioma;
   indice: number;
   aoPassar?: (indice: number, dentro: boolean) => void;
+  aoAbrir?: (indice: number) => void;
 };
 
-// Só com mouse fino (o toque também dispara mouseenter) e sem movimento reduzido; o CSS esconde a prévia no resto.
-const podeTocar = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches && !prefereMenosMovimento();
+// Mouse de verdade (o toque também dispara mouseenter): só ele abre o pop-up ao parar sobre o cartão.
+export const mouseFino = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-// Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII, sem prévia e sem link.
-// Com capa: a imagem (que a cena WebGL da seção revela em ASCII) e, no hover, a prévia em vídeo da rolagem da
-// página inteira cobrindo o cartão (spec 2026-11-09, Q2). Sem link nem foco: o cartão não tem ação.
-export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
-  const video = useRef<HTMLVideoElement>(null);
-  // Perto da tela (com mouse), a prévia já carrega: no hover ela toca na hora, sem esperar o download (0,1 a 1,2 s).
-  useEffect(() => {
-    const v = video.current;
-    const cartao = v?.closest('.cartao');
-    if (!v || !cartao || !podeTocar()) return;
-    const observador = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        v.preload = 'auto';
-        v.load();
-        observador.disconnect();
-      },
-      { rootMargin: '50% 100%' },
-    );
-    observador.observe(cartao);
-    return () => observador.disconnect();
-  }, []);
+// Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII e sem ação.
+// Com capa: a imagem (que a cena WebGL da seção revela em ASCII); parar o mouse, clicar, tocar, Enter ou espaço abrem
+// o pop-up com a página inteira (Rafael, 2026-11-09). Sem link: os trabalhos ainda não têm página de case.
+export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar, aoAbrir }: Props) {
+  const espera = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(espera.current), []);
   const nome = t(trabalho.nome, idioma);
   const [data, oferta] = linhaDoCartao(trabalho, idioma);
   const info = (
@@ -59,28 +46,29 @@ export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
 
   const passar = (dentro: boolean) => {
     aoPassar?.(indice, dentro);
-    const v = video.current;
-    if (!v) return;
-    if (dentro) {
-      if (podeTocar()) void v.play().catch(() => {});
-    } else {
-      v.pause();
-      v.currentTime = 0;
-    }
+    clearTimeout(espera.current);
+    if (dentro && mouseFino()) espera.current = setTimeout(() => aoAbrir?.(indice), ESPERA_ABRIR);
   };
 
   return (
-    <article className="cartao com-capa" onMouseEnter={() => passar(true)} onMouseLeave={() => passar(false)}>
+    <article
+      className="cartao com-capa"
+      role="button"
+      tabIndex={0}
+      aria-haspopup="dialog"
+      onMouseEnter={() => passar(true)}
+      onMouseLeave={() => passar(false)}
+      onClick={() => {
+        clearTimeout(espera.current);
+        aoAbrir?.(indice);
+      }}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        aoAbrir?.(indice);
+      }}
+    >
       {info}
-      {trabalho.previa && (
-        <div className="cartao-previa" aria-hidden="true">
-          <video ref={video} muted loop playsInline preload="none">
-            {trabalho.previa.map((src) => (
-              <source key={src} src={src} type={`video/${src.split('.').pop()}`} />
-            ))}
-          </video>
-        </div>
-      )}
       <div className="cartao-img">
         {/* eslint-disable-next-line @next/next/no-img-element -- a capa também é a textura do plano WebGL */}
         <img src={trabalho.capa} alt={nome} width={LARGURA_CAPA} height={ALTURA_CAPA} loading="lazy" decoding="async" />

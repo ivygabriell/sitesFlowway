@@ -1,8 +1,7 @@
 /* ---------- trabalhos em destaque (o cartão fica em src/compartilhados/estilo.css) ---------- */
-.secao-capitulos { position: relative; height: 100vh; display: flex; align-items: center; overflow: hidden; }
+.secao-capitulos { position: relative; height: 100vh; display: flex; align-items: center; overflow: hidden; overflow: clip; }
 .capitulos-palco { position: relative; }
 .modo-galeria .capitulos-palco, .modo-estatica .capitulos-palco { margin: 0 auto; }
-.modo-estatica .cartao { pointer-events: auto; }
 .rotulo-capitulos { position: absolute; top: -35px; left: 30px; font: 400 18px var(--sans); letter-spacing: -0.02em; }
 .cartoes { display: flex; gap: 4.5vw; box-sizing: border-box; justify-content: center; padding: 0 30px; width: max-content; }
 .com-webgl .cartao-img img { opacity: 0; }
@@ -16,7 +15,7 @@
 .modo-lista .capitulos-palco { width: 100%; }
 .modo-lista .cartoes { flex-direction: column; gap: 24px; }
 .modo-grade .cartoes { flex-wrap: wrap; gap: 24px; justify-content: center; }
-.modo-lista .cartao, .modo-grade .cartao { pointer-events: auto; }
+
 .modo-lista .rotulo-capitulos, .modo-grade .rotulo-capitulos { position: static; margin-bottom: 20px; }
 .modo-lista .cartao.sem-capa, .modo-lista .cartao-img img { width: 100%; height: auto; aspect-ratio: 730 / 1080; }
 .modo-grade { --cartao-largura: 30vh; --cartao-altura: 44vh; }

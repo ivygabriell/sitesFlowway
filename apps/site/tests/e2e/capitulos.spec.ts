@@ -103,13 +103,14 @@ test('os capítulos andam na horizontal enquanto a página rola, com a seção f
   expect(primeiro).toBeLessThan(0);
 });
 
-test('os cartões são as cinco peças com capa, sem link nem foco, e clicar num deles não sai da página', async ({ page }) => {
+test('os cartões são as cinco peças com capa, sem link, focáveis, e clicar num deles não sai da página', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
   const cartoes = page.locator('.secao-capitulos .cartao');
   await expect(cartoes).toHaveCount(5);
   await expect(page.locator('.secao-capitulos .cartao.com-capa')).toHaveCount(5);
-  await expect(page.locator('.secao-capitulos a, .secao-capitulos [tabindex]')).toHaveCount(0);
+  await expect(page.locator('.secao-capitulos a')).toHaveCount(0);
+  await expect(page.locator('.secao-capitulos .cartao[tabindex="0"]')).toHaveCount(5);
   await expect(page.locator('.secao-capitulos .cartao-img img')).toHaveCount(5);
   for (const cartao of await cartoes.all()) await expect(cartao.locator('.cartao-subtitulo')).toContainText('Conceito');
   await cartoes.first().click({ force: true });
@@ -117,13 +118,14 @@ test('os cartões são as cinco peças com capa, sem link nem foco, e clicar num
   expect(new URL(page.url()).pathname).toBe('/');
 });
 
-test('com o mouse sobre um cartão, a prévia cobre o cartão e toca; ao sair, pausa e volta ao começo', async ({ page }) => {
+// Pedido de Rafael (2026-11-09): parar o mouse num cartão (ou clicar) abre um pop-up com a página inteira do trabalho,
+// logo que a seção aparece (antes os cartões só aceitavam o mouse depois de 15% do percurso).
+test('parar o mouse num cartão abre o pop-up com o vídeo da página inteira tocando; sair dele fecha', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
   const inicio = await page.locator('.secao-capitulos').evaluate((e) => e.getBoundingClientRect().top + scrollY);
-  await page.evaluate((y) => scrollTo(0, y), inicio + 400);
-  await page.waitForTimeout(2000);
-  // Um cartão inteiro na tela (a fileira já andou um pouco e os cartões já aceitam o mouse).
+  await page.evaluate((y) => scrollTo(0, y), inicio + 2);
+  await page.waitForTimeout(1500);
   const indice = await page.$$eval('.cartao', (cs) =>
     cs.findIndex((c) => {
       const r = c.getBoundingClientRect();
@@ -132,19 +134,39 @@ test('com o mouse sobre um cartão, a prévia cobre o cartão e toca; ao sair, p
   );
   expect(indice).toBeGreaterThanOrEqual(0);
   const cartao = page.locator('.cartao').nth(indice);
-  const video = cartao.locator('.cartao-previa video');
-  // Pedido de 2026-11-09 (o vídeo demorava a começar): com o cartão na tela, a prévia já está carregada antes do mouse.
-  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState >= 3), { timeout: 8000 }).toBe(true);
+  const titulo = await cartao.locator('.cartao-titulo').textContent();
   const caixa = (await cartao.boundingBox())!;
   await page.mouse.move(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2);
-  // Toca de verdade: passa de 1 s sem erro de decodificação (o webm VP9 travava no primeiro quadro no Chrome).
-  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.currentTime > 1 && !v.error), { timeout: 6000 }).toBe(true);
-  await expect(cartao.locator('.cartao-previa')).toHaveCSS('opacity', '1');
-  const previa = (await cartao.locator('.cartao-previa').boundingBox())!;
-  expect(Math.abs(previa.width - caixa.width)).toBeLessThan(1);
-  expect(Math.abs(previa.height - caixa.height)).toBeLessThan(1);
+  const popup = page.getByRole('dialog');
+  await expect(popup).toBeVisible({ timeout: 2000 });
+  // Abre sobre o cartão (limitado à tela): o mouse já está dentro dele, e sair dele fecha.
+  const sobre = (await popup.boundingBox())!;
+  expect(caixa.x + caixa.width / 2).toBeGreaterThan(sobre.x);
+  expect(caixa.x + caixa.width / 2).toBeLessThan(sobre.x + sobre.width);
+  await expect(popup).toHaveAttribute('aria-label', titulo!);
+  const video = popup.locator('video');
+  // Toca de verdade: passa de 1 s sem erro de decodificação.
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.currentTime > 1 && !v.error), { timeout: 8000 }).toBe(true);
+  // Grande: quase a altura da tela, inteiro na tela.
+  const caixaPopup = (await popup.boundingBox())!;
+  expect(caixaPopup.height).toBeGreaterThan(0.8 * 900);
+  expect(caixaPopup.y).toBeGreaterThanOrEqual(0);
+  expect(caixaPopup.y + caixaPopup.height).toBeLessThanOrEqual(900);
   await page.mouse.move(5, 5);
-  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused && v.currentTime === 0)).toBe(true);
+  await expect(popup).toHaveCount(0);
+});
+
+test('clicar num cartão abre o pop-up; Esc fecha', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+  const inicio = await page.locator('.secao-capitulos').evaluate((e) => e.getBoundingClientRect().top + scrollY);
+  await page.evaluate((y) => scrollTo(0, y), inicio + 2);
+  await page.waitForTimeout(1500);
+  await page.locator('.cartao').first().click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Fechar' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 404', async ({ page }) => {
@@ -174,7 +196,7 @@ test.describe('no celular', () => {
 test.describe('movimento reduzido', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
-  test('a grade mostra os cinco cartões e informações sem pin, indicador nem prévia', async ({ page }) => {
+  test('a grade mostra os cinco cartões e informações sem pin nem indicador', async ({ page }) => {
     await page.goto('/');
     const secao = page.locator('.secao-capitulos');
     await expect(secao).toHaveClass(/modo-grade/);
@@ -185,7 +207,6 @@ test.describe('movimento reduzido', () => {
     for (const cartao of await secao.locator('.cartao').all()) {
       await expect(cartao.locator('.cartao-titulo')).toBeVisible();
       await expect(cartao.locator('.cartao-subtitulo')).toBeVisible();
-      await expect(cartao.locator('.cartao-previa')).toBeHidden();
       const caixa = await cartao.boundingBox();
       expect(caixa!.x).toBeGreaterThanOrEqual(18);
       expect(caixa!.x + caixa!.width).toBeLessThanOrEqual(1422);
