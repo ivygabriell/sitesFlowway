@@ -2,44 +2,19 @@ import { expect, test } from '@playwright/test';
 
 const semAbertura = () => sessionStorage.setItem('abertura-tocou', '1');
 
-test('recarregar no meio da página volta ao mesmo lugar', async ({ page }) => {
+// Rafael, 2026-11-09: recarregar a página precisa ir para o topo (e ficar lá, sem saltar depois).
+test('recarregar no meio da página volta ao topo e fica lá', async ({ page }) => {
   await page.addInitScript(semAbertura);
   await page.goto('/');
   await page.waitForTimeout(2000);
   await page.evaluate(() => window.scrollTo(0, 3840));
   await page.waitForTimeout(1500);
-  const antes = await page.evaluate(() => scrollY);
   await page.reload();
-  await page.waitForTimeout(3500);
-  expect(Math.abs((await page.evaluate(() => scrollY)) - antes)).toBeLessThan(150);
-});
-
-// Pedido de 2026-11-09: recarregar no meio da página não pode mostrar o topo (com a logo subindo) antes de voltar ao lugar.
-test('recarregar no meio da página não mostra o topo antes de voltar', async ({ page }) => {
-  await page.addInitScript(semAbertura);
-  // Amostra, a cada quadro desde o HTML pronto, a rolagem e se a página está visível.
-  await page.addInitScript(() => {
-    const amostras: [number, string][] = ((window as unknown as { amostras: [number, string][] }).amostras = []);
-    document.addEventListener('DOMContentLoaded', () => {
-      const fim = performance.now() + 3000;
-      const passo = () => {
-        amostras.push([scrollY, getComputedStyle(document.documentElement).visibility]);
-        if (performance.now() < fim) requestAnimationFrame(passo);
-      };
-      passo();
-    });
-  });
-  await page.goto('/');
-  await page.waitForTimeout(2000);
-  await page.evaluate(() => window.scrollTo(0, 3840));
-  await page.waitForTimeout(1500);
-  const antes = await page.evaluate(() => scrollY);
-  await page.reload();
-  await page.waitForTimeout(3500);
-  const amostras = await page.evaluate(() => (window as unknown as { amostras: [number, string][] }).amostras);
-  expect(amostras.length).toBeGreaterThan(10);
-  expect(amostras.filter(([y, vis]) => vis === 'visible' && Math.abs(y - antes) > 150)).toEqual([]);
-  expect(amostras.at(-1)?.[1]).toBe('visible');
+  await page.waitForTimeout(800);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await expect(page.locator('html')).not.toHaveClass(/restaurando/);
+  await page.waitForTimeout(3000);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
 });
 
 test('voltar do contato devolve ao fundo da Início', async ({ page }) => {

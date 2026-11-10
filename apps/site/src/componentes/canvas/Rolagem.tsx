@@ -13,7 +13,7 @@ const ESPERA_RESTAURAR = 1300;
 const TENTATIVAS = 24;
 let montou = false;
 
-// Com scrollRestoration manual e pins montados depois, quem recoloca o lugar ao recarregar ou voltar é o site.
+// Com scrollRestoration manual e pins montados depois, quem recoloca o lugar ao voltar (navegador) é o site.
 function useRestaurarRolagem() {
   const caminho = usePathname() ?? '/';
   useEffect(() => {
@@ -21,7 +21,8 @@ function useRestaurarRolagem() {
     // O tipo da navegação vale só para a carga do documento, não para as trocas de página seguintes.
     const primeira = !montou;
     montou = true;
-    const restaurar = primeira && (nav?.type === 'reload' || nav?.type === 'back_forward');
+    // Só o voltar do navegador devolve ao lugar; recarregar começa do topo (Rafael, 2026-11-09).
+    const restaurar = primeira && nav?.type === 'back_forward';
     const destino = restaurar ? posicaoGuardada(caminho) : 0;
     const aoRolar = () => guardar(caminho);
     // Do cache de ida e volta a página voltaria com o círculo da transição cobrindo a tela: carrega de novo.

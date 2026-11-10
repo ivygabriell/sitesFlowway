@@ -18,18 +18,19 @@ afterEach(() => {
 });
 
 describe('restaurandoNestaCarga', () => {
-  it('é verdade na recarga com posição guardada e abertura já vista', () => {
+  // Rafael, 2026-11-09: recarregar a página volta ao topo; só o voltar do navegador devolve ao lugar.
+  it('é falso na recarga, mesmo com posição guardada e abertura já vista', () => {
     navegacao('reload');
     sessionStorage.setItem('abertura-tocou', '1');
     sessionStorage.setItem('rolagem:/', '3840');
-    expect(restaurandoNestaCarga('/')).toBe(true);
+    expect(restaurandoNestaCarga('/')).toBe(false);
   });
 
   it.each([
     ['navigate', '1', '3840'],
-    ['reload', null, '3840'],
-    ['reload', '1', '0'],
-    ['reload', '1', null],
+    ['back_forward', null, '3840'],
+    ['back_forward', '1', '0'],
+    ['back_forward', '1', null],
   ])('é falso em %s com abertura %s e posição %s', (tipo, abertura, posicao) => {
     navegacao(tipo);
     if (abertura) sessionStorage.setItem('abertura-tocou', abertura);
@@ -37,7 +38,7 @@ describe('restaurandoNestaCarga', () => {
     expect(restaurandoNestaCarga('/')).toBe(false);
   });
 
-  it('vale também para voltar (back_forward)', () => {
+  it('vale para voltar (back_forward) com posição guardada', () => {
     navegacao('back_forward');
     sessionStorage.setItem('abertura-tocou', '1');
     sessionStorage.setItem('rolagem:/en', '500');
@@ -48,12 +49,20 @@ describe('restaurandoNestaCarga', () => {
 describe('script do head', () => {
   it('esconde a página quando vai restaurar e mostra sozinho no teto, mesmo sem o React', () => {
     vi.useFakeTimers();
-    navegacao('reload');
+    navegacao('back_forward');
     sessionStorage.setItem('abertura-tocou', '1');
     sessionStorage.setItem('rolagem:' + location.pathname, '3840');
     rodarScript();
     expect(escondida()).toBe(true);
     vi.advanceTimersByTime(TETO_RESTAURANDO);
+    expect(escondida()).toBe(false);
+  });
+
+  it('não esconde na recarga (ela volta ao topo)', () => {
+    navegacao('reload');
+    sessionStorage.setItem('abertura-tocou', '1');
+    sessionStorage.setItem('rolagem:' + location.pathname, '3840');
+    rodarScript();
     expect(escondida()).toBe(false);
   });
 
