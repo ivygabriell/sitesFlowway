@@ -76,7 +76,8 @@ describe('CartaoTrabalho', () => {
     expect(cartao.getAttribute('href')).toBe('/conceitos/teste/index.html');
     expect(cartao.getAttribute('target')).toBe('_blank');
     expect(cartao.getAttribute('rel')).toBe('noopener');
-    expect(cartao.getAttribute('aria-label')).toBe('Trabalho de teste (abre o site em nova aba)');
+    // Revisão de 2026-11-09: o nome acessível leva também a oferta e a data, que o aria-label antes apagava.
+    expect(cartao.getAttribute('aria-label')).toBe('Trabalho de teste, Landing page, Mês (abre o site em nova aba)');
     expect(container.querySelector('video')).toBeNull();
     const img = container.querySelector('.cartao-img img')!;
     expect(img.getAttribute('src')).toBe('/capa-teste.webp');

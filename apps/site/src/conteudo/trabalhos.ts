@@ -25,7 +25,7 @@ export const NOMES_OFERTA = {
 
 // A lista real: as peças conceito do repositório de Sites (spec 2026-11-09, P1), nomeadas pelo setor, sem a
 // marca fictícia. Capa capturada do build de cada peça em 1280×1894 e reduzida a 730×1080; mês e ano do primeiro
-// commit da pasta da peça. O site é o build da peça (de C:\Users\rafae\Sites) com a base /conceitos/<slug>/, em
+// commit da pasta da peça. O site é o build da peça (repositório CreateHubAI/sitesOfertas) com a base /conceitos/<slug>/, em
 // public/; o caminho leva o index.html porque o Next não serve o índice de uma pasta.
 const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabalho => ({
   slug,

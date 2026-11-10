@@ -1,12 +1,12 @@
 # Trabalhos com peças reais, recarga sem salto, F de vidro e celular
 
-Estado: **aprovada por Rafael em 2026-11-09.** Branch `feat/trabalhos-hover-logo`, worktree `C:\Users\rafae\.worktrees\site-trabalhos-hover-logo`, base `origin/main` 7339e62. Nada de código escrito.
+Estado: **aprovada por Rafael em 2026-11-09.** Branch `feat/trabalhos-hover-logo`, base `origin/main` 7339e62. Nada de código escrito.
 
 Atenção: os prints que motivaram o pedido vieram de uma cópia local antiga (`ef855c3`). A `main` atual já traz o F de vidro (42b28e7) e a galeria corrigida (#31); esta spec parte dela.
 
 ## Pedido
 
-1. Trabalhos da Início com 5 quadros, na ordem site / landing / site / landing / site, usando as peças de `C:\Users\rafae\Sites`; no hover, "abre a página toda"; ver em localhost.
+1. Trabalhos da Início com 5 quadros, na ordem site / landing / site / landing / site, usando as peças do repositório `CreateHubAI/sitesOfertas`; no hover, "abre a página toda"; ver em localhost.
 2. Documentar no projeto: spec, harness, harness², Ponytail, Superpowers.
 3. Ao recarregar a página rolada, "a logo sobe".
 4. O vidro do hero deveria ser o F da Floway e está bugado.

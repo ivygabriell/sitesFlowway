@@ -57,7 +57,7 @@ export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
       href={trabalho.site}
       target="_blank"
       rel="noopener"
-      aria-label={idioma === 'en' ? `${nome} (opens the site in a new tab)` : `${nome} (abre o site em nova aba)`}
+      aria-label={`${nome}, ${oferta}, ${data} ${idioma === 'en' ? '(opens the site in a new tab)' : '(abre o site em nova aba)'}`}
       {...passar}
     >
       {conteudo}

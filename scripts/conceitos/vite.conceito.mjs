@@ -1,4 +1,4 @@
-// Build de um site de C:\Users\rafae\Sites para dentro do site oficial, em /conceitos/<slug>/, sem tocar no repositório
+// Build de um site de CreateHubAI/sitesOfertas para dentro do site oficial, em /conceitos/<slug>/, sem tocar no repositório
 // de Sites: reaproveita a config da pasta (se houver), troca a base e a saída e corrige caminhos absolutos no JS.
 // Uso: scripts/conceitos/gerar.sh (roda o vite build de dentro de cada pasta com SLUG e SAIDA).
 import { existsSync } from 'node:fs';
