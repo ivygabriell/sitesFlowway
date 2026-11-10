@@ -31,7 +31,7 @@ describe('conteúdo dos trabalhos', () => {
   it('nenhum título, setor ou endereço traz a marca fictícia da peça (spec 5)', () => {
     const marcas = /tramo|al[ií]sio|prumo|taipa|lastro/i;
     listaDeTrabalhos.forEach((tr) => {
-      [tr.slug, tr.nome.pt, tr.setor.pt, tr.capa ?? '', ...(tr.previa ?? [])].forEach((v) => expect(v).not.toMatch(marcas));
+      [tr.slug, tr.nome.pt, tr.setor.pt, tr.capa ?? '', tr.site ?? ''].forEach((v) => expect(v).not.toMatch(marcas));
     });
   });
 

@@ -1,5 +1,5 @@
 /* ---------- cartão de trabalho ---------- */
-.cartao { position: relative; display: block; overflow: hidden; }
+.cartao { position: relative; display: block; overflow: hidden; color: inherit; text-decoration: none; }
 .cartao.com-capa { cursor: pointer; }
 .cartao.com-capa:focus-visible { outline: 2px solid var(--claro); outline-offset: 4px; }
 .cartao-info { position: absolute; inset: 15px 0; z-index: 2; color: var(--claro); mix-blend-mode: difference; display: flex; flex-direction: column-reverse; justify-content: space-between; align-items: center; text-align: center; }
@@ -11,13 +11,3 @@
 
 .cartao-img img { display: block; width: var(--cartao-largura, 50vh); height: var(--cartao-altura, 74vh); object-fit: cover; }
 
-/* Pop-up do trabalho (PopupTrabalho): a página inteira em vídeo, na proporção da capa, no centro da tela. */
-/* Acima do cabeçalho e da abertura (z-index 100). */
-.popup-trabalho-fundo { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: rgb(18 18 18 / 0.85); }
-/* Altura: 90% da tela, ou o que couber em 92% da largura; a largura sai da altura do vídeo, na proporção da capa. */
-.popup-trabalho { --alto: min(90svh, calc(92vw * 1080 / 730 + 44px)); display: flex; flex-direction: column; height: var(--alto); width: calc((var(--alto) - 44px) * 730 / 1080); background: var(--escuro); color: var(--claro); }
-.popup-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 44px; padding: 0 0 0 14px; font: 400 13px/16px var(--sans); letter-spacing: -0.01em; text-transform: uppercase; }
-.popup-cabeca p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.popup-fechar { flex: none; width: 44px; height: 44px; border: 0; background: transparent; color: inherit; font: 300 30px/1 var(--sans); cursor: pointer; }
-.popup-fechar:focus-visible { outline: 2px solid var(--claro); outline-offset: -6px; }
-.popup-trabalho video { display: block; flex: 1; min-height: 0; width: 100%; object-fit: cover; background: var(--escuro); }

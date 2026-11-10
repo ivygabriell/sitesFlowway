@@ -13,8 +13,8 @@ export type Trabalho = {
   mesAno: Texto;
   oferta: Oferta;
   conceito: boolean;
-  capa?: string; // imagem da capa: liga o ASCII, o hover e a prévia
-  previa?: string[]; // vídeo curto da prévia (hover), um arquivo por formato, na ordem de preferência
+  capa?: string; // imagem da capa: liga o ASCII e o hover
+  site?: string; // o site do conceito, que o clique no cartão abre numa aba nova
 };
 
 export const NOMES_OFERTA = {
@@ -24,8 +24,9 @@ export const NOMES_OFERTA = {
 } as const satisfies Record<Oferta, Texto>;
 
 // A lista real: as peças conceito do repositório de Sites (spec 2026-11-09, P1), nomeadas pelo setor, sem a
-// marca fictícia. Capa e prévia capturadas do build de cada peça em 1280×1894 e reduzidas a 730×1080; mês e ano
-// do primeiro commit da pasta da peça.
+// marca fictícia. Capa capturada do build de cada peça em 1280×1894 e reduzida a 730×1080; mês e ano do primeiro
+// commit da pasta da peça. O site é o build da peça (de C:\Users\rafae\Sites) com a base /conceitos/<slug>/, em
+// public/; o caminho leva o index.html porque o Next não serve o índice de uma pasta.
 const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabalho => ({
   slug,
   nome: { pt: nome },
@@ -34,8 +35,7 @@ const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabal
   oferta,
   conceito: true,
   capa: `/trabalhos/${slug}/capa.webp`,
-  // Só H.264: o webm VP9 gerado travava no primeiro quadro no Chrome (erro de decodificação), sem cair no mp4.
-  previa: [`/trabalhos/${slug}/previa.mp4`],
+  site: `/conceitos/${slug}/index.html`,
 });
 
 export const listaDeTrabalhos: Trabalho[] = [

@@ -1,9 +1,8 @@
 'use client';
 
 import { UseCanvas, useScrollRig } from '@14islands/r3f-scroll-rig';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CartaoTrabalho } from '@/compartilhados/CartaoTrabalho';
-import { PopupTrabalho } from '@/compartilhados/PopupTrabalho';
 import { t } from '@/conteudo/textos';
 import { trabalhos, trabalhosVisiveis } from '@/conteudo/trabalhos';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
@@ -34,13 +33,6 @@ export function Capitulos() {
   const capas = useMemo(() => comCapa.map((c) => c.capa), [comCapa]);
   const indices = useMemo(() => comCapa.map((c) => c.indice), [comCapa]);
   const estado = useRef<EstadoCartoes>({ progresso: 0, hover: lista.map(() => 0) });
-  // Trabalho com o pop-up aberto e o centro do cartão na tela (o pop-up abre sobre ele, com o mouse já dentro).
-  const [aberto, setAberto] = useState<{ indice: number; centroX: number } | null>(null);
-  const fecharPopup = useCallback(() => setAberto(null), []);
-  const abrir = (indice: number) => {
-    const r = document.querySelectorAll('.secao-capitulos .cartao')[indice]?.getBoundingClientRect();
-    setAberto({ indice, centroX: r ? r.left + r.width / 2 : window.innerWidth / 2 });
-  };
 
   useEffect(() => {
     setModo((atual) => (prefereMenosMovimento() ? 'grade' : ehCelular(window.innerWidth) ? 'lista' : atual));
@@ -96,11 +88,10 @@ export function Capitulos() {
         <h2 className="rotulo-capitulos">{t(trabalhos.rotulo, idioma)}</h2>
         <div className="cartoes">
           {lista.map((tr, i) => (
-            <CartaoTrabalho key={tr.slug} trabalho={tr} idioma={idioma} indice={i} aoPassar={passar} aoAbrir={abrir} />
+            <CartaoTrabalho key={tr.slug} trabalho={tr} idioma={idioma} indice={i} aoPassar={passar} />
           ))}
         </div>
       </div>
-      {aberto && <PopupTrabalho trabalho={lista[aberto.indice]} idioma={idioma} centroX={aberto.centroX} aoFechar={fecharPopup} />}
       {modo === 'galeria' && <BarraProgresso />}
       {comWebgl && (
         <UseCanvas>

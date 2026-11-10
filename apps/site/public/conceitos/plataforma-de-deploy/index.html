@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lastro: deploy com preview, logs e rollback em um painel</title>
+<meta name="description" content="Lastro é uma plataforma fictícia de deploy: git push vira build, preview por PR, logs ao vivo, status por região e rollback com um clique.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f4f4f2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%230c0c0d' d='M2 4h12v6H2zM2 13h20v6H2zM2 22h28v6H2z'/%3E%3C/svg%3E">
+<script>document.documentElement.classList.add('js');history.scrollRestoration='manual'</script>
+  <script type="module" crossorigin src="/conceitos/plataforma-de-deploy/assets/main-B280Xn-R.js"></script>
+  <link rel="modulepreload" crossorigin href="/conceitos/plataforma-de-deploy/assets/jetbrains-mono-D2vqSZk5.js">
+  <link rel="stylesheet" crossorigin href="/conceitos/plataforma-de-deploy/assets/jetbrains-mono-BrzHh7OV.css">
+  <link rel="stylesheet" crossorigin href="/conceitos/plataforma-de-deploy/assets/main-DZQvzgc9.css">
+</head>
+<body>
+<a class="pular" href="#painel">Pular para o painel do produto</a>
+<svg width="0" height="0" class="sr" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 32 32"><path fill="currentColor" d="M2 4h12v6H2zM2 13h20v6H2zM2 22h28v6H2z"/></symbol>
+  <symbol id="seta" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M4 12h15M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-log" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M3 4h10M3 8h7M3 12h9"/></symbol>
+  <symbol id="i-pr" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="3.5" r="1.5"/><circle cx="4" cy="12.5" r="1.5"/><circle cx="12" cy="12.5" r="1.5"/><path d="M4 5v6M12 11V7a2 2 0 0 0-2-2H7"/></g></symbol>
+  <symbol id="i-build" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M8 1.8l5.5 3v6.4L8 14.2l-5.5-3V4.8zM2.5 4.8L8 8l5.5-3.2M8 8v6"/></symbol>
+  <symbol id="i-globo" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/></g></symbol>
+  <symbol id="i-graf" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M2 13l4-5 3 3 5-7"/></symbol>
+  <symbol id="i-volta" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M3 3v4h4M3.5 7A5 5 0 1 1 4 11"/></symbol>
+  <symbol id="i-cad" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></g></symbol>
+  <symbol id="i-term" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M3 4l4 4-4 4M8.5 12H13"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M8 2l6.5 11.5h-13zM8 6.5v3.5M8 11.5v.5"/></symbol>
+</svg>
+
+<div class="vidro" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<header class="topo">
+  <a class="marca" href="#inicio" aria-label="Lastro, início"><svg aria-hidden="true"><use href="#logo"/></svg>lastro</a>
+  <nav aria-label="Seções">
+    <a href="#painel">Produto</a><a href="#como">Como funciona</a><a href="#recursos">Recursos</a><a href="#planos">Planos</a><a href="#docs">Docs</a><a href="#faq">FAQ</a>
+  </nav>
+  <span class="relogio" aria-label="Hora UTC"><span id="utc">--:--:--</span> UTC</span>
+  <a class="btn btn-claro" href="#docs"><span class="dup" data-t="Fazer deploy"><span>Fazer deploy</span></span></a>
+</header>
+<div class="cursor" aria-hidden="true"><span class="cursor-r"></span></div>
+
+<main id="inicio" tabindex="-1">
+<section class="hero">
+  <p class="eyebrow">Plataforma de deploy · marca fictícia</p>
+  <h1 class="titulo-hero">Do git push ao ar, com o log na mão.</h1>
+  <div class="hero-pe">
+    <p class="lead">A Lastro faz o build de cada push, sobe um preview por pull request, mostra os logs enquanto chegam e volta para a versão anterior com um clique.</p>
+    <div class="acoes">
+      <a class="btn" href="#docs"><span class="dup" data-t="Comece em 2 minutos"><span>Comece em 2 minutos</span></span></a>
+      <a class="link" href="#painel">Ver o painel</a>
+    </div>
+  </div>
+
+  <div class="term escuro" data-cursor role="img" aria-label="Terminal com o comando lastro deploy: instala dependências, faz o build, envia para 6 regiões e mostra a URL de produção.">
+    <div class="jan"><i></i><i></i><i></i><span>~/loja — zsh</span></div>
+    <pre class="term-c" aria-hidden="true"><span class="p">$</span> <span id="cmd"></span><span class="caret"></span>
+<span id="saida"></span></pre>
+  </div>
+</section>
+
+<section class="sec painel-sec" id="painel" aria-labelledby="t-painel">
+  <div class="cab">
+    <p class="eyebrow">01 · Painel</p>
+    <h2 id="t-painel" class="titulo">Tudo o que está no ar, numa tela.</h2>
+    <p class="lead">Deploys recentes, requisições e erros por minuto e a saúde de cada região. O gráfico abaixo atualiza sozinho.</p>
+  </div>
+
+  <div class="app escuro" data-cursor>
+    <aside class="app-lado" aria-label="Menu do painel (ilustração)">
+      <p class="app-proj"><svg aria-hidden="true"><use href="#logo"/></svg>loja-web</p>
+      <ul><li class="on">Visão geral</li><li>Deploys</li><li>Logs</li><li>Domínios</li><li>Variáveis</li><li>Configurações</li></ul>
+    </aside>
+    <div class="app-main">
+      <div class="app-top"><span class="m">produção · main</span><span class="ok-pill"><i></i>no ar · v42</span></div>
+      <div class="app-grade">
+        <div class="cartao grafico">
+          <div class="cartao-cab"><h3>Requisições e erros</h3><span class="m leg"><i class="l1"></i>req/min <i class="l2"></i>erros/min</span></div>
+          <p class="m kpis"><span><b id="k-req">0</b> req/min</span><span><b id="k-err">0</b> erros</span><span><b id="k-p95">0</b> ms p95</span></p>
+          <svg class="chart" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-label="Gráfico de linhas com requisições por minuto estáveis e erros perto de zero nos últimos 30 minutos.">
+            <g class="chart-grade"><path d="M0 45H600M0 90H600M0 135H600"/></g>
+            <path id="area" class="area"/><path id="linha-req" class="l-req"/><path id="linha-err" class="l-err"/>
+          </svg>
+        </div>
+        <div class="cartao regioes">
+          <div class="cartao-cab"><h3>Regiões</h3><span class="m">6 de 6 ok</span></div>
+          <ul class="m" id="regioes">
+            <li><i></i>sa-leste<b>18 ms</b></li><li><i></i>us-leste<b>41 ms</b></li><li><i></i>us-oeste<b>63 ms</b></li>
+            <li><i></i>eu-oeste<b>88 ms</b></li><li><i></i>eu-centro<b>94 ms</b></li><li><i></i>ap-sul<b>131 ms</b></li>
+          </ul>
+        </div>
+        <div class="cartao deploys">
+          <div class="cartao-cab"><h3>Deploys</h3><span class="m">últimos 5</span></div>
+          <table class="m">
+            <caption class="sr">Deploys recentes de exemplo</caption>
+            <thead><tr><th scope="col">Versão</th><th scope="col">Commit</th><th scope="col">Branch</th><th scope="col">Status</th><th scope="col">Tempo</th></tr></thead>
+            <tbody id="deploys">
+              <tr><td>v42</td><td>a91f3c2 corrige frete</td><td>main</td><td><span class="st ok">no ar</span></td><td>38s</td></tr>
+              <tr><td>pr-128</td><td>7c0de11 novo checkout</td><td>checkout</td><td><span class="st">preview</span></td><td>41s</td></tr>
+              <tr><td>v41</td><td>8f2c9b0 cache de imagens</td><td>main</td><td><span class="st">anterior</span></td><td>36s</td></tr>
+              <tr><td>v40</td><td>e44a120 atualiza deps</td><td>main</td><td><span class="st">anterior</span></td><td>52s</td></tr>
+              <tr><td>pr-127</td><td>19bd7aa texto do rodapé</td><td>rodape</td><td><span class="st">preview</span></td><td>33s</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec problemas" aria-labelledby="t-prob">
+  <p class="eyebrow" id="t-prob">02 · Sem a Lastro</p>
+  <ol class="frases">
+    <li>
+      <p class="frase"><span class="m">01</span>O deploy de sexta roda num script que só uma pessoa entende.</p>
+      <div class="dor escuro" aria-hidden="true">
+        <div class="jan"><i></i><i></i><i></i><span>deploy.sh</span></div>
+        <div class="antes m"><p>ssh prod-2 "cd /srv &amp;&amp; git pull"</p><p>npm ci &amp;&amp; npm run build  # não esquecer</p><p>rsync -az dist/ prod-3:/srv/www</p><p>pm2 restart all || echo "e agora?"</p></div>
+        <div class="depois m"><p><b>$</b> lastro deploy --prod</p><p class="barra"><i></i></p><p><span class="st ok">v42 no ar</span> 38s · 6 regiões</p></div>
+      </div>
+    </li>
+    <li>
+      <p class="frase"><span class="m">02</span>A revisão do PR acontece sem ninguém ver a mudança rodando.</p>
+      <div class="dor escuro" aria-hidden="true">
+        <div class="jan"><i></i><i></i><i></i><span>PR #128 · novo checkout</span></div>
+        <div class="antes m"><p>revisor: “parece ok, não testei”</p><p>aprovado · 1 revisão · 0 previews</p></div>
+        <div class="depois"><p class="m"><b>lastro-bot</b> comentou</p><p>Preview pronto em 41s.</p><p class="m url">pr-128.loja.lastro.exemplo</p></div>
+      </div>
+    </li>
+    <li>
+      <p class="frase"><span class="m">03</span>O erro aparece no cliente antes de aparecer no log.</p>
+      <div class="dor escuro" aria-hidden="true">
+        <div class="jan"><i></i><i></i><i></i><span>logs · produção</span></div>
+        <div class="antes m"><p>14:09 suporte: “o checkout não fecha”</p><p>14:31 alguém abre o servidor</p></div>
+        <div class="depois m"><p><span class="nv-e">erro</span> POST /api/pedido 502 · sa-leste</p><p><span class="st ok">alerta enviado</span> 14:02 · antes do 1º chamado</p></div>
+      </div>
+    </li>
+    <li>
+      <p class="frase"><span class="m">04</span>Voltar uma versão leva meia hora e três comandos lembrados de cabeça.</p>
+      <div class="dor escuro" aria-hidden="true">
+        <div class="jan"><i></i><i></i><i></i><span>versões</span></div>
+        <div class="antes m"><p>git revert 9f2c1e &amp;&amp; git push</p><p>esperar o build… 27 min</p></div>
+        <div class="depois m"><p class="troca"><span>v42</span><svg><use href="#seta"/></svg><span>v41</span></p><p><span class="st ok">no ar</span> rollback em 4s, sem build</p></div>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section class="sec como" id="como" aria-labelledby="t-como">
+  <div class="cab">
+    <p class="eyebrow">03 · Como funciona</p>
+    <h2 id="t-como" class="titulo">Três passos, três telas.</h2>
+  </div>
+  <div class="como-palco">
+    <ol class="passos">
+      <li class="passo"><span class="m">1</span><h3>Descreva o projeto</h3><p>Um arquivo <code>lastro.toml</code> na raiz diz como fazer o build, que variáveis usar e em que regiões rodar.</p></li>
+      <li class="passo"><span class="m">2</span><h3>Abra um pull request</h3><p>Cada PR ganha uma URL de preview própria, comentada no próprio PR, para revisar a mudança rodando.</p></li>
+      <li class="passo"><span class="m">3</span><h3>Faça o merge</h3><p>O merge na main vai para produção. Os logs chegam ao vivo e você filtra o que importa.</p></li>
+    </ol>
+    <div class="telas">
+      <div class="tela escuro editor" data-cursor>
+        <div class="jan"><i></i><i></i><i></i><span>lastro.toml</span></div>
+        <pre class="m codigo" aria-label="Arquivo lastro.toml de exemplo"><span class="n">1</span><span class="c"># lastro.toml — configuração do projeto</span>
+<span class="n">2</span><span class="k">[projeto]</span>
+<span class="n">3</span><span class="a">nome</span> = <span class="s">"loja-web"</span>
+<span class="n">4</span><span class="a">framework</span> = <span class="s">"auto"</span>
+<span class="n">5</span>
+<span class="n">6</span><span class="k">[build]</span>
+<span class="n">7</span><span class="a">comando</span> = <span class="s">"npm run build"</span>
+<span class="n">8</span><span class="a">saida</span>   = <span class="s">"dist"</span>
+<span class="n">9</span><span class="a">node</span>    = <span class="v">22</span>
+<span class="n">10</span>
+<span class="n">11</span><span class="k">[deploy]</span>
+<span class="n">12</span><span class="a">regioes</span>  = [<span class="s">"sa-leste"</span>, <span class="s">"us-leste"</span>, <span class="s">"eu-oeste"</span>]
+<span class="n">13</span><span class="a">preview</span>  = <span class="v">true</span>
+<span class="n">14</span><span class="a">rollback</span> = { <span class="a">manter</span> = <span class="v">20</span> }
+<span class="n">15</span>
+<span class="n">16</span><span class="k">[env.producao]</span>
+<span class="n">17</span><span class="a">API_URL</span> = <span class="s">"https://api.loja.exemplo"</span></pre>
+      </div>
+      <div class="tela escuro diff" data-cursor>
+        <div class="jan"><i></i><i></i><i></i><span>PR #128 · novo checkout</span></div>
+        <div class="diff-c">
+          <p class="m arq">src/checkout/Resumo.jsx <span>+3 −2</span></p>
+          <pre class="m"><span class="ctx">  export function Resumo({ itens }) {</span>
+<span class="del">-   const total = soma(itens)</span>
+<span class="del">-   return &lt;p&gt;{total}&lt;/p&gt;</span>
+<span class="add">+   const total = soma(itens) + frete(itens)</span>
+<span class="add">+   const texto = moeda(total)</span>
+<span class="add">+   return &lt;p className="total"&gt;{texto}&lt;/p&gt;</span>
+<span class="ctx">  }</span></pre>
+          <div class="coment">
+            <p class="m"><b>lastro-bot</b> comentou</p>
+            <p>Preview pronto em 41s.</p>
+            <p class="m url">https://pr-128.loja.lastro.exemplo</p>
+            <p class="m"><span class="st ok">build ok</span> 3 regiões · 0 avisos</p>
+          </div>
+        </div>
+      </div>
+      <div class="tela escuro logs" data-cursor>
+        <div class="jan"><i></i><i></i><i></i><span>logs · produção</span></div>
+        <div class="logs-ctl" role="group" aria-label="Filtrar logs por nível">
+          <button type="button" aria-pressed="true" data-nivel="todos">todos</button>
+          <button type="button" aria-pressed="false" data-nivel="info">info</button>
+          <button type="button" aria-pressed="false" data-nivel="aviso">aviso</button>
+          <button type="button" aria-pressed="false" data-nivel="erro">erro</button>
+          <label class="sr" for="busca">Buscar nos logs</label>
+          <input id="busca" type="search" placeholder="buscar: /checkout" autocomplete="off">
+        </div>
+        <ol class="m logs-l" id="logs" aria-live="off"></ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec colunas-sec" aria-label="Telas do produto">
+  <div class="colunas" aria-hidden="true">
+    <div class="col" data-dir="1">
+      <div class="card"><div class="c-cab"><svg><use href="#i-log"/></svg><b>logs · produção</b><span class="st ok">ao vivo</span></div><div class="c-corpo m"><p><i>200</i> GET /checkout <em>34ms</em></p><p><i>200</i> GET /api/frete <em>61ms</em></p><p><i>201</i> POST /api/pedido <em>88ms</em></p><p class="av"><i>200</i> /img/7.webp cache miss</p><p><i>200</i> GET /produto/412 <em>22ms</em></p></div><div class="c-pe m"><span>14:02:11 UTC</span><span>sa-leste</span></div></div>
+      <div class="card claro"><div class="c-cab"><svg><use href="#i-pr"/></svg><b>PR #126 · filtros</b><span class="st ok">preview</span></div><div class="c-corpo"><p class="m url">pr-126.loja.lastro.exemplo</p><ul class="m checks"><li>build</li><li>testes · 48</li><li>3 regiões</li></ul></div><div class="c-pe m"><span>14:01 UTC</span><span>há 2 min</span></div></div>
+      <div class="card"><div class="c-cab"><svg><use href="#i-build"/></svg><b>build #812</b><span class="st">82%</span></div><div class="c-corpo m"><p class="barra"><i style="--p:.82"></i></p><p>✓ dependências 4,1s</p><p>✓ 214 módulos</p><p class="mu">→ otimizando imagens</p></div><div class="c-pe m"><span>13:58 UTC</span><span>31s</span></div></div>
+      <div class="card claro"><div class="c-cab"><svg><use href="#i-globo"/></svg><b>regiões</b><span class="st ok">6/6</span></div><div class="c-corpo m lat"><p>sa-leste <span style="--p:.2"></span><em>18ms</em></p><p>us-leste <span style="--p:.45"></span><em>41ms</em></p><p>eu-oeste <span style="--p:.9"></span><em>88ms</em></p></div><div class="c-pe m"><span>14:02 UTC</span><span>p95</span></div></div>
+    </div>
+    <div class="col" data-dir="-1">
+      <div class="card claro"><div class="c-cab"><svg><use href="#i-graf"/></svg><b>requisições</b><span class="st">por min</span></div><div class="c-corpo"><p class="grande">2.104</p><svg class="spark" viewBox="0 0 120 32" preserveAspectRatio="none"><path d="M0 24L15 20L30 22L45 12L60 16L75 7L90 11L105 4L120 6"/></svg></div><div class="c-pe m"><span>14:02 UTC</span><span>+6% vs. ontem</span></div></div>
+      <div class="card"><div class="c-cab"><svg><use href="#i-volta"/></svg><b>rollback</b><span class="st ok">concluído</span></div><div class="c-corpo m"><p class="troca"><span>v42</span><svg><use href="#seta"/></svg><span>v41</span></p><p class="mu">tráfego trocado em 4s, sem build</p></div><div class="c-pe m"><span>13:44 UTC</span><span>1 clique</span></div></div>
+      <div class="card"><div class="c-cab"><svg><use href="#i-pr"/></svg><b>Resumo.jsx</b><span class="st">+3 −2</span></div><div class="c-corpo m dif"><p class="del">- const total = soma(itens)</p><p class="add">+ const total = soma(itens)</p><p class="add">+   + frete(itens)</p><p class="add">+ const texto = moeda(total)</p></div><div class="c-pe m"><span>13:40 UTC</span><span>PR #128</span></div></div>
+      <div class="card claro"><div class="c-cab"><svg><use href="#i-cad"/></svg><b>loja.exemplo</b><span class="st ok">TLS ok</span></div><div class="c-corpo m"><p class="mu">certificado renova em 61 dias</p><p>A · CNAME · AAAA</p></div><div class="c-pe m"><span>12:00 UTC</span><span>domínio</span></div></div>
+    </div>
+    <div class="col" data-dir="1">
+      <div class="card"><div class="c-cab"><svg><use href="#i-term"/></svg><b>terminal</b><span class="st">zsh</span></div><div class="c-corpo m"><p><b class="ok">$</b> lastro logs --erro</p><p class="mu">nenhum erro nos últimos 60 min</p></div><div class="c-pe m"><span>14:00 UTC</span><span>~/loja</span></div></div>
+      <div class="card claro"><div class="c-cab"><svg><use href="#i-alerta"/></svg><b>alerta · p95</b><span class="st ok">resolvido</span></div><div class="c-corpo"><p>p95 acima de 300 ms em eu-oeste por 2 min.</p><svg class="spark" viewBox="0 0 120 32" preserveAspectRatio="none"><path d="M0 26L20 25L40 24L55 8L70 10L85 24L120 25"/></svg></div><div class="c-pe m"><span>13:12 UTC</span><span>durou 2 min</span></div></div>
+      <div class="card"><div class="c-cab"><svg><use href="#i-build"/></svg><b>deploys</b><span class="st ok">v42 no ar</span></div><div class="c-corpo m vers"><p><b>v42</b> novo checkout <em>38s</em></p><p><b>v41</b> filtros <em>41s</em></p><p><b>v40</b> rodapé <em>36s</em></p></div><div class="c-pe m"><span>14:02 UTC</span><span>main</span></div></div>
+      <div class="card claro"><div class="c-cab"><svg><use href="#i-graf"/></svg><b>erros</b><span class="st">60 min</span></div><div class="c-corpo"><p class="grande">0,02%</p></div><div class="c-pe m"><span>14:02 UTC</span><span>3 de 12.480</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec rollback-sec" id="rollback" aria-labelledby="t-rb">
+  <div class="cab">
+    <p class="eyebrow">04 · Rollback</p>
+    <h2 id="t-rb" class="titulo">Deu errado? Um clique.</h2>
+    <p class="lead">As últimas versões ficam prontas para voltar. O tráfego troca de uma vez, sem novo build.</p>
+  </div>
+  <div class="rb escuro" data-cursor>
+    <div class="jan"><i></i><i></i><i></i><span>deploys · produção</span></div>
+    <div class="rb-c">
+      <ul class="m rb-lista">
+        <li data-v="v42"><span>v42</span><span>a91f3c2 corrige frete</span><span class="st ok">no ar</span></li>
+        <li data-v="v41"><span>v41</span><span>8f2c9b0 cache de imagens</span><span class="st">pronta</span></li>
+        <li data-v="v40"><span>v40</span><span>e44a120 atualiza deps</span><span class="st">pronta</span></li>
+      </ul>
+      <div class="rb-acao">
+        <button class="btn btn-claro rb-btn" type="button">Voltar para v41</button>
+        <p class="m rb-msg" role="status">v42 no ar desde 14:02 UTC.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec recursos-sec" id="recursos" aria-labelledby="t-rec">
+  <div class="cab">
+    <p class="eyebrow">05 · Recursos</p>
+    <h2 id="t-rec" class="titulo">O que vem no painel.</h2>
+  </div>
+  <ul class="recursos">
+    <li tabindex="0"><h3>Preview por pull request</h3><p>Uma URL por PR, comentada no PR e apagada quando ele fecha.</p><span class="demo m" aria-hidden="true"><i class="d-bar"></i>pr-128 pronto</span></li>
+    <li tabindex="0"><h3>Rollback instantâneo</h3><p>Volte para qualquer uma das últimas 20 versões sem refazer o build.</p><span class="demo m" aria-hidden="true"><i class="d-troca"></i>v42 → v41</span></li>
+    <li tabindex="0"><h3>Logs ao vivo com filtro</h3><p>Por nível, rota, região ou texto, com retenção configurável.</p><span class="demo m" aria-hidden="true"><i class="d-linhas"></i>3 novas linhas</span></li>
+    <li tabindex="0"><h3>Build em cache</h3><p>Dependências e etapas que não mudaram são reaproveitadas entre deploys.</p><span class="demo m" aria-hidden="true"><i class="d-bar"></i>cache 214/220</span></li>
+    <li tabindex="0"><h3>Regiões e roteamento</h3><p>Escolha as regiões; cada visitante cai na mais próxima que está saudável.</p><span class="demo m" aria-hidden="true"><i class="d-pulso"></i>6 de 6 ok</span></li>
+    <li tabindex="0"><h3>Domínios e TLS</h3><p>Aponte o domínio e o certificado é emitido e renovado sozinho.</p><span class="demo m" aria-hidden="true"><i class="d-pulso"></i>TLS válido</span></li>
+    <li tabindex="0"><h3>Variáveis por ambiente</h3><p>Segredos separados para preview e produção, cifrados em repouso.</p><span class="demo m" aria-hidden="true"><i class="d-linhas"></i>API_URL •••••</span></li>
+    <li tabindex="0"><h3>Métricas e alertas</h3><p>Requisições, erros e latência p95, com alerta quando passam do limite.</p><span class="demo m" aria-hidden="true"><i class="d-bar"></i>p95 112 ms</span></li>
+    <li tabindex="0"><h3>CLI e API</h3><p>Tudo o que o painel faz também roda no terminal e por API.</p><span class="demo m" aria-hidden="true"><i class="d-linhas"></i>$ lastro rollback</span></li>
+    <span class="seta-r" aria-hidden="true"><svg><use href="#seta"/></svg></span>
+  </ul>
+</section>
+
+<section class="sec integ" aria-labelledby="t-int">
+  <div class="cab">
+    <p class="eyebrow">06 · Integrações</p>
+    <h2 id="t-int" class="titulo-m">Conecta com o que o time já usa.</h2>
+  </div>
+  <ul class="integ-l">
+    <li><b>Repositório git</b><span>push e PR disparam o deploy</span></li>
+    <li><b>Chat do time</b><span>aviso de deploy, falha e rollback</span></li>
+    <li><b>Banco de dados</b><span>URL de conexão por ambiente</span></li>
+    <li><b>Monitoramento</b><span>envio de métricas e traces</span></li>
+    <li><b>Gerenciador de incidentes</b><span>alerta abre um incidente</span></li>
+    <li><b>Armazenamento de arquivos</b><span>uploads servidos pelas regiões</span></li>
+    <li><b>Webhooks</b><span>qualquer sistema que receba HTTP</span></li>
+    <li><b>Login único</b><span>acesso do time por SSO no plano Empresa</span></li>
+  </ul>
+</section>
+
+<section class="sec planos-sec" id="planos" aria-labelledby="t-planos">
+  <div class="cab">
+    <p class="eyebrow">07 · Planos</p>
+    <h2 id="t-planos" class="titulo">Planos de exemplo.</h2>
+  </div>
+  <div class="planos">
+    <article class="plano"><h3>Hobby</h3><p class="preco">R$ 0<span>/mês</span></p><p>Para projetos pessoais.</p><ul><li>1 membro</li><li>Previews ilimitados</li><li>2 regiões</li><li>Logs de 24 horas</li></ul><a class="btn btn-contorno" href="#docs"><span class="dup" data-t="Começar grátis"><span>Começar grátis</span></span></a></article>
+    <article class="plano destaque"><h3>Time</h3><p class="preco">R$ 89<span>/membro/mês</span></p><p>Para times que fazem deploy todo dia.</p><ul><li>Até 25 membros</li><li>6 regiões</li><li>Logs de 14 dias e alertas</li><li>Rollback de 20 versões</li></ul><a class="btn" href="#docs"><span class="dup" data-t="Testar 14 dias"><span>Testar 14 dias</span></span></a></article>
+    <article class="plano"><h3>Empresa</h3><p class="preco">Sob consulta</p><p>Para quem precisa de contrato e suporte.</p><ul><li>Membros ilimitados</li><li>SSO e trilha de auditoria</li><li>Logs de 90 dias</li><li>Suporte com prazo em contrato</li></ul><a class="btn btn-contorno" href="#contato"><span class="dup" data-t="Falar com vendas"><span>Falar com vendas</span></span></a></article>
+  </div>
+</section>
+
+<section class="sec docs-sec" id="docs" aria-labelledby="t-docs">
+  <div class="cab">
+    <p class="eyebrow">08 · Docs</p>
+    <h2 id="t-docs" class="titulo">Comece em 2 minutos.</h2>
+    <p class="lead">Instale a CLI, entre e faça o primeiro deploy da pasta do projeto.</p>
+  </div>
+  <div class="snip escuro">
+    <div class="jan"><i></i><i></i><i></i><span>terminal</span><button class="copiar m" type="button">copiar</button></div>
+    <pre class="m" id="snippet"><span class="c"># 1. instalar</span>
+<span class="p">$</span> npm install -g lastro
+<span class="c"># 2. entrar</span>
+<span class="p">$</span> lastro login
+<span class="c"># 3. deploy da pasta atual</span>
+<span class="p">$</span> lastro deploy</pre>
+  </div>
+</section>
+
+<section class="sec faq-sec" id="faq" aria-labelledby="t-faq">
+  <div class="cab"><p class="eyebrow">09 · FAQ</p><h2 id="t-faq" class="titulo">Perguntas.</h2></div>
+  <div class="faq">
+    <details><summary>Que frameworks a Lastro aceita?</summary><p>Qualquer projeto que gere arquivos estáticos ou rode um servidor Node. O campo <code>framework = "auto"</code> detecta os mais comuns; para os outros, informe o comando de build e a pasta de saída.</p></details>
+    <details><summary>Preciso do arquivo lastro.toml?</summary><p>Não para começar. Sem ele, a CLI detecta o build e usa as regiões padrão do plano. O arquivo serve para fixar essas escolhas no repositório.</p></details>
+    <details><summary>Como funciona o preview por PR?</summary><p>Cada pull request gera um deploy isolado com URL própria. O link é comentado no PR e o deploy é removido quando o PR fecha ou é mesclado.</p></details>
+    <details><summary>O rollback refaz o build?</summary><p>Não. As versões anteriores ficam guardadas prontas; o rollback só troca para onde o tráfego vai.</p></details>
+    <details><summary>Onde ficam meus dados?</summary><p>Nas regiões que você escolher no <code>lastro.toml</code>. Logs e métricas ficam na região principal do projeto.</p></details>
+    <details><summary>Posso usar meu próprio domínio?</summary><p>Sim, em todos os planos. Você aponta o DNS para a Lastro e o certificado TLS é emitido e renovado automaticamente.</p></details>
+    <details><summary>Como guardo segredos e variáveis?</summary><p>Pelo painel ou por <code>lastro env set</code>. Os valores são cifrados e separados por ambiente: preview não lê os segredos de produção.</p></details>
+    <details><summary>Posso cancelar quando quiser?</summary><p>Sim. Os planos Hobby e Time são mensais, sem fidelidade. No Empresa, vale o que estiver no contrato.</p></details>
+  </div>
+</section>
+
+<section class="sec fim" id="contato" aria-labelledby="t-fim">
+  <h2 id="t-fim" class="titulo-hero fim-t">Faça o primeiro deploy hoje.</h2>
+  <div class="acoes"><a class="btn" href="#docs"><span class="dup" data-t="Comece em 2 minutos"><span>Comece em 2 minutos</span></span></a></div>
+  <div class="term escuro status" role="img" aria-label="Saída do comando lastro status: projeto loja-web, versão v42 no ar em 6 regiões.">
+    <pre class="m" aria-hidden="true"><span class="p">$</span> lastro status
++--------------+----------+---------+
+| projeto      | versão   | regiões |
++--------------+----------+---------+
+| loja-web     | v42 * ok | 6/6     |
+| loja-admin   | v17 * ok | 2/2     |
++--------------+----------+---------+</pre>
+  </div>
+  <p class="contato">Vendas: <span class="falta">[a enviar: e-mail de contato]</span> · Empresa: <span class="falta">[a enviar: razão social e CNPJ]</span></p>
+</section>
+</main>
+
+<footer class="rodape">
+  <p><svg aria-hidden="true"><use href="#logo"/></svg>lastro · marca fictícia criada para estudo, sem relação com empresas reais. Números e preços de exemplo.</p>
+  <p><a class="link" href="/marca.html">Guia da marca</a></p>
+</footer>
+</body>
+</html>

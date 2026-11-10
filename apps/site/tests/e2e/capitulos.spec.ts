@@ -103,24 +103,20 @@ test('os capítulos andam na horizontal enquanto a página rola, com a seção f
   expect(primeiro).toBeLessThan(0);
 });
 
-test('os cartões são as cinco peças com capa, sem link, focáveis, e clicar num deles não sai da página', async ({ page }) => {
+test('os cartões são as cinco peças com capa, cada uma um link para o site do conceito', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
   const cartoes = page.locator('.secao-capitulos .cartao');
   await expect(cartoes).toHaveCount(5);
   await expect(page.locator('.secao-capitulos .cartao.com-capa')).toHaveCount(5);
-  await expect(page.locator('.secao-capitulos a')).toHaveCount(0);
-  await expect(page.locator('.secao-capitulos .cartao[tabindex="0"]')).toHaveCount(5);
+  await expect(page.locator('.secao-capitulos a.cartao[target="_blank"]')).toHaveCount(5);
   await expect(page.locator('.secao-capitulos .cartao-img img')).toHaveCount(5);
   for (const cartao of await cartoes.all()) await expect(cartao.locator('.cartao-subtitulo')).toContainText('Conceito');
-  await cartoes.first().click({ force: true });
-  await page.waitForTimeout(300);
-  expect(new URL(page.url()).pathname).toBe('/');
 });
 
-// Pedido de Rafael (2026-11-09): parar o mouse num cartão (ou clicar) abre um pop-up com a página inteira do trabalho,
-// logo que a seção aparece (antes os cartões só aceitavam o mouse depois de 15% do percurso).
-test('parar o mouse num cartão abre o pop-up com o vídeo da página inteira tocando; sair dele fecha', async ({ page }) => {
+// Rafael, 2026-11-09: com o mouse em cima fica a capa; clicar abre o site do conceito numa aba nova, logo que a
+// seção aparece (antes os cartões só aceitavam o mouse depois de 15% do percurso).
+test('o mouse em cima deixa a capa; clicar abre o site do conceito numa aba nova, que carrega sem erro', async ({ page, context }) => {
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
   const inicio = await page.locator('.secao-capitulos').evaluate((e) => e.getBoundingClientRect().top + scrollY);
@@ -134,39 +130,19 @@ test('parar o mouse num cartão abre o pop-up com o vídeo da página inteira to
   );
   expect(indice).toBeGreaterThanOrEqual(0);
   const cartao = page.locator('.cartao').nth(indice);
-  const titulo = await cartao.locator('.cartao-titulo').textContent();
-  const caixa = (await cartao.boundingBox())!;
-  await page.mouse.move(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2);
-  const popup = page.getByRole('dialog');
-  await expect(popup).toBeVisible({ timeout: 2000 });
-  // Abre sobre o cartão (limitado à tela): o mouse já está dentro dele, e sair dele fecha.
-  const sobre = (await popup.boundingBox())!;
-  expect(caixa.x + caixa.width / 2).toBeGreaterThan(sobre.x);
-  expect(caixa.x + caixa.width / 2).toBeLessThan(sobre.x + sobre.width);
-  await expect(popup).toHaveAttribute('aria-label', titulo!);
-  const video = popup.locator('video');
-  // Toca de verdade: passa de 1 s sem erro de decodificação.
-  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.currentTime > 1 && !v.error), { timeout: 8000 }).toBe(true);
-  // Grande: quase a altura da tela, inteiro na tela.
-  const caixaPopup = (await popup.boundingBox())!;
-  expect(caixaPopup.height).toBeGreaterThan(0.8 * 900);
-  expect(caixaPopup.y).toBeGreaterThanOrEqual(0);
-  expect(caixaPopup.y + caixaPopup.height).toBeLessThanOrEqual(900);
-  await page.mouse.move(5, 5);
-  await expect(popup).toHaveCount(0);
-});
-
-test('clicar num cartão abre o pop-up; Esc fecha', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
-  const inicio = await page.locator('.secao-capitulos').evaluate((e) => e.getBoundingClientRect().top + scrollY);
-  await page.evaluate((y) => scrollTo(0, y), inicio + 2);
-  await page.waitForTimeout(1500);
-  await page.locator('.cartao').first().click();
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Fechar' })).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await cartao.hover();
+  await page.waitForTimeout(800);
+  await expect(page.locator('[role="dialog"], .cartao video')).toHaveCount(0);
+  const destino = await cartao.getAttribute('href');
+  const [aba] = await Promise.all([context.waitForEvent('page'), cartao.click()]);
+  const erros: string[] = [];
+  aba.on('pageerror', (e) => erros.push(e.message));
+  aba.on('response', (r) => r.status() >= 400 && erros.push(`${r.status()} ${r.url()}`));
+  await aba.waitForLoadState('load');
+  expect(new URL(aba.url()).pathname).toBe(destino);
+  expect(new URL(page.url()).pathname).toBe('/');
+  await aba.waitForTimeout(1000);
+  expect(erros).toEqual([]);
 });
 
 test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 404', async ({ page }) => {
