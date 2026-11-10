@@ -2,7 +2,25 @@ import { devices, expect, test } from '@playwright/test';
 
 test.use({ ...devices['iPhone 13'], defaultBrowserType: 'chromium' });
 
-test('no celular não há abertura, os capítulos viram lista e as decisões, folha estática', async ({ page }) => {
+// Rafael, 2026-11-10: a abertura toca também no celular, uma vez por sessão, com os trechos dentro da tela.
+test('no celular a abertura toca uma vez, cabe na tela, e some', async ({ page }) => {
+  await page.goto('/');
+  const abertura = page.locator('.abertura');
+  await expect(abertura).toBeVisible();
+  await expect(abertura.locator('.trecho')).toHaveCount(3);
+  for (const t of await abertura.locator('.trecho, canvas').all()) {
+    const r = (await t.boundingBox())!;
+    expect(r.x).toBeGreaterThanOrEqual(0);
+    expect(r.x + r.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  }
+  await expect(abertura).toHaveCount(0, { timeout: 8000 });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await expect(page.locator('.abertura')).toBeHidden();
+});
+
+test('no celular os capítulos viram lista e as decisões, folha estática', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
   await page.goto('/');
   await page.waitForTimeout(1000);
   await expect(page.locator('.abertura')).toBeHidden();

@@ -50,11 +50,8 @@ describe('voltar do navegador', () => {
     expect(voltouNestaCarga()).toBe(false);
   });
 
-  it.each([
-    ['no celular', () => largura(390)],
-    ['com movimento reduzido', () => vi.spyOn(window, 'matchMedia').mockImplementation((q: string) => ({ matches: q.includes('reduce') }) as MediaQueryList)],
-  ])('%s, onde a abertura nunca toca, esconde e restaura mesmo sem a chave da abertura', (_, preparar) => {
-    preparar();
+  it('com movimento reduzido, onde a abertura nunca toca, esconde e restaura mesmo sem a chave da abertura', () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation((q: string) => ({ matches: q.includes('reduce') }) as MediaQueryList);
     navegacao('back_forward');
     sessionStorage.setItem('rolagem:/', '3840');
     rodarScript();
@@ -62,7 +59,8 @@ describe('voltar do navegador', () => {
     expect(restaurandoNestaCarga('/')).toBe(true);
   });
 
-  it('no desktop com a abertura ainda por tocar, não esconde (a abertura cobre a tela)', () => {
+  it.each([1440, 390])('em %ipx com a abertura ainda por tocar, não esconde (a abertura cobre a tela)', (px) => {
+    largura(px);
     navegacao('back_forward');
     sessionStorage.setItem('rolagem:/', '3840');
     rodarScript();

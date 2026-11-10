@@ -5,7 +5,7 @@ import { 'inicio-topo' as inicioTopo } from '@/conteudo/inicio-topo';
 import { t as texto } from '@/conteudo/textos';
 import { useAbertura } from '@/estado/abertura';
 import { gsap } from '@/gsap';
-import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { prefereMenosMovimento } from '@/lib/ambiente';
 import { useIdioma } from '@/lib/useIdioma';
 import { CURVAS, INTERVALOS, TEMPOS } from '@/movimento/tokens';
 import { desenharFilme } from './filmeAbertura';
@@ -16,8 +16,8 @@ const ESPERA_MINIMA = TEMPOS['tempo-filme-minimo']; // segundos com o filme na t
 // Padrão do GSAP: um quadro acima de 500 ms conta como travada e o relógio avança só 33 ms.
 const SUAVIZAR_TRAVADAS = [500, 33] as const;
 
-export const deveTocarAbertura = (largura: number, reduzido: boolean, jaTocou: boolean) =>
-  !ehCelular(largura) && !reduzido && !jaTocou;
+// Toca uma vez por sessão, também no celular (Rafael, 2026-11-10), e nunca com movimento reduzido.
+export const deveTocarAbertura = (_largura: number, reduzido: boolean, jaTocou: boolean) => !reduzido && !jaTocou;
 
 const jaTocouNaSessao = () => {
   try {

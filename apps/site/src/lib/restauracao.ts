@@ -1,4 +1,4 @@
-import { LIMITE_CELULAR, ehCelular, prefereMenosMovimento } from './ambiente';
+import { prefereMenosMovimento } from './ambiente';
 
 // Voltar (navegador) para uma página rolada: o documento nasce no topo e o site só devolve a rolagem depois dos pins
 // (Rolagem.tsx). Para o topo (com a logo do hero) não aparecer nesse meio-tempo, a página fica escondida até a rolagem
@@ -14,9 +14,9 @@ export const TETO_RESTAURANDO = 2500;
 // 1. tira a restauração do navegador, que no fim da carga devolvia a rolagem cortada pela altura da página naquele
 //    momento (ex. 994 px) e impedia a recarga de começar no topo;
 // 2. decide se a carga é um voltar (back_forward, ou reload com a marca do bfcache, consumida aqui) e marca o <html>;
-// 3. a abertura toca (cobrindo a tela) só no desktop, sem movimento reduzido, na primeira vez da sessão;
+// 3. a abertura toca (cobrindo a tela) sem movimento reduzido, na primeira vez da sessão;
 // 4. num voltar com posição guardada e sem abertura, esconde a página até a Rolagem chegar, com teto.
-export const SCRIPT_RESTAURANDO = `try{history.scrollRestoration='manual';var h=document.documentElement,s=sessionStorage,n=performance.getEntriesByType('navigation')[0],t=n&&n.type,v=t==='back_forward'||(t==='reload'&&s.getItem('${CHAVE_VOLTOU}')==='1');s.removeItem('${CHAVE_VOLTOU}');if(v){h.dataset.voltou='1';var a=innerWidth>=${LIMITE_CELULAR}&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&s.getItem('abertura-tocou')!=='1';if(!a&&Number(s.getItem('${CHAVE_ROLAGEM}'+location.pathname))>0){h.classList.add('restaurando');setTimeout(function(){h.classList.remove('restaurando')},${TETO_RESTAURANDO})}}}catch(e){}`;
+export const SCRIPT_RESTAURANDO = `try{history.scrollRestoration='manual';var h=document.documentElement,s=sessionStorage,n=performance.getEntriesByType('navigation')[0],t=n&&n.type,v=t==='back_forward'||(t==='reload'&&s.getItem('${CHAVE_VOLTOU}')==='1');s.removeItem('${CHAVE_VOLTOU}');if(v){h.dataset.voltou='1';var a=!matchMedia('(prefers-reduced-motion: reduce)').matches&&s.getItem('abertura-tocou')!=='1';if(!a&&Number(s.getItem('${CHAVE_ROLAGEM}'+location.pathname))>0){h.classList.add('restaurando');setTimeout(function(){h.classList.remove('restaurando')},${TETO_RESTAURANDO})}}}catch(e){}`;
 
 export function guardarRolagem(caminho: string) {
   try {
@@ -49,7 +49,7 @@ export function restaurandoNestaCarga(caminho: string) {
   try {
     tocou = sessionStorage.getItem('abertura-tocou') === '1';
   } catch {}
-  const aberturaToca = !ehCelular(window.innerWidth) && !prefereMenosMovimento() && !tocou;
+  const aberturaToca = !prefereMenosMovimento() && !tocou;
   return !aberturaToca && posicaoGuardada(caminho) > 0;
 }
 
