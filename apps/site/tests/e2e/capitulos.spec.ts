@@ -163,6 +163,25 @@ test('com o teclado, o Tab leva a fileira até o cartão focado, que fica inteir
   expect(r.y + r.height).toBeLessThanOrEqual(900);
 });
 
+// Revisão de 2026-11-09: as capas viravam texturas logo na montagem (ignorando o loading=lazy) e eram baixadas de novo
+// pelo <img>. Agora a textura usa o próprio <img>: nada no topo da página, e uma requisição por capa.
+test('as capas só carregam perto da seção, uma vez cada', async ({ page }) => {
+  const pedidos: string[] = [];
+  page.on('request', (r) => r.url().includes('/capa.webp') && pedidos.push(new URL(r.url()).pathname));
+  await page.goto('/');
+  await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+  await page.waitForTimeout(3000);
+  expect(pedidos).toEqual([]);
+  const inicio = await page.locator('.secao-capitulos').evaluate((e) => e.getBoundingClientRect().top + scrollY);
+  await page.evaluate((y) => scrollTo(0, y + 2), inicio);
+  await page.waitForTimeout(1500);
+  await page.evaluate((y) => scrollTo(0, y + 1500), inicio);
+  await page.waitForTimeout(2500);
+  const contagem = Object.fromEntries([...new Set(pedidos)].map((p) => [p, pedidos.filter((x) => x === p).length]));
+  expect(Object.keys(contagem)).toHaveLength(5);
+  expect(Object.values(contagem).every((n) => n === 1), JSON.stringify(contagem)).toBe(true);
+});
+
 test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 404', async ({ page }) => {
   for (const caminho of ['/trabalhos', '/en/work']) {
     const resposta = await page.goto(caminho);
