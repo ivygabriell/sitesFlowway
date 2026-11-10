@@ -74,6 +74,7 @@ Atenção: os prints que motivaram o pedido vieram de uma cópia local antiga (`
 - Q6: harness² = o ciclo de melhorar o próprio harness (erro → regra candidata → sonda A/B com dois subagentes → entra no harness).
 - Q7: uma branch, um commit por item, um PR com seção por item.
 - Q8: celular só no escopo desta tarefa, mais `svh` no hero.
+- Revisão de Rafael depois de ver (2026-11-09): o F volta ao tamanho e lugar do começo do projeto (escala e posição da `main`), só de frente e com vidro limpo (sem serra nem borrão de 2 px); substitui a opção A. Vão entre os quadros de 3vw para 4,5vw. "Lag" da fileira e do vídeo corrigidos (capa atrasada um quadro; vídeo carregando só no hover).
 
 ## Cenários de teste
 - Desktop 1440×900 e 1883×703: 5 cartões na ordem; hover toca o vídeo cobrindo o cartão e para ao sair; sem link.

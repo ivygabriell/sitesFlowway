@@ -144,9 +144,10 @@ Mantenha **uma linha por memória** no índice (`MEMORY.md`), com um gancho que 
 ## Rodada de 2026-11-09 (branch `feat/trabalhos-hover-logo`)
 
 - **Decisões da pessoa** (spec `superpowers/specs/2026-11-09-trabalhos-reload-f-design.md`): Trabalhos com as 5 peças de `Sites` (landing / site / landing / site / landing), nome por setor, vídeo da rolagem no hover; hero A (#22) com faixas abaixo do F; recarga sem a logo subir; nada vai à `main` sem o sim dela (marcas fictícias, INPI).
-- **Lições (2026-11-09):** (1) o webm VP9 gerado de quadros do screencast travava no primeiro quadro no Chrome (`MEDIA_ERR_DECODE`), e o `<source>` não cai para o mp4 em erro de decodificação: prévias só em H.264, e o e2e confere `currentTime > 1` sem `error`. (2) No Windows, `npm run test:build` falha porque o `cmd` não aceita `NEXT_DIST_DIR=… comando` (no script e no `webServer` do Playwright); rodar as etapas pelo bash com o `env` no `webServer`. (3) `config-e2e.test.ts` estoura 5 s na suíte completa nesta máquina também na `main` (importa o `playwright.config` a frio); passa sozinho.
+- **Lições (2026-11-09):** (1) o webm VP9 gerado de quadros do screencast travava no primeiro quadro no Chrome (`MEDIA_ERR_DECODE`), e o `<source>` não cai para o mp4 em erro de decodificação: prévias só em H.264, e o e2e confere `currentTime > 1` sem `error`. (1b) Plano WebGL que segue o DOM movido pelo GSAP: o GSAP acorda depois do quadro do canvas e o plano fica um quadro atrás; avançar o ticker (`gsap.ticker.tick()`) antes de ler o DOM. (2) No Windows, `npm run test:build` falha porque o `cmd` não aceita `NEXT_DIST_DIR=… comando` (no script e no `webServer` do Playwright); rodar as etapas pelo bash com o `env` no `webServer`. (3) `config-e2e.test.ts` estoura 5 s na suíte completa nesta máquina também na `main` (importa o `playwright.config` a frio); passa sozinho.
 
 ## Harness² · 2026-11-09
 
 - **Decisão da pessoa:** harness² é o ciclo de melhorar o próprio harness. Retrabalho, correção da pessoa ou bug achado por ela vira "proposta de harness"; só entra em `docs/agentes` depois de uma sonda A/B com dois subagentes no mesmo caso (A sem a regra, B com ela). Adotar é decisão da pessoa. Resumo em `docs/DESENVOLVIMENTO.md`.
-- **Propostas de harness pendentes:** nenhuma.
+- **Propostas de harness pendentes:**
+  - 2026-11-09, correção de Rafael (escolheu "opção A" num protótipo e, ao ver no site, pediu o F do tamanho original): "mudança visual escolhida em protótipo é mostrada no site rodando antes do commit final, ao lado de como estava". Falta a sonda A/B.
