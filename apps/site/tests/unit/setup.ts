@@ -16,16 +16,14 @@ if (typeof window !== 'undefined') {
   window.scrollTo = (() => {}) as typeof window.scrollTo;
 
   // O jsdom não tem IntersectionObserver (a prévia dos Trabalhos carrega perto da tela): nada entra na tela aqui.
-  if (!('IntersectionObserver' in window)) {
-    window.IntersectionObserver = class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-      takeRecords() {
-        return [];
-      }
-    } as unknown as typeof IntersectionObserver;
-  }
+  (window as { IntersectionObserver?: unknown }).IntersectionObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  };
 
   // O intervalo do ScrollTrigger e o relógio do GSAP param no fim de cada arquivo, antes de o jsdom sair.
   // Import dinâmico: o GSAP precisa do matchMedia acima já instalado quando carrega.
