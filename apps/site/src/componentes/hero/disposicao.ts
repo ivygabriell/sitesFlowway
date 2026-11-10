@@ -51,8 +51,8 @@ export const PARALAXE = { palavra: 1.6, principal: 0.1 };
 // Saída ligada à rolagem (referência 3.2).
 export const SAIDA = { scrub: TEMPOS['tempo-scrub'], inicio: 'top+=10', alturas: { desktop: 2, celular: 0.7 } };
 
-// O que a logo faz na saída, como na referência: cresce (× a escala de repouso) e gira no lugar (rad, somado à rotação
-// de repouso), enchendo a tela enquanto o vidro some; o deslocamento vertical é só o da paralaxe.
-export function alvoDeSaida(celular: boolean): { crescimento: number; giro: { x?: number; y?: number; z?: number } } {
-  return celular ? { crescimento: 1.6, giro: { y: 0.15 } } : { crescimento: 1.7, giro: { y: 0.3 } };
+// O que a logo faz na saída: cresce pouco (× a escala de repouso) enquanto o vidro some, sem girar (rad, somado à
+// rotação de repouso). Rafael, 2026-11-09: crescendo 1,7× e girando, virava placas gigantes por cima do texto.
+export function alvoDeSaida(): { crescimento: number; giro: { x?: number; y?: number; z?: number } } {
+  return { crescimento: 1.15, giro: {} };
 }

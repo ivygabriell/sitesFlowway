@@ -80,9 +80,11 @@ describe('disposição da logo de vidro do hero', () => {
     expect(SAIDA.alturas).toEqual({ desktop: 2, celular: 0.7 });
   });
 
-  it.each([false, true])('na saída (celular: %s) a logo cresce pelo menos 1,6× e gira até ~0,3 rad', (celular) => {
-    const { crescimento, giro } = alvoDeSaida(celular);
-    expect(crescimento).toBeGreaterThanOrEqual(1.6);
-    Object.values(giro).forEach((g) => expect(Math.abs(g)).toBeLessThanOrEqual(0.32));
+  // Rafael, 2026-11-09: crescendo 1,7× e girando, o F virava placas gigantes por cima do texto ao rolar.
+  it('na saída a logo cresce pouco (até 1,2×) e não gira, no desktop e no celular', () => {
+    const { crescimento, giro } = alvoDeSaida();
+    expect(crescimento).toBeGreaterThan(1);
+    expect(crescimento).toBeLessThanOrEqual(1.2);
+    expect(giro).toEqual({});
   });
 });

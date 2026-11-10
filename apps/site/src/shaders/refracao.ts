@@ -26,6 +26,7 @@ uniform float uForca;
 uniform float uPassoBorrao;
 uniform float uVeu;
 uniform float uSerra;
+uniform float uTinta;
 varying vec3 vNormal;
 varying vec3 vVisao;
 ${ruido}
@@ -49,8 +50,8 @@ void main() {
   vec3 luz = normalize(vec3(0.0, 1.0, 1.2));
   float brilho = pow(max(dot(reflect(-luz, vNormal), -vVisao), 0.0), 24.0);
 
-  // O fresnel clareia as bordas e só as escurece de leve (vidro quase branco, sem sombra pesada).
-  vec3 vidro = mix(base, vec3(1.0), uVeu + fresnel * 0.15) * (1.0 - fresnel * 0.3) + brilho * 0.5 * uForca;
+  // O fresnel clareia as bordas e as escurece; a tinta dá corpo ao vidro, para o F se ler sobre o fundo claro.
+  vec3 vidro = mix(base, vec3(1.0), uVeu + fresnel * 0.15) * (1.0 - fresnel * 0.5) * (1.0 - uTinta) + brilho * 0.5 * uForca;
   gl_FragColor = vec4(vidro, uOpacidade * (0.97 + fresnel * 0.03));
   #include <colorspace_fragment>
 }

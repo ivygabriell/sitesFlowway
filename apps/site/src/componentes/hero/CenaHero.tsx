@@ -27,7 +27,8 @@ const ROTACAO = [INCLINACAO, 0, 0] as const;
 // a distância (px) entre as 9 amostras do borrão; veu, quanto do branco cobre o fundo; forca, quanto a normal desloca o
 // fundo; serra, quanto cada faixa sai do lugar. Vidro limpo (Rafael, 2026-11-09): com serra e borrão de 2 px, a palavra
 // sob o F saía rasgada em estrias e parecia bug; fica só a refração das bordas e um borrão leve.
-const INTENSIDADE = { passoBorrao: 0.5, veu: 0.005, forca: 0.3, serra: 0 };
+// tinta: quanto o vidro escurece o que está atrás (Rafael, 2026-11-09: sem corpo, o F quase sumia no fundo claro).
+const INTENSIDADE = { passoBorrao: 0.5, veu: 0.005, forca: 0.3, serra: 0, tinta: 0.07 };
 
 // Atalhos para os tokens de movimento usados aqui.
 const T = TEMPOS;
@@ -52,7 +53,7 @@ export function CenaHero() {
   const lugar = useMemo(() => repouso(size.width, size.height), [size]);
   const alvo = useMemo(() => new THREE.WebGLRenderTarget(1, 1), []);
   const vidro = useMemo(() => {
-    const { passoBorrao, veu, forca, serra } = INTENSIDADE;
+    const { passoBorrao, veu, forca, serra, tinta } = INTENSIDADE;
     return new THREE.ShaderMaterial({
       vertexShader: refracaoVert,
       fragmentShader: refracaoFrag,
@@ -68,6 +69,7 @@ export function CenaHero() {
         uPassoBorrao: { value: passoBorrao },
         uVeu: { value: veu },
         uSerra: { value: serra },
+        uTinta: { value: tinta },
       },
     });
   }, [alvo]);
@@ -117,25 +119,14 @@ export function CenaHero() {
 
     const entrada = gsap.timeline({ paused: true });
     entrada.set('.secao-hero .intro', { opacity: 1 }, 0);
-    if (celular) {
-      s.yPrincipal = -3 * un;
-      entrada
-        .to(s, { progresso: 1, duration: T['tempo-glitch'], ease: C['curva-suave'] }, 1)
-        .to('.secao-hero .faixas', { opacity: 1, duration: T['tempo-hover'] }, 1)
-        .to(s, { yPrincipal: 0, duration: 1.2, ease: C['curva-suave'] }, 0)
-        .from(principal.rotation, { y: 0.1 * Math.PI, duration: 1, ease: C['curva-giro'] }, 0.4)
-        .to('.secao-hero .role-para-baixo', { opacity: 1, duration: T['tempo-curto'] }, 1.2);
-      palavras.forEach((p) => entrada.from(p, { opacity: 0, duration: T['tempo-piscar'], repeat: 4 }, 1.1 + 0.5 * Math.random()));
-    } else {
-      s.yPrincipal = -2 * un;
-      entrada
-        .to(s, { progresso: 1, duration: T['tempo-glitch'], ease: C['curva-suave'] }, INTERVALOS['intervalo-glitch'])
-        .to('.secao-hero .faixas', { opacity: 1, duration: T['tempo-esmaecer'] }, INTERVALOS['intervalo-intro'])
-        .to(s, { yPrincipal: 0, duration: T['tempo-vidro-principal'], ease: C['curva-suave'] }, 0)
-        .from(principal.rotation, { y: 0.15 * Math.PI, duration: T['tempo-planos'], ease: C['curva-giro'] }, 0.4)
-        .to('.secao-hero .role-para-baixo', { opacity: 1, duration: T['tempo-esmaecer'] }, 1);
-      palavras.forEach((p) => entrada.from(p, { opacity: 0, duration: T['tempo-piscar'], repeat: 5 }, INTERVALOS['intervalo-intro'] + Math.random()));
-    }
+    // Rafael, 2026-11-09: subindo de baixo e girando, o F entrava como uma placa; agora aparece no lugar, e o glitch
+    // da palavra é curto (meio segundo) e logo no começo.
+    entrada
+      .fromTo(s, { opacidade: 0 }, { opacidade: 1, duration: T['tempo-esmaecer'], ease: C['curva-suave'] }, 0)
+      .to(s, { progresso: 1, duration: 0.5, ease: C['curva-suave'] }, 0.2)
+      .to('.secao-hero .faixas', { opacity: 1, duration: T['tempo-esmaecer'] }, celular ? 0.6 : INTERVALOS['intervalo-intro'])
+      .to('.secao-hero .role-para-baixo', { opacity: 1, duration: T['tempo-esmaecer'] }, 1);
+    palavras.forEach((p) => entrada.from(p, { opacity: 0, duration: T['tempo-piscar'], repeat: celular ? 4 : 5 }, (celular ? 0.6 : INTERVALOS['intervalo-intro']) + 0.5 * Math.random()));
 
     // A entrada segue o tempo real mesmo com quadros acima de 500 ms. Controla só esta timeline,
     // sem alterar o lagSmoothing global e disputar sua restauração com a transição de página.
@@ -155,7 +146,7 @@ export function CenaHero() {
       s.ativo = sim;
       principal.visible = sim;
     };
-    // Saída (referência 3.2): a logo cresce e gira no lugar enquanto o vidro some; a altura segue só a paralaxe.
+    // Saída: a logo cresce pouco enquanto o vidro some, logo no começo da rolagem; a altura segue só a paralaxe.
     const atraso = setTimeout(() => {
       saida = gsap.timeline({
         scrollTrigger: {
@@ -169,14 +160,14 @@ export function CenaHero() {
         },
       });
       saida.to(['.secao-hero .role-para-baixo', '.secao-hero .faixas'], { opacity: 0, duration: T['tempo-rapido'] }, 0);
-      const { crescimento, giro } = alvoDeSaida(celular);
+      const { crescimento, giro } = alvoDeSaida();
       const escala = (celular ? ESCALA.principalCelular : ESCALA.principal) * crescimento * un;
       const [rx, ry, rz] = ROTACAO;
       saida
         .to(principal.scale, { x: escala, y: escala, z: escala, duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto'])
         .to(principal.rotation, { x: rx + (giro.x ?? 0), y: ry + (giro.y ?? 0), z: rz + (giro.z ?? 0), duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto']);
-      // O vidro some até o escuro subir (0,9 de 2,1 da saída: cerca de uma altura de tela de rolagem no desktop), já com as lâminas bem maiores.
-      saida.to(s, { opacidade: 0, duration: T['tempo-lista'], ease: C['curva-entrada'] }, INTERVALOS['intervalo-lista']);
+      // O vidro some cedo (até 0,6 de 2,1 da saída: pouco mais de meia tela de rolagem no desktop).
+      saida.to(s, { opacidade: 0, duration: 0.5, ease: C['curva-entrada'] }, 0.1);
       recalcularGatilhos();
     }, 1000);
 
