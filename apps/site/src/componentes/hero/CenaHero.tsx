@@ -134,7 +134,7 @@ export function CenaHero() {
     const avancarEntrada = () => {
       entrada.totalTime((performance.now() - inicio) / 1000);
     };
-    // Recarga no meio da página: a entrada já vem pronta, sem a logo subir (a página aparece no lugar guardado).
+    // Voltar (navegador) para a página rolada: a entrada já vem pronta (a página aparece no lugar guardado).
     if (restaurandoNestaCarga(window.location.pathname)) entrada.progress(1);
     else {
       entrada.eventCallback('onComplete', () => gsap.ticker.remove(avancarEntrada));
