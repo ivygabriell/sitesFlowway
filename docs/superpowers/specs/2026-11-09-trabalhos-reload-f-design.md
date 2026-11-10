@@ -76,6 +76,15 @@ Atenção: os prints que motivaram o pedido vieram de uma cópia local antiga (`
 - Q8: celular só no escopo desta tarefa, mais `svh` no hero.
 - Revisão de Rafael depois de ver (2026-11-09): o F volta ao tamanho e lugar do começo do projeto (escala e posição da `main`), só de frente e com vidro limpo (sem serra nem borrão de 2 px); substitui a opção A. Vão entre os quadros de 3vw para 4,5vw. "Lag" da fileira e do vídeo corrigidos (capa atrasada um quadro; vídeo carregando só no hover).
 
+## Estado final entregue (revisões de Rafael vendo o site, 2026-11-09 e 10)
+
+Substitui o que está acima onde houver conflito; P1 a P3 ficam como registro do plano aprovado.
+
+- **Trabalhos:** 5 cartões na ordem landing / site / landing / site / landing, nome por setor e "Conceito". O hover só aproxima a capa (shader ASCII); **clicar abre o site do conceito numa aba nova**, servido em `/conceitos/<slug>/index.html` (build das peças de `CreateHubAI/sitesOfertas` em `apps/site/public/conceitos`, gerado por `scripts/conceitos/gerar.sh`). O vídeo de prévia e o pop-up foram tentados e saíram. Vão entre cartões 4,5vw. A capa é a textura do próprio `<img>` (carrega perto da seção, uma vez). Tab rola a fileira presa até o cartão focado. O nome acessível do link leva nome, oferta e data.
+- **Rolagem:** **recarregar vai ao topo** (o script do head marca `history.scrollRestoration = 'manual'`). Só o **voltar** do navegador devolve ao lugar, também quando a página volta do bfcache (o site recarrega com uma marca que conta como voltar) e no celular; a página fica escondida até chegar (teto 2,5 s) e a entrada do hero vem pronta. Mudar a largura da janela recarrega e, portanto, vai ao topo.
+- **F de vidro:** a opção A foi substituída. O F tem a **escala original da main** (1,57 u; 2 u no celular), de frente (sem a inclinação de −0,12), com o topo entrando 25% na altura da palavra (a barra cobre o resto dela); vidro com tinta de 7% e borda mais escura, sem serra e com borrão leve; **o mouse não move o F** (só a flutuação lenta); a entrada esmaece o F no lugar e o glitch dura meio segundo; a saída cresce 1,15× sem giro e o vidro some em cerca de meia tela. Faixas e intro voltaram ao meio da tela, cruzando o F. Hero em `svh`.
+- **Pendências para Rafael:** foto de pessoa na capa da companhia aérea (spec 2026-10-31 :212 pede sem fotos de pessoas reais); legibilidade do texto dos cartões sobre capas claras; sites dos conceitos versionados em `public/` (10 MB) em vez de `apps/conceitos/<nome>`; histórico da branch com os vídeos apagados (7 MB); semelhança das marcas fictícias com referências e INPI antes de publicar.
+
 ## Cenários de teste
 - Desktop 1440×900 e 1883×703: 5 cartões na ordem; hover toca o vídeo cobrindo o cartão e para ao sair; sem link.
 - Celular 390×844: lista com 5 capas, sem estouro lateral, sem prévia.

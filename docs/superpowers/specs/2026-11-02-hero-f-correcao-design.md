@@ -2,7 +2,7 @@
 
 Estado: **proposta visual de fase 1, aguardando conferência da pessoa**. Issue #22, coordenada pela #30. Nenhuma escala final foi fixada; não autoriza implementação nem fase 2.
 
-**Decisão de Rafael (2026-11-09):** opção A, com faixas e intro abaixo do F. Implementada pela spec `2026-11-09-trabalhos-reload-f-design.md` (P3).
+**Decisão de Rafael (2026-11-09):** opção A foi escolhida e implementada, e no mesmo dia, ao vê-la no site, substituída: o F voltou à escala original, de frente, subindo 25% sobre a palavra. Estado final em `2026-11-09-trabalhos-reload-f-design.md`, seção "Estado final entregue".
 
 ## Intenção e limite
 
