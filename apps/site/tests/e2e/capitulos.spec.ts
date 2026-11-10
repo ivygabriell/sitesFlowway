@@ -145,6 +145,24 @@ test('o mouse em cima deixa a capa; clicar abre o site do conceito numa aba nova
   expect(erros).toEqual([]);
 });
 
+// Revisão de 2026-11-09: na fileira presa (overflow clip), o Tab levava o foco a cartões fora da tela. Agora a página
+// rola até a fileira mostrar o cartão focado.
+test('com o teclado, o Tab leva a fileira até o cartão focado, que fica inteiro na tela', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+  const cartoes = page.locator('.secao-capitulos .cartao');
+  await cartoes.first().focus();
+  await page.waitForTimeout(500);
+  for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
+  await expect(cartoes.last()).toBeFocused();
+  await page.waitForTimeout(2500);
+  const r = (await cartoes.last().boundingBox())!;
+  expect(r.x).toBeGreaterThanOrEqual(0);
+  expect(r.x + r.width).toBeLessThanOrEqual(1440);
+  expect(r.y).toBeGreaterThanOrEqual(0);
+  expect(r.y + r.height).toBeLessThanOrEqual(900);
+});
+
 test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 404', async ({ page }) => {
   for (const caminho of ['/trabalhos', '/en/work']) {
     const resposta = await page.goto(caminho);

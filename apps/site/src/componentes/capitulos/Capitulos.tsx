@@ -43,6 +43,7 @@ export function Capitulos() {
   useEfeitoDeLayout(() => {
     if (modo !== 'galeria') return;
     const secao = document.querySelector<HTMLElement>('.secao-capitulos')!;
+    let aoFocar: ((e: FocusEvent) => void) | undefined;
     const ctx = gsap.context(() => {
       const fileira = secao.querySelector<HTMLElement>('.cartoes')!;
       const tracinhos = secao.querySelectorAll<HTMLElement>('.tracinho');
@@ -73,8 +74,24 @@ export function Capitulos() {
         .to('.barra-ativa', { width: '100%', duration: TRECHOS.barra }, 0)
         .to('.barra-progresso', { rotateZ: 6, opacity: 0, duration: TRECHOS.sair }, TRECHOS.sairEm);
       recalcularGatilhos();
+
+      // Teclado: com a seção presa (overflow clip), o foco num cartão fora da tela não rola nada sozinho. A página rola
+      // até o ponto em que a fileira mostra o cartão inteiro (a 30 px da borda), no trecho em que ela anda.
+      aoFocar = (e: FocusEvent) => {
+        const cartao = (e.target as HTMLElement).closest<HTMLElement>('.cartao');
+        const st = tl.scrollTrigger;
+        if (!cartao || !st) return;
+        const esquerdaSemAndar = cartao.getBoundingClientRect().left - Number(gsap.getProperty(fileira, 'x'));
+        const andar = Math.min(extra, Math.max(0, esquerdaSemAndar + cartao.offsetWidth + 30 - window.innerWidth));
+        const progresso = (TRECHOS.andarEm + TRECHOS.andar * (andar / extra)) / tl.duration();
+        window.scrollTo(0, st.start + progresso * (st.end - st.start));
+      };
+      secao.addEventListener('focusin', aoFocar);
     }, secao);
-    return () => ctx.revert();
+    return () => {
+      if (aoFocar) secao.removeEventListener('focusin', aoFocar);
+      ctx.revert();
+    };
   }, [modo]);
 
   // Hover dos cartões com capa: aproxima e escurece no shader (0,4 s para entrar, 0,3 s para sair).
