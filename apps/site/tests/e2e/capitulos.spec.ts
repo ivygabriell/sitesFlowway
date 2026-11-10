@@ -150,10 +150,16 @@ test('o mouse em cima deixa a capa; clicar abre o site do conceito numa aba nova
 test('com o teclado, o Tab leva a fileira até o cartão focado, que fica inteiro na tela', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+  // No CI (WebGL em software) a seção demora a montar: espera a fileira presa antes de usar o teclado.
+  await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-galeria/, { timeout: 10000 });
+  await page.waitForTimeout(1500);
   const cartoes = page.locator('.secao-capitulos .cartao');
   await cartoes.first().focus();
-  await page.waitForTimeout(500);
-  for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
+  await expect(cartoes.first()).toBeFocused();
+  for (let i = 1; i < 5; i++) {
+    await page.keyboard.press('Tab');
+    await expect(cartoes.nth(i)).toBeFocused();
+  }
   await expect(cartoes.last()).toBeFocused();
   await page.waitForTimeout(2500);
   const r = (await cartoes.last().boundingBox())!;
@@ -163,15 +169,14 @@ test('com o teclado, o Tab leva a fileira até o cartão focado, que fica inteir
   expect(r.y + r.height).toBeLessThanOrEqual(900);
 });
 
-// Revisão de 2026-11-09: as capas viravam texturas logo na montagem (ignorando o loading=lazy) e eram baixadas de novo
-// pelo <img>. Agora a textura usa o próprio <img>: nada no topo da página, e uma requisição por capa.
-test('as capas só carregam perto da seção, uma vez cada', async ({ page }) => {
+// Revisão de 2026-11-09: as capas viravam texturas por um TextureLoader e eram baixadas de novo pelo <img>. Agora a
+// textura usa o próprio <img>: uma requisição por capa. (Quando o lazy começa depende do navegador: o Chromium headless
+// do CI carrega de mais longe; por isso o teste não exige nada no topo.)
+test('as capas carregam uma vez cada', async ({ page }) => {
   const pedidos: string[] = [];
   page.on('request', (r) => r.url().includes('/capa.webp') && pedidos.push(new URL(r.url()).pathname));
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
-  await page.waitForTimeout(3000);
-  expect(pedidos).toEqual([]);
   const inicio = await page.locator('.secao-capitulos').evaluate((e) => e.getBoundingClientRect().top + scrollY);
   await page.evaluate((y) => scrollTo(0, y + 2), inicio);
   await page.waitForTimeout(1500);

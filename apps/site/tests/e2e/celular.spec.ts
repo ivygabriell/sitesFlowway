@@ -8,10 +8,12 @@ test('no celular a abertura toca uma vez, cabe na tela, e some', async ({ page }
   const abertura = page.locator('.abertura');
   await expect(abertura).toBeVisible();
   await expect(abertura.locator('.trecho')).toHaveCount(3);
-  for (const t of await abertura.locator('.trecho, canvas').all()) {
-    const r = (await t.boundingBox())!;
-    expect(r.x).toBeGreaterThanOrEqual(0);
-    expect(r.x + r.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  // Mede tudo de uma vez, enquanto a abertura está na tela (no CI ela pode sair entre uma medida e outra).
+  const caixas = await abertura.evaluate((a) => [...a.querySelectorAll('.trechos, .filme')].map((e) => e.getBoundingClientRect().toJSON()));
+  expect(caixas).toHaveLength(2);
+  for (const r of caixas) {
+    expect(r.left).toBeGreaterThanOrEqual(0);
+    expect(r.right).toBeLessThanOrEqual(page.viewportSize()!.width);
   }
   await expect(abertura).toHaveCount(0, { timeout: 8000 });
   await page.reload();
