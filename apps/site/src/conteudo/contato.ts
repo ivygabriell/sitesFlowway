@@ -126,6 +126,41 @@ const contato = {
       { pt: 'Sem pressa', en: 'No rush' },
     ],
   },
+  // Conversa com o Gemini (documento "Contato com IA que qualifica leads").
+  ia: {
+    abertura: { pt: 'Conte o que você quer construir. Pode escolher um atalho ou escrever do seu jeito.', en: 'Tell us what you want to build. Pick a shortcut or write it your way.' },
+    atalhosRotulo: { pt: 'Atalhos', en: 'Shortcuts' },
+    atalhos: [
+      { pt: 'Quero uma landing page', en: 'I want a landing page' },
+      { pt: 'Preciso de um site institucional', en: 'I need a company website' },
+      { pt: 'Quero automatizar um processo', en: 'I want to automate a process' },
+      { pt: 'Ainda não sei', en: 'Not sure yet' },
+    ],
+    faixasRotulo: { pt: 'Faixas de investimento', en: 'Budget ranges' },
+    faixas: [
+      { pt: 'até R$ 5 mil', en: 'up to R$ 5k' },
+      { pt: 'R$ 5 a 15 mil', en: 'R$ 5k to 15k' },
+      { pt: 'R$ 15 a 40 mil', en: 'R$ 15k to 40k' },
+      { pt: 'acima de R$ 40 mil', en: 'over R$ 40k' },
+      { pt: 'Prefiro não dizer / ainda não sei', en: 'Rather not say / not sure yet' },
+    ],
+    placeholder: { pt: 'Escreva sua resposta…', en: 'Write your answer…' },
+    aviso: { pt: 'Conversa processada por IA (Google Gemini) para preparar o contato · Enter para enviar', en: 'Processed by AI (Google Gemini) to prepare the contact · Enter to send' },
+    falha: { pt: 'Não consegui responder agora. Seu texto continua no campo: tente de novo em instantes.', en: 'I could not answer right now. Your text is still in the field: try again in a moment.' },
+    limite: { pt: 'A conversa chegou ao limite. Use até 2000 caracteres por mensagem.', en: 'The conversation reached its limit. Use up to 2000 characters per message.' },
+    resumoDica: { pt: 'A IA organizou o que você contou. Ajuste o texto se quiser e preencha seus dados para a equipe falar com você.', en: 'The AI organized what you told us. Adjust the text if you like and fill in your details so the team can reach you.' },
+    resumoCampo: { pt: 'Resumo do projeto', en: 'Project summary' },
+    revisar: { pt: 'Revisar envio', en: 'Review submission' },
+    erroNome: { pt: 'Informe seu nome.', en: 'Enter your name.' },
+    erroEmpresa: { pt: 'Informe a empresa.', en: 'Enter the company.' },
+    erroResumo: { pt: 'O resumo não pode ficar vazio.', en: 'The summary cannot be empty.' },
+    placeholders: {
+      nome: { pt: 'Seu nome', en: 'Your name' },
+      empresa: { pt: 'Nome da empresa', en: 'Company name' },
+      whatsapp: { pt: '(DDD) 9XXXX-XXXX', en: '(area code) 9XXXX-XXXX' },
+      email: { pt: 'voce@empresa', en: 'you@company' },
+    },
+  },
   privacidade: pendente('texto do aviso de privacidade, C2'),
 } as const satisfies Textos;
 

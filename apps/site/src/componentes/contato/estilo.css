@@ -295,3 +295,24 @@ html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minma
   .guiada-outro { flex-basis: 100%; margin-left: 8px; }
   .guiada-entrada textarea { font-size: 16px; }
 }
+
+/* Conversa com IA: atalhos em pílula acima do campo e, no resumo, campos de contato em grade. */
+.guiada-atalhos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.guiada-atalhos button { min-height: 40px; padding: 8px 16px; border: 1px solid var(--g-borda); border-radius: 999px; background: var(--claro); color: var(--escuro); font: 500 14px/1.2 var(--sans); cursor: pointer; transition: border-color 150ms, background-color 150ms, color 150ms; }
+.guiada-atalhos button:hover, .guiada-atalhos button:focus-visible { border-color: var(--azul); background: var(--azul); color: var(--claro); outline: 0; }
+.guiada-entrada textarea:disabled { opacity: 0.5; }
+.guiada-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; padding: 18px 22px 4px; }
+.guiada-campo { display: flex; flex-direction: column; gap: 6px; }
+.guiada-campo-largo { grid-column: 1 / -1; }
+.guiada-campo label { font: 400 11px/14px var(--mono); text-transform: uppercase; opacity: 0.6; }
+.guiada-campo input, .guiada-campo textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--g-borda); border-radius: 12px; outline: 0; background: var(--claro); color: var(--escuro); font: 400 16px/22px var(--sans); resize: vertical; }
+.guiada-campo input:focus, .guiada-campo textarea:focus { border-color: var(--azul); background: #fff; }
+.guiada-campo [aria-invalid="true"] { border-color: var(--azul); }
+.guiada-campo em { color: var(--azul); font: 500 13px/18px var(--sans); font-style: normal; }
+.guiada-acoes { padding: 16px 22px 20px; }
+@media (max-width: 899px) {
+  .guiada-form { grid-template-columns: 1fr; padding: 16px 16px 4px; }
+  .guiada-acoes { padding: 14px 16px 18px; }
+  .guiada-atalhos { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 10px; padding: 0 14px; scrollbar-width: none; }
+  .guiada-atalhos button { flex: none; }
+}
