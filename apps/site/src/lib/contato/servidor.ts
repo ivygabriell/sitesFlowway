@@ -116,7 +116,7 @@ export async function receberConversa(req: Request, deps = dependenciasPadrao())
     if (retryAfter) return erro(429, 'LIMITE_ATINGIDO', retryAfter);
     const resultado = await conversarGemini(entrada, deps);
     if (resultado.status !== 200) return erro(resultado.status, resultado.codigo);
-    return Response.json({ turnoId: entrada.turnoId, resposta: resultado.resposta, mensagemSugerida: resultado.mensagemSugerida }, { headers: PRIVADO });
+    return Response.json({ turnoId: entrada.turnoId, resposta: resultado.resposta, mensagemSugerida: resultado.mensagemSugerida, opcoes: resultado.opcoes }, { headers: PRIVADO });
   } catch (e) {
     if (e instanceof FalhaContato) return erro(e.status, e.codigo === 'ENTREGA_INDISPONIVEL' ? 'IA_INDISPONIVEL' : e.codigo);
     return erro(500, 'ERRO_INTERNO');

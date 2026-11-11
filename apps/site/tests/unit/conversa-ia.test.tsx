@@ -4,7 +4,7 @@ import { ConversaIA } from '@/componentes/contato/ConversaIA';
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
-const resposta = (r: string, m: string | null = null) => vi.fn(async (_u: string, op: RequestInit) => Response.json({ turnoId: JSON.parse(String(op.body)).turnoId, resposta: r, mensagemSugerida: m }));
+const resposta = (r: string, m: string | null = null, opcoes: string[] = []) => vi.fn(async (_u: string, op: RequestInit) => Response.json({ turnoId: JSON.parse(String(op.body)).turnoId, resposta: r, mensagemSugerida: m, opcoes }));
 async function responder(texto: string) {
   fireEvent.change(screen.getByLabelText('Sua resposta'), { target: { value: texto } });
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Enviar resposta' })); });
@@ -66,5 +66,14 @@ describe('ConversaIA', () => {
     await responder('Meu projeto');
     await screen.findByRole('alert');
     expect((screen.getByLabelText('Sua resposta') as HTMLTextAreaElement).value).toBe('Meu projeto');
+  });
+
+  it('mostra as opções que a IA sugerir para a pergunta e envia a escolhida', async () => {
+    const fetch = resposta('Tem alguma data ou evento puxando esse projeto?', null, ['Em até 1 mês', 'Sem data definida']); vi.stubGlobal('fetch', fetch);
+    render(<ConversaIA aoConcluir={vi.fn()} />);
+    await dadosIniciais();
+    await responder('Um site do zero');
+    await act(async () => { fireEvent.click(await screen.findByRole('button', { name: 'Sem data definida' })); });
+    expect(JSON.parse(String((fetch.mock.calls[1] as unknown as [string, RequestInit])[1].body)).mensagem).toBe('Sem data definida');
   });
 });

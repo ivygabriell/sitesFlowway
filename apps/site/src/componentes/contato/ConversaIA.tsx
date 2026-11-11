@@ -11,7 +11,7 @@ import { emailValido, whatsappValido } from './ConversaGuiada';
 // 1. perguntas fixas: nome, empresa, WhatsApp e e-mail (validados); 2. o Gemini qualifica o projeto
 // (rota /api/contato/conversa) até devolver um resumo. No fim, o resumo editável com tudo preenchido.
 // Só as mensagens da parte 2 vão para a IA: dados de contato nunca saem para o modelo.
-type Mensagem = { de: 'floway' | 'voce'; texto: string; hora: string; ia: boolean };
+type Mensagem = { de: 'floway' | 'voce'; texto: string; hora: string; ia: boolean; opcoes?: string[] };
 type Campos = { nome: string; empresa: string; whatsapp: string; email: string };
 type Fase = 'nome' | 'empresa' | 'ia' | 'whatsapp' | 'email' | 'resumo';
 const PERGUNTA_ORCAMENTO = /investimento|orçamento|budget|investment/i;
@@ -31,9 +31,10 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
   const emCurso = useRef(false);
   const lista = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => { lista.current?.scrollTo?.({ top: lista.current.scrollHeight, behavior: 'smooth' }); }, [mensagens, digitando, fase, children]);
+  // Desce até a última mensagem já com a área de opções no tamanho final (o efeito roda depois da pintura do mesmo render).
+  useEffect(() => { if (lista.current) lista.current.scrollTop = lista.current.scrollHeight; }, [mensagens, digitando, fase, erro, children]);
 
-  const dizer = (texto: string, ia = false) => setMensagens(m => [...m, { de: 'floway', texto, hora: hora(), ia }]);
+  const dizer = (texto: string, ia = false, opcoes: string[] = []) => setMensagens(m => [...m, { de: 'floway', texto, hora: hora(), ia, opcoes }]);
   // Pergunta fixa: a Floway "digita" um instante e pergunta.
   function perguntar(proxima: Fase, texto: string) {
     setDigitando(true); setFase(null);
@@ -55,7 +56,7 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
       const r = await fetch('/api/contato/conversa', { method: 'POST', signal: controller.signal, headers: { accept: 'application/json', 'content-type': 'application/json' }, body: JSON.stringify({ idioma, turnoId, historico, mensagem }) });
       const d = await r.json();
       if (r.status !== 200 || d?.turnoId !== turnoId || typeof d.resposta !== 'string' || !d.resposta.trim()) throw new Error('resposta');
-      dizer(d.resposta, true);
+      dizer(d.resposta, true, Array.isArray(d.opcoes) ? d.opcoes.filter((o: unknown): o is string => typeof o === 'string' && !!o.trim()).slice(0, 4) : []);
       if (typeof d.mensagemSugerida === 'string' && d.mensagemSugerida.trim()) {
         setResumo(d.mensagemSugerida.trim());
         perguntar('resumo', t(ia.confira, idioma));
@@ -105,7 +106,10 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
 
   const ultima = mensagens[mensagens.length - 1];
   const naIA = fase === 'ia' && !digitando;
-  const atalhos = naIA && !mensagens.some(m => m.ia) ? ia.atalhos : naIA && ultima?.ia && ultima.de === 'floway' && PERGUNTA_ORCAMENTO.test(ultima.texto) ? ia.faixas : null;
+  // Atalhos: os 4 de entrada; as faixas na pergunta de investimento; senão, as opções que a IA sugeriu para a pergunta.
+  const daIA = naIA && ultima?.ia && ultima.de === 'floway';
+  const tipoAtalho = naIA && !mensagens.some(m => m.ia) ? 'entrada' : daIA && PERGUNTA_ORCAMENTO.test(ultima.texto) ? 'faixas' : daIA && ultima.opcoes?.length ? 'ia' : null;
+  const atalhos = tipoAtalho === 'entrada' ? ia.atalhos.map(o => t(o, idioma)) : tipoAtalho === 'faixas' ? ia.faixas.map(o => t(o, idioma)) : tipoAtalho === 'ia' ? ultima!.opcoes! : null;
   const placeholder = fase === 'nome' ? g.placeholders.nome : fase === 'empresa' ? g.placeholders.empresa : fase === 'whatsapp' ? g.placeholders.whatsapp : fase === 'email' ? g.placeholders.email : ia.placeholder;
   // O erro fica fora do rótulo e ligado ao campo por aria-describedby, para o nome do campo não mudar.
   const campoDe = (k: keyof Campos, tipo: string, auto: string) => (
@@ -149,8 +153,8 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
       {fase !== 'resumo' && (
         <div className="guiada-rodape">
           {atalhos && (
-            <div className="guiada-atalhos" role="group" aria-label={t(atalhos === ia.atalhos ? ia.atalhosRotulo : ia.faixasRotulo, idioma)}>
-              {atalhos.map(o => { const r = t(o, idioma); return <button key={r} type="button" onClick={() => void falarComIA(r)}>{r}</button>; })}
+            <div className="guiada-atalhos" role="group" aria-label={t(tipoAtalho === 'faixas' ? ia.faixasRotulo : ia.atalhosRotulo, idioma)}>
+              {atalhos.map(r => <button key={r} type="button" onClick={() => void falarComIA(r)}>{r}</button>)}
             </div>
           )}
           <form className="guiada-entrada" onSubmit={enviar} noValidate>
