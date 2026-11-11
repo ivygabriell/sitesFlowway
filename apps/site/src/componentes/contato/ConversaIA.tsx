@@ -2,57 +2,89 @@
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { contato } from '@/conteudo/contato';
-import { t } from '@/conteudo/textos';
+import { t, type Texto } from '@/conteudo/textos';
 import { useIdioma } from '@/lib/useIdioma';
 import type { Pedido } from '@/lib/pedidoDeContato';
 import { emailValido, whatsappValido } from './ConversaGuiada';
 
-// Conversa com o Gemini (rota /api/contato/conversa): a IA qualifica o projeto seguindo o roteiro do servidor e,
-// quando tem o suficiente, devolve um resumo. A pessoa confere o resumo e preenche os dados de contato aqui.
-type Mensagem = { papel: 'usuario' | 'assistente'; texto: string };
+// Conversa em três partes, numa janela só:
+// 1. perguntas fixas: nome e empresa; 2. o Gemini qualifica o projeto (rota /api/contato/conversa) até devolver um
+// resumo; 3. perguntas fixas: WhatsApp e e-mail, validados. No fim, o resumo editável com tudo preenchido.
+// Só as mensagens da parte 2 vão para a IA: dados de contato nunca saem para o modelo.
+type Mensagem = { de: 'floway' | 'voce'; texto: string; hora: string; ia: boolean };
 type Campos = { nome: string; empresa: string; whatsapp: string; email: string };
+type Fase = 'nome' | 'empresa' | 'ia' | 'whatsapp' | 'email' | 'resumo';
 const PERGUNTA_ORCAMENTO = /investimento|orçamento|budget|investment/i;
-
 const hora = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
 export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p: Pedido) => void; aoEditar?: () => void; children?: ReactNode }) {
   const idioma = useIdioma();
   const g = contato.guiada, ia = contato.ia;
-  const [historico, setHistorico] = useState<(Mensagem & { hora: string })[]>([]);
+  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
+  const [fase, setFase] = useState<Fase | null>(null);
   const [entrada, setEntrada] = useState('');
-  const [digitando, setDigitando] = useState(false);
+  const [digitando, setDigitando] = useState(true);
   const [erro, setErro] = useState('');
-  const [resumo, setResumo] = useState<string | null>(null);
+  const [resumo, setResumo] = useState('');
   const [campos, setCampos] = useState<Campos>({ nome: '', empresa: '', whatsapp: '', email: '' });
   const [errosResumo, setErrosResumo] = useState<Partial<Record<keyof Campos | 'resumo', string>>>({});
   const emCurso = useRef(false);
   const lista = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => { lista.current?.scrollTo?.({ top: lista.current.scrollHeight, behavior: 'smooth' }); }, [historico, digitando, resumo, children]);
+  useEffect(() => { lista.current?.scrollTo?.({ top: lista.current.scrollHeight, behavior: 'smooth' }); }, [mensagens, digitando, fase, children]);
 
-  async function falar(texto: string) {
-    const mensagem = texto.trim();
-    if (!mensagem || emCurso.current) return;
+  const dizer = (texto: string, ia = false) => setMensagens(m => [...m, { de: 'floway', texto, hora: hora(), ia }]);
+  // Pergunta fixa: a Floway "digita" um instante e pergunta.
+  function perguntar(proxima: Fase, texto: string) {
+    setDigitando(true); setFase(null);
+    setTimeout(() => { dizer(texto); setFase(proxima); setDigitando(false); requestAnimationFrame(() => campo.current?.focus()); }, 350);
+  }
+  useEffect(() => perguntar('nome', t(g.perguntas.nome, idioma)), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function falarComIA(mensagem: string) {
+    if (emCurso.current) return;
+    const historico = mensagens.filter(m => m.ia).map(m => ({ papel: m.de === 'voce' ? 'usuario' : 'assistente', texto: m.texto }));
     if (mensagem.length > 2000 || historico.length >= 18) { setErro(t(ia.limite, idioma)); return; }
     emCurso.current = true; setErro(''); setDigitando(true);
-    const anterior = historico;
-    setHistorico([...anterior, { papel: 'usuario', texto: mensagem, hora: hora() }]); setEntrada('');
+    const antes = mensagens;
+    setMensagens([...antes, { de: 'voce', texto: mensagem, hora: hora(), ia: true }]); setEntrada('');
     const turnoId = crypto.randomUUID();
     const controller = new AbortController();
     const prazo = setTimeout(() => controller.abort(), 25000);
     try {
-      const r = await fetch('/api/contato/conversa', { method: 'POST', signal: controller.signal, headers: { accept: 'application/json', 'content-type': 'application/json' },
-        body: JSON.stringify({ idioma, turnoId, historico: anterior.map(({ papel, texto }) => ({ papel, texto })), mensagem }) });
+      const r = await fetch('/api/contato/conversa', { method: 'POST', signal: controller.signal, headers: { accept: 'application/json', 'content-type': 'application/json' }, body: JSON.stringify({ idioma, turnoId, historico, mensagem }) });
       const d = await r.json();
       if (r.status !== 200 || d?.turnoId !== turnoId || typeof d.resposta !== 'string' || !d.resposta.trim()) throw new Error('resposta');
-      setHistorico(h => [...h, { papel: 'assistente', texto: d.resposta, hora: hora() }]);
-      if (typeof d.mensagemSugerida === 'string' && d.mensagemSugerida.trim()) setResumo(d.mensagemSugerida.trim());
+      dizer(d.resposta, true);
+      if (typeof d.mensagemSugerida === 'string' && d.mensagemSugerida.trim()) {
+        setResumo(d.mensagemSugerida.trim());
+        perguntar('whatsapp', t(g.perguntas.whatsapp, idioma));
+      }
     } catch {
       // A mensagem volta ao campo para a pessoa tentar de novo sem redigitar.
-      setHistorico(anterior); setEntrada(mensagem); setErro(t(ia.falha, idioma));
+      setMensagens(antes); setEntrada(mensagem); setErro(t(ia.falha, idioma));
     } finally { clearTimeout(prazo); emCurso.current = false; setDigitando(false); requestAnimationFrame(() => campo.current?.focus()); }
   }
-  function enviar(e: FormEvent) { e.preventDefault(); void falar(entrada); }
+
+  function responder(bruto: string) {
+    const texto = bruto.trim();
+    if (!texto || !fase || digitando) return;
+    if (fase === 'ia') return void falarComIA(texto);
+    const recusa: Partial<Record<Fase, [boolean, Texto]>> = {
+      nome: [texto.length >= 2 && texto.length <= 200, ia.erroNome], empresa: [texto.length <= 200, ia.erroEmpresa],
+      whatsapp: [whatsappValido(texto), g.erroWhatsapp], email: [emailValido(texto), g.erroEmail],
+    };
+    const [ok, msg] = recusa[fase] ?? [true, ia.erroNome];
+    if (!ok) { setErro(t(msg, idioma)); campo.current?.focus(); return; }
+    setErro(''); setEntrada('');
+    setMensagens(m => [...m, { de: 'voce', texto, hora: hora(), ia: false }]);
+    setCampos(c => ({ ...c, [fase]: texto }));
+    if (fase === 'nome') perguntar('empresa', t(g.perguntas.empresa, idioma).replace('{nome}', texto.split(' ')[0]));
+    else if (fase === 'empresa') perguntar('ia', t(ia.abertura, idioma));
+    else if (fase === 'whatsapp') perguntar('email', t(g.perguntas.email, idioma));
+    else if (fase === 'email') perguntar('resumo', t(ia.confira, idioma));
+  }
+  function enviar(e: FormEvent) { e.preventDefault(); responder(entrada); }
 
   function revisar() {
     const e: typeof errosResumo = {};
@@ -60,20 +92,21 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
     if (!campos.empresa.trim()) e.empresa = t(ia.erroEmpresa, idioma);
     if (!whatsappValido(campos.whatsapp)) e.whatsapp = t(g.erroWhatsapp, idioma);
     if (!emailValido(campos.email)) e.email = t(g.erroEmail, idioma);
-    if (!resumo?.trim() || resumo.length > 5000) e.resumo = t(ia.erroResumo, idioma);
+    if (!resumo.trim() || resumo.length > 5000) e.resumo = t(ia.erroResumo, idioma);
     setErrosResumo(e);
     if (Object.keys(e).length) return;
-    aoConcluir({ nome: campos.nome.trim(), empresa: campos.empresa.trim(), contato: `WhatsApp: ${campos.whatsapp.trim()} · E-mail: ${campos.email.trim()}`, mensagem: resumo!.trim() });
+    aoConcluir({ nome: campos.nome.trim(), empresa: campos.empresa.trim(), contato: `WhatsApp: ${campos.whatsapp.trim()} · E-mail: ${campos.email.trim()}`, mensagem: resumo.trim() });
   }
-  const editar = <K extends keyof Campos | 'resumo'>(k: K, v: string) => {
+  const editar = (k: keyof Campos | 'resumo', v: string) => {
     if (k === 'resumo') setResumo(v); else setCampos(c => ({ ...c, [k]: v }));
     if (errosResumo[k]) setErrosResumo(e => ({ ...e, [k]: undefined }));
     aoEditar?.();
   };
 
-  const ultima = historico[historico.length - 1];
-  const mostrarFaixas = !resumo && !digitando && ultima?.papel === 'assistente' && PERGUNTA_ORCAMENTO.test(ultima.texto);
-  const inicio = historico.length === 0 && !digitando;
+  const ultima = mensagens[mensagens.length - 1];
+  const naIA = fase === 'ia' && !digitando;
+  const atalhos = naIA && !mensagens.some(m => m.ia) ? ia.atalhos : naIA && ultima?.ia && ultima.de === 'floway' && PERGUNTA_ORCAMENTO.test(ultima.texto) ? ia.faixas : null;
+  const placeholder = fase === 'nome' ? g.placeholders.nome : fase === 'empresa' ? g.placeholders.empresa : fase === 'whatsapp' ? g.placeholders.whatsapp : fase === 'email' ? g.placeholders.email : ia.placeholder;
   // O erro fica fora do rótulo e ligado ao campo por aria-describedby, para o nome do campo não mudar.
   const campoDe = (k: keyof Campos, tipo: string, auto: string) => (
     <div className="guiada-campo" key={k}>
@@ -92,10 +125,9 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
       </header>
       <div className="guiada-lista" ref={lista} role="log" aria-live="polite" data-lenis-prevent="">
         <div className="guiada-coluna">
-          <div className="guiada-balao floway"><p>{t(ia.abertura, idioma)}</p></div>
-          {historico.map((m, i) => <div key={i} className={`guiada-balao ${m.papel === 'usuario' ? 'voce' : 'floway'}`}><p>{m.texto}</p><time>{m.hora}</time></div>)}
+          {mensagens.map((m, i) => <div key={i} className={`guiada-balao ${m.de}`}><p>{m.texto}</p><time>{m.hora}</time></div>)}
           {digitando && <div className="guiada-balao floway guiada-digitando" aria-hidden="true"><i /><i /><i /></div>}
-          {resumo !== null && (
+          {fase === 'resumo' && (
             <section className="guiada-resumo" aria-label={t(g.resumo, idioma)}>
               <header><h2>{t(g.resumo, idioma)}</h2><p>{t(ia.resumoDica, idioma)}</p></header>
               <div className="guiada-form">
@@ -114,23 +146,25 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
           )}
         </div>
       </div>
-      {resumo === null && (
+      {fase !== 'resumo' && (
         <div className="guiada-rodape">
-          {(inicio || mostrarFaixas) && (
-            <div className="guiada-atalhos" role="group" aria-label={t(inicio ? ia.atalhosRotulo : ia.faixasRotulo, idioma)}>
-              {(inicio ? ia.atalhos : ia.faixas).map(o => { const r = t(o, idioma); return <button key={r} type="button" onClick={() => void falar(r)}>{r}</button>; })}
+          {atalhos && (
+            <div className="guiada-atalhos" role="group" aria-label={t(atalhos === ia.atalhos ? ia.atalhosRotulo : ia.faixasRotulo, idioma)}>
+              {atalhos.map(o => { const r = t(o, idioma); return <button key={r} type="button" onClick={() => void falarComIA(r)}>{r}</button>; })}
             </div>
           )}
           <form className="guiada-entrada" onSubmit={enviar} noValidate>
             {erro && <p className="guiada-erro" role="alert">{erro}</p>}
             <div className="guiada-linha">
               <label className="resposta-acessivel" htmlFor="ia-campo">{t(g.suaResposta, idioma)}</label>
-              <textarea id="ia-campo" ref={campo} rows={1} value={entrada} placeholder={t(ia.placeholder, idioma)} maxLength={2000} disabled={digitando}
+              <textarea id="ia-campo" ref={campo} rows={1} value={entrada} placeholder={t(placeholder, idioma)} maxLength={2000} disabled={digitando}
+                inputMode={fase === 'whatsapp' ? 'tel' : fase === 'email' ? 'email' : undefined}
+                autoComplete={fase === 'nome' ? 'name' : fase === 'empresa' ? 'organization' : fase === 'whatsapp' ? 'tel' : fase === 'email' ? 'email' : 'off'}
                 onChange={e => { setEntrada(e.target.value); if (erro) setErro(''); }}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void falar(entrada); } }} data-lenis-prevent="" />
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); responder(entrada); } }} data-lenis-prevent="" />
               <button type="submit" className="guiada-enviar" disabled={digitando || !entrada.trim()} aria-label={t(g.enviarResposta, idioma)}>→</button>
             </div>
-            <p className="guiada-dica">{t(ia.aviso, idioma)}</p>
+            <p className="guiada-dica">{t(fase === 'ia' ? ia.aviso : g.obrigatoria, idioma)}</p>
           </form>
         </div>
       )}

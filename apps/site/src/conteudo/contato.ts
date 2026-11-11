@@ -128,7 +128,7 @@ const contato = {
   },
   // Conversa com o Gemini (documento "Contato com IA que qualifica leads").
   ia: {
-    abertura: { pt: 'Conte o que você quer construir. Pode escolher um atalho ou escrever do seu jeito.', en: 'Tell us what you want to build. Pick a shortcut or write it your way.' },
+    abertura: { pt: 'Agora conte o que você quer construir. Pode escolher um atalho ou escrever do seu jeito.', en: 'Tell us what you want to build. Pick a shortcut or write it your way.' },
     atalhosRotulo: { pt: 'Atalhos', en: 'Shortcuts' },
     atalhos: [
       { pt: 'Quero uma landing page', en: 'I want a landing page' },
@@ -148,8 +148,9 @@ const contato = {
     aviso: { pt: 'Conversa processada por IA (Google Gemini) para preparar o contato · Enter para enviar', en: 'Processed by AI (Google Gemini) to prepare the contact · Enter to send' },
     falha: { pt: 'Não consegui responder agora. Seu texto continua no campo: tente de novo em instantes.', en: 'I could not answer right now. Your text is still in the field: try again in a moment.' },
     limite: { pt: 'A conversa chegou ao limite. Use até 2000 caracteres por mensagem.', en: 'The conversation reached its limit. Use up to 2000 characters per message.' },
-    resumoDica: { pt: 'A IA organizou o que você contou. Ajuste o texto se quiser e preencha seus dados para a equipe falar com você.', en: 'The AI organized what you told us. Adjust the text if you like and fill in your details so the team can reach you.' },
+    resumoDica: { pt: 'A IA organizou o que você contou. Ajuste o que quiser antes de enviar.', en: 'The AI organized what you told us. Adjust anything before sending.' },
     resumoCampo: { pt: 'Resumo do projeto', en: 'Project summary' },
+    confira: { pt: 'Pronto. Confira tudo abaixo e envie quando estiver certo.', en: 'Done. Check everything below and send when it is right.' },
     revisar: { pt: 'Revisar envio', en: 'Review submission' },
     erroNome: { pt: 'Informe seu nome.', en: 'Enter your name.' },
     erroEmpresa: { pt: 'Informe a empresa.', en: 'Enter the company.' },
