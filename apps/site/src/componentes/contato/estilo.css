@@ -268,3 +268,32 @@ html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minma
   .pagina-contato .rodape-info { grid-template-columns: 1fr; gap: 4px; }
   .pagina-contato .rodape-info .rodape-linha { white-space: normal; }
 }
+
+/* Sem rodapé nem menu, a conversa ocupa a altura livre abaixo do "voltar". */
+.guiada { height: calc(100vh - 120px); }
+@media (max-width: 899px) { .guiada { height: calc(100svh - 90px); } }
+
+/* Quadro maior e mais arrumado: largura quase total, conteúdo numa coluna central de leitura, respiro maior. */
+.pagina-contato { padding-top: 64px; padding-bottom: 24px; }
+.guiada { width: min(100%, 1180px); height: calc(100vh - 96px); border-radius: 26px; }
+.guiada-topo { padding: 18px 28px; }
+.guiada-avatar { width: 44px; height: 44px; font-size: 18px; }
+.guiada-topo strong { font-size: 17px; }
+.guiada-lista, .guiada-opcoes, .guiada-entrada { padding-left: max(28px, calc((100% - 820px) / 2)); padding-right: max(28px, calc((100% - 820px) / 2)); }
+.guiada-lista { gap: 12px; padding-top: 28px; padding-bottom: 28px; }
+.guiada-balao { max-width: 70%; padding: 12px 18px 8px; font-size: 18px; line-height: 26px; }
+.guiada-resumo { width: 70%; }
+.guiada-opcoes { gap: 10px; padding-top: 16px; padding-bottom: 20px; }
+.guiada-opcoes label, .guiada-opcoes button { min-height: 46px; padding: 10px 20px; font-size: 15px; }
+.guiada-entrada { gap: 12px; padding-top: 16px; padding-bottom: 20px; }
+.guiada-entrada textarea { min-height: 52px; padding: 14px 20px; border-radius: 26px; font-size: 17px; }
+.guiada-enviar { width: 52px; height: 52px; }
+.guiada-pular { height: 52px; }
+@media (max-width: 899px) {
+  .pagina-contato { padding-top: 56px; padding-bottom: 0; }
+  .guiada { height: calc(100svh - 56px); border-radius: 0; }
+  .guiada-topo { padding: 14px 18px; }
+  .guiada-lista, .guiada-opcoes, .guiada-entrada { padding-left: 14px; padding-right: 14px; }
+  .guiada-balao, .guiada-resumo { max-width: 86%; font-size: 16px; line-height: 22px; }
+  .guiada-resumo { width: 86%; }
+}

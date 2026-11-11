@@ -100,6 +100,8 @@ export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idiom
             <Giro texto={t(casca.voltar, idioma)} />
           </a>
         )}
+        {/* Na página de contato o cabeçalho fica só com o voltar, para a conversa ser o único foco. */}
+        {pagina !== 'contato' && (<>
         <a className="nome" href={naInicio ? '#topo' : rota('inicio', idioma)}>
           <span>{t(casca.nome, idioma)}</span>
         </a>
@@ -124,6 +126,7 @@ export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idiom
             })}
           </nav>
         </div>
+        </>)}
       </header>
       {naInicio && <PontoDoRelogio visivel={visivel} />}
     </>
