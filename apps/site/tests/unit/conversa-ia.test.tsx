@@ -76,4 +76,14 @@ describe('ConversaIA', () => {
     await act(async () => { fireEvent.click(await screen.findByRole('button', { name: 'Sem data definida' })); });
     expect(JSON.parse(String((fetch.mock.calls[1] as unknown as [string, RequestInit])[1].body)).mensagem).toBe('Sem data definida');
   });
+
+  it('com o envio em curso (bloqueado), o resumo e os dados não podem mais ser editados', async () => {
+    vi.stubGlobal('fetch', resposta('Montei um resumo.', 'Projeto: Site'));
+    const { rerender } = render(<ConversaIA aoConcluir={vi.fn()} />);
+    await dadosIniciais();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Ainda não sei' })); });
+    const resumo = await screen.findByRole('region', { name: 'Resumo do pedido' });
+    rerender(<ConversaIA aoConcluir={vi.fn()} bloqueado />);
+    for (const rotulo of ['Resumo do projeto', 'Nome', 'Empresa', 'WhatsApp', 'E-mail']) expect((within(resumo).getByLabelText(rotulo) as HTMLInputElement).disabled).toBe(true);
+  });
 });

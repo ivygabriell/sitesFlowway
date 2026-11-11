@@ -34,7 +34,8 @@ export function montarPedido(r: Respostas, idioma: Idioma): Pedido {
 const hora = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const mostrar = (v: string | string[]) => (Array.isArray(v) ? v.join(', ') : v);
 
-export function ConversaGuiada({ aoConcluir, aoEditar, children }: { aoConcluir: (p: Pedido) => void; aoEditar?: () => void; children?: ReactNode }) {
+// bloqueado: o envio já começou; o resumo fica fixo para não descartar uma tentativa pendente.
+export function ConversaGuiada({ aoConcluir, aoEditar, children, bloqueado = false }: { aoConcluir: (p: Pedido) => void; aoEditar?: () => void; children?: ReactNode; bloqueado?: boolean }) {
   const idioma = useIdioma();
   const g = contato.guiada;
   const [baloes, setBaloes] = useState<Balao[]>([]);
@@ -130,7 +131,7 @@ export function ConversaGuiada({ aoConcluir, aoEditar, children }: { aoConcluir:
                   <div key={p} className="guiada-resumo-linha">
                     <dt>{t(g.rotulos[p], idioma)}</dt>
                     <dd>{mostrar(respostas.current[p])}</dd>
-                    <button type="button" onClick={() => editar(p)} aria-label={`${t(g.editar, idioma)} ${t(g.rotulos[p], idioma)}`}>{t(g.editar, idioma)}</button>
+                    {!bloqueado && <button type="button" onClick={() => editar(p)} aria-label={`${t(g.editar, idioma)} ${t(g.rotulos[p], idioma)}`}>{t(g.editar, idioma)}</button>}
                   </div>
                 ))}
               </dl>

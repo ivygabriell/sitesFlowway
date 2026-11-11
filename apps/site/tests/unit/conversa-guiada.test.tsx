@@ -13,8 +13,9 @@ const responder = (texto: string) => {
 };
 const respostas = { nome: 'Ana', empresa: 'Floway', necessidades: ['Site', 'Outro: Loja virtual'], prazo: 'Sem pressa', whatsapp: '(11) 98765-4321', email: 'ana@x.dev', descricao: 'Quero vender online' };
 
+let tela: ReturnType<typeof render>;
 function ateOFim(aoConcluir = vi.fn()) {
-  render(<ConversaGuiada aoConcluir={aoConcluir} />);
+  tela = render(<ConversaGuiada aoConcluir={aoConcluir} />);
   passar();
   responder('Ana');
   responder('Floway');
@@ -83,6 +84,15 @@ describe('ConversaGuiada', () => {
     expect(enviar.disabled).toBe(true);
     fireEvent.change(screen.getByLabelText('Sua resposta'), { target: { value: 'x'.repeat(201) } });
     expect(enviar.disabled).toBe(true);
+  });
+});
+
+describe('ConversaGuiada bloqueada', () => {
+  it('com o envio em curso, o resumo não oferece mais editar etapas', () => {
+    ateOFim();
+    expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBe(7);
+    tela.rerender(<ConversaGuiada aoConcluir={vi.fn()} bloqueado />);
+    expect(screen.queryAllByRole('button', { name: /^Editar / })).toHaveLength(0);
   });
 });
 

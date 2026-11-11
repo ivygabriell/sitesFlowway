@@ -17,7 +17,8 @@ type Fase = 'nome' | 'empresa' | 'ia' | 'whatsapp' | 'email' | 'resumo';
 const PERGUNTA_ORCAMENTO = /investimento|orçamento|budget|investment/i;
 const hora = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p: Pedido) => void; aoEditar?: () => void; children?: ReactNode }) {
+// bloqueado: o envio já começou; resumo e dados ficam fixos para não descartar uma tentativa pendente.
+export function ConversaIA({ aoConcluir, aoEditar, children, bloqueado = false }: { aoConcluir: (p: Pedido) => void; aoEditar?: () => void; children?: ReactNode; bloqueado?: boolean }) {
   const idioma = useIdioma();
   const g = contato.guiada, ia = contato.ia;
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
@@ -115,7 +116,7 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
   const campoDe = (k: keyof Campos, tipo: string, auto: string) => (
     <div className="guiada-campo" key={k}>
       <label htmlFor={`ia-${k}`}>{t(g.rotulos[k], idioma)}</label>
-      <input id={`ia-${k}`} type={tipo} value={campos[k]} autoComplete={auto} inputMode={k === 'whatsapp' ? 'tel' : undefined} placeholder={t(ia.placeholders[k], idioma)}
+      <input id={`ia-${k}`} type={tipo} value={campos[k]} autoComplete={auto} inputMode={k === 'whatsapp' ? 'tel' : undefined} placeholder={t(ia.placeholders[k], idioma)} disabled={bloqueado}
         aria-invalid={errosResumo[k] ? true : undefined} aria-describedby={errosResumo[k] ? `ia-${k}-erro` : undefined} onChange={ev => editar(k, ev.target.value)} />
       {errosResumo[k] && <em id={`ia-${k}-erro`}>{errosResumo[k]}</em>}
     </div>
@@ -137,7 +138,7 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
               <div className="guiada-form">
                 <div className="guiada-campo guiada-campo-largo">
                   <label htmlFor="ia-resumo">{t(ia.resumoCampo, idioma)}</label>
-                  <textarea id="ia-resumo" value={resumo} rows={Math.min(10, resumo.split('\n').length + 1)} maxLength={5000} aria-invalid={errosResumo.resumo ? true : undefined} aria-describedby={errosResumo.resumo ? 'ia-resumo-erro' : undefined} onChange={ev => editar('resumo', ev.target.value)} data-lenis-prevent="" />
+                  <textarea id="ia-resumo" value={resumo} disabled={bloqueado} rows={Math.min(10, resumo.split('\n').length + 1)} maxLength={5000} aria-invalid={errosResumo.resumo ? true : undefined} aria-describedby={errosResumo.resumo ? 'ia-resumo-erro' : undefined} onChange={ev => editar('resumo', ev.target.value)} data-lenis-prevent="" />
                   {errosResumo.resumo && <em id="ia-resumo-erro">{errosResumo.resumo}</em>}
                 </div>
                 {campoDe('nome', 'text', 'name')}

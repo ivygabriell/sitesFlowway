@@ -17,6 +17,7 @@ export function PaginaContato({ estado, servidor }: { estado?: string; servidor?
   const idioma = useIdioma();
   const [enviado, setEnviado] = useState(false);
   const [pronto, setPronto] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
   const [pedido, setPedido] = useState<Pedido>({ nome: '', empresa: '', contato: '', mensagem: '' });
   const Conversa = servidor?.conversaDisponivel ? ConversaIA : ConversaGuiada;
   const { reflow } = useScrollRig();
@@ -28,8 +29,8 @@ export function PaginaContato({ estado, servidor }: { estado?: string; servidor?
       <h1 className="frase-contato">{t(contato.frase, idioma)}</h1>
       <div className="pagina-contato-corpo contato-guiada-corpo">
         {/* Com o Gemini configurado, a conversa é com a IA; sem ele, segue o roteiro fixo de perguntas. */}
-        <Conversa aoConcluir={p => { setPedido(p); setPronto(true); }} aoEditar={() => setPronto(false)}>
-          {pronto ? <Formulario key={JSON.stringify(pedido)} servidor={servidor} pedido={pedido} revisarAgora semResumo aoEnviar={() => setEnviado(true)} /> : undefined}
+        <Conversa aoConcluir={p => { setPedido(p); setPronto(true); }} aoEditar={() => setPronto(false)} bloqueado={bloqueado}>
+          {pronto ? <Formulario key={JSON.stringify(pedido)} servidor={servidor} pedido={pedido} revisarAgora semResumo aoEnviar={() => setEnviado(true)} aoBloquear={setBloqueado} /> : undefined}
         </Conversa>
         {/* Sem JavaScript a conversa não anda: o formulário simples só existe para esse caso, nunca atrás da conversa. */}
         <noscript><Formulario servidor={servidor} /></noscript>

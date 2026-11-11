@@ -1,68 +1,100 @@
-import { expect, test } from '@playwright/test';
-import { PNG } from 'pngjs';
+import { expect, test, type Page } from '@playwright/test';
 
-// A página de contato (spec 4.6): o selo e o CTA chegam nela, nas duas línguas, e o formulário cabe em qualquer tela.
-for (const [caminho, lang, privacidade] of [['/contato', 'pt-BR', '/privacidade'], ['/en/contact', 'en', '/en/privacy']] as const) {
-  test(`${caminho} responde 200 em ${lang}, com o formulário e o menu riscado`, async ({ page }) => {
+// Página de contato: só o "voltar ao início" e a conversa em formato de chat. Neste perfil a IA está desligada,
+// então a conversa segue o roteiro fixo de perguntas; sem JavaScript, o formulário simples continua valendo.
+for (const [caminho, lang, voltar] of [['/contato', 'pt-BR', 'Voltar ao início'], ['/en/contact', 'en', 'Back to home']] as const) {
+  test(`${caminho} responde 200 em ${lang}, só com o voltar e a conversa`, async ({ page }) => {
     const resposta = await page.goto(caminho);
     expect(resposta?.status()).toBe(200);
     await expect(page.locator('html')).toHaveAttribute('lang', lang);
-    await expect(page.locator('.formulario-contato')).toBeVisible();
-    await expect(page.locator('.frase-contato')).toBeVisible();
-    await expect(page.locator('nav a[aria-current="page"]')).toHaveCount(1);
-    await expect(page.locator('a.selo')).toHaveCount(0);
-    await expect(page.locator('.rodape')).toBeVisible();
-    await expect(page.locator(`.formulario-contato a[href="${privacidade}"]`)).toBeVisible();
-    expect((await page.goto(privacidade))?.status()).toBe(200);
+    await expect(page.locator('.guiada')).toBeVisible();
+    await expect(page.locator('.cabecalho a')).toHaveCount(1);
+    await expect(page.locator('.cabecalho .voltar')).toContainText(new RegExp(voltar, 'i'));
+    await expect(page.locator('.rodape')).toHaveCount(0);
+    await expect(page.locator('.esfera, .circulo-escuro')).toHaveCount(0);
+    // A frase fica só para leitores de tela (recortada a 1 px).
+    expect((await page.locator('.frase-contato').boundingBox())!.width).toBeLessThanOrEqual(1);
   });
 }
 
-test('o selo da Início chega ao contato', async ({ page }) => {
-  await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
-  await page.goto('/');
-  await page.locator('a.selo.visivel').click();
-  await page.waitForURL('**/contato');
-  await expect(page.locator('.formulario-contato')).toBeVisible();
+test('a política de privacidade continua respondendo nas duas línguas', async ({ page }) => {
+  expect((await page.goto('/privacidade'))?.status()).toBe(200);
+  expect((await page.goto('/en/privacy'))?.status()).toBe(200);
 });
 
-test('sem destino configurado, revisa sem IA e mantém campos para ajustar', async ({ page }) => {
+test('o botão "Iniciar um projeto" da Início chega à conversa', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
+  await page.goto('/');
+  await page.waitForTimeout(2000);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.locator('.rodape-cta').click();
+  await page.waitForURL('**/contato');
+  await expect(page.locator('.guiada')).toBeVisible();
+});
+
+const responder = async (page: Page, texto: string) => {
+  const campo = page.getByRole('textbox', { name: 'Sua resposta' });
+  await campo.fill(texto);
+  await campo.press('Enter');
+};
+
+// Percorre o roteiro fixo até o resumo, conferindo que dados inválidos não avançam.
+async function ateOResumo(page: Page) {
+  await expect(page.getByText(/qual é o seu nome/i)).toBeVisible();
+  await responder(page, 'Pessoa de teste');
+  await expect(page.getByText(/qual é a sua empresa/i)).toBeVisible();
+  await responder(page, 'Empresa de teste');
+  await page.getByRole('checkbox', { name: 'Site' }).check({ force: true });
+  await page.getByRole('button', { name: /Continuar/ }).click();
+  await page.getByRole('button', { name: 'Sem pressa' }).click();
+  await expect(page.getByText(/WhatsApp, com DDD/)).toBeVisible();
+  await responder(page, '123');
+  await expect(page.locator('.guiada-erro')).toContainText('WhatsApp com DDD');
+  await responder(page, '(11) 98765-4321');
+  await expect(page.getByText(/qual é o seu e-mail/i)).toBeVisible();
+  await responder(page, 'pessoa@');
+  await expect(page.locator('.guiada-erro')).toContainText('e-mail válido');
+  await responder(page, 'pessoa@empresa.dev');
+  await responder(page, 'Quero um site novo');
+  await expect(page.getByRole('region', { name: 'Resumo do pedido' })).toBeVisible();
+}
+
+test('roteiro completo: valida dados, resumo editável por etapa e envio indisponível sem destino configurado', async ({ page }) => {
   await page.goto('/contato');
-  await page.getByRole('textbox', { name: 'Nome', exact: true }).fill('Teste');
-  await page.getByRole('textbox', { name: 'Contato', exact: true }).fill('Contato livre');
-  await page.getByRole('textbox', { name: 'Mensagem', exact: true }).fill('Meu texto');
-  await page.getByRole('button', { name: 'Revisar pedido' }).click();
+  await ateOResumo(page);
+  const resumo = page.getByRole('region', { name: 'Resumo do pedido' });
+  await resumo.getByRole('button', { name: 'Editar Empresa' }).click();
+  await expect(page.getByRole('textbox', { name: 'Sua resposta' })).toHaveValue('Empresa de teste');
+  await responder(page, 'Outra empresa');
+  await expect(page.getByRole('region', { name: 'Resumo do pedido' })).toContainText('Outra empresa');
+  await expect(page.getByRole('region', { name: 'Resumo do pedido' })).toContainText('Quero um site novo');
   await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
-  await expect(page.getByText(/O envio está indisponível/)).toBeFocused();
-  await page.getByRole('button', { name: 'Ajustar' }).click();
-  await expect(page.locator('[name=mensagem]')).toHaveValue('Meu texto');
+  await expect(page.getByText(/O envio está indisponível/)).toBeVisible();
 });
 
 for (const [largura, altura] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]] as const) {
-  test(`${largura}×${altura}: sem rolagem lateral, e nada se sobrepõe ao formulário`, async ({ page }) => {
+  test(`${largura}×${altura}: sem rolagem lateral, conversa inteira na tela e alvos de toque de 44 px`, async ({ page }) => {
     await page.setViewportSize({ width: largura, height: altura });
     await page.goto('/contato');
-    await page.waitForTimeout(800);
+    await expect(page.getByText(/qual é o seu nome/i)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const retangulo = (s: string) => page.locator(s).evaluate((e) => { const r = e.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; });
-    const frase = await retangulo('.frase-contato');
-    const form = await retangulo('.formulario-contato');
-    const esfera = await retangulo('.pagina-contato .esfera');
-    const rodape = await retangulo('.rodape');
-    expect(form.top).toBeGreaterThanOrEqual(frase.bottom);
-    expect(rodape.top).toBeGreaterThanOrEqual(form.bottom);
-    const separados = form.right <= esfera.left || form.left >= esfera.right || form.top >= esfera.bottom || form.bottom <= esfera.top;
-    expect(separados).toBe(true);
-    await page.locator('.formulario-contato button[type=submit]').scrollIntoViewIfNeeded();
-    await expect(page.locator('.formulario-contato button[type=submit]')).toBeInViewport();
+    const janela = (await page.locator('.guiada').boundingBox())!;
+    expect(janela.x).toBeGreaterThanOrEqual(0);
+    expect(janela.x + janela.width).toBeLessThanOrEqual(largura + 0.5);
+    await expect(page.getByRole('textbox', { name: 'Sua resposta' })).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Enviar resposta' })).toBeInViewport();
+    expect((await page.getByRole('button', { name: 'Enviar resposta' }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    if (largura < 900) expect((await page.locator('.cabecalho .voltar').boundingBox())!.height).toBeGreaterThanOrEqual(44);
   });
 }
 
 test.describe('com movimento reduzido', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
-  test('sem círculo, tudo à vista', async ({ page }) => {
+  test('a conversa aparece e responde sem animação', async ({ page }) => {
     await page.goto('/contato');
-    await expect(page.locator('.pagina-contato .circulo-escuro')).toBeHidden();
-    await expect(page.locator('.formulario-contato')).toBeVisible();
+    await expect(page.locator('.guiada')).toBeVisible();
+    await responder(page, 'Pessoa de teste');
+    await expect(page.getByText(/qual é a sua empresa/i)).toBeVisible();
   });
 });
 
@@ -80,57 +112,8 @@ test.describe('sem JavaScript', () => {
   });
 });
 
-// A esfera fica fora do eixo da câmera: sem correção, a perspectiva a estica na horizontal.
-for (const [largura, altura] of [[1440, 900], [1883, 703]] as const) {
-  test(`${largura}×${altura}: o globo é redondo`, async ({ page }) => {
-    await page.setViewportSize({ width: largura, height: altura });
-    await page.goto('/contato');
-    await page.waitForTimeout(3000); // antes da morfose, com o círculo já fora
-    const caixa = await page.locator('.pagina-contato .esfera').boundingBox();
-    const png = PNG.sync.read(await page.screenshot({ clip: caixa! }));
-    let [x0, x1, y0, y1] = [1e9, -1, 1e9, -1];
-    for (let y = 0; y < png.height; y++)
-      for (let x = 0; x < png.width; x++)
-        if (png.data[(y * png.width + x) * 4] < 120) {
-          x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
-        }
-    expect(x1).toBeGreaterThan(0);
-    const razao = (x1 - x0) / (y1 - y0);
-    expect(razao).toBeGreaterThan(0.93);
-    expect(razao).toBeLessThan(1.07);
-  });
-}
-
 test('URL enviada não comprova entrega', async ({ page }) => {
   await page.goto('/contato?estado=enviado');
   await expect(page.getByText(/Envio aceito/)).toHaveCount(0);
-  await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toBeVisible();
+  await expect(page.getByText(/qual é o seu nome/i)).toBeVisible();
 });
-
-for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]]) {
-  test(`${width}×${height}: validação com foco, links alcançáveis e áreas separadas`, async ({ page }) => {
-    await page.setViewportSize({ width, height });
-    await page.goto('/contato');
-    await expect(page.locator('form')).toHaveAttribute('novalidate', '');
-    await page.getByRole('button', { name: 'Revisar pedido' }).click();
-    const resumo = page.locator('.formulario-erros');
-    await expect(resumo).toBeFocused();
-    await expect(page).toHaveTitle(/^Erro: /);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    for (const link of await resumo.locator('a').all()) {
-      await link.scrollIntoViewIfNeeded();
-      const caixa = (await link.boundingBox())!;
-      expect(caixa.height, 'alvo de teclado/toque tem 44px').toBeGreaterThanOrEqual(44);
-      await link.click();
-      const id = (await link.getAttribute('href'))!.slice(1);
-      await expect(page.locator(`[id="${id}"]`)).toBeFocused();
-    }
-    const form = (await page.locator('form').boundingBox())!;
-    const esfera = (await page.locator('.pagina-contato .esfera').boundingBox())!;
-    const rodape = (await page.locator('.rodape').boundingBox())!;
-    expect(rodape.y).toBeGreaterThanOrEqual(form.y + form.height);
-    expect(form.x + form.width <= esfera.x || form.y + form.height <= esfera.y).toBe(true);
-    await page.getByRole('button', { name: 'Revisar pedido' }).scrollIntoViewIfNeeded();
-    await expect(page.getByRole('button', { name: 'Revisar pedido' })).toBeInViewport();
-  });
-}
