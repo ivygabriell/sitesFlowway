@@ -35,9 +35,9 @@ describe('conteúdo dos trabalhos', () => {
     });
   });
 
-  it('os textos de cada peça estão na árvore, para a trava apontar o inglês que falta', () => {
-    expect(pendencias({ trabalhos })).toContain('trabalhos.lista.0.nome (en)');
-    expect(pendencias({ trabalhos })).toContain('trabalhos.lista.4.mesAno (en)');
+  it('os textos de cada peça estão na árvore e têm inglês', () => {
+    expect(trabalhos.lista).toHaveLength(5);
+    expect(pendencias({ trabalhos })).toEqual([]);
   });
 
   it('com a lista vazia, os visíveis são os 4 marcadores de construção', () => {

@@ -5,14 +5,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { 'inicio-lencol' as textos } from '@/conteudo/inicio-lencol';
 import { t } from '@/conteudo/textos';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
-import { prefereMenosMovimento } from '@/lib/ambiente';
+import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { useIdioma } from '@/lib/useIdioma';
 import { temWebgl } from '@/lib/webgl';
 import { modoDeExibicao, type ModoDeExibicao } from '@/movimento/modo';
 import { CURVAS, INTERVALOS, tempo } from '@/movimento/tokens';
 import { desenharFolha } from '@/texturas/folhaDecisoes';
-import { CenaLencol, type EstadoLencol } from './CenaLencol';
+import { CenaLencol, larguraDaFolha, type EstadoLencol } from './CenaLencol';
 import './estilo.css';
 
 const LINEAR = CURVAS['curva-linear'];
@@ -27,15 +27,18 @@ const TRECHOS = {
 } as const;
 
 // Medidas da referência: folha de 60vw; a linha vai até 60vw + 200 px e abre 20 px de cada lado.
-const LARGURA_FOLHA = 0.6;
-const LINHA_CHEIA = 'calc(60vw + 200px)';
 const VAO_TITULO = 20;
 
 // O lençol "(O que entregamos)" (spec 4.3, protótipo 06). Três jeitos, um por modo:
-// - desktop com WebGL: seção presa, linha que cresce, frases digitadas e a folha em WebGL que desce e ondula;
-// - celular e sem WebGL: lista em DOM sobre a folha branca; a linha cresce e as frases se digitam uma vez, ao entrar, sem prender;
+// - desktop e celular com WebGL (no celular a folha é mais larga, para ler em retrato): seção presa, linha que cresce, frases digitadas e a folha em WebGL que desce e ondula;
+// - sem WebGL: lista em DOM sobre a folha branca; a linha cresce e as frases se digitam uma vez, ao entrar, sem prender;
 // - movimento reduzido: tudo parado e à vista, com a linha cheia e as frases completas.
+// Troca de língua no lugar: a seção remonta, porque a folha (canvas) e a digitação das frases guardam o texto da montagem.
 export function Decisoes() {
+  return <SecaoDecisoes key={useIdioma()} />;
+}
+
+function SecaoDecisoes() {
   const idioma = useIdioma();
   const { isCanvasAvailable } = useScrollRig();
   const [modo, setModo] = useState<ModoDeExibicao | null>(null);
@@ -49,19 +52,21 @@ export function Decisoes() {
     const atual = modoDeExibicao(window.innerWidth, menosMovimento, temWebgl());
     setModo(atual);
     setReduzido(menosMovimento);
-    if (atual === 'desktop') document.fonts.ready.then(() => setFolha(desenharFolha(itens, LARGURA_FOLHA * window.innerWidth * Math.min(window.devicePixelRatio, 2))));
+    if (atual === 'desktop' || atual === 'celular') document.fonts.ready.then(() => setFolha(desenharFolha(itens, larguraDaFolha(window.innerWidth) * Math.min(window.devicePixelRatio, 2))));
   }, [itens]);
 
-  const comLencol = modo === 'desktop' && isCanvasAvailable && folha !== null;
+  const comLencol = (modo === 'desktop' || modo === 'celular') && isCanvasAvailable && folha !== null;
   // Sem WebGL tem prioridade sobre o movimento reduzido no modo da página; aqui, o reduzido sempre para tudo.
-  const leve = (modo === 'celular' || modo === 'sem-webgl') && !reduzido;
+  const leve = (modo === 'sem-webgl' || (modo === 'celular' && !isCanvasAvailable)) && !reduzido;
 
-  // Desktop com WebGL: a seção fica presa enquanto a folha desce por trás da linha.
+  // Com WebGL (desktop e celular): a seção fica presa enquanto a folha desce por trás da linha.
   useEfeitoDeLayout(() => {
     if (!comLencol || !folha) return;
     const secao = document.querySelector<HTMLElement>('.secao-decisoes')!;
-    const altura = (LARGURA_FOLHA * window.innerWidth * folha.height) / folha.width;
+    const altura = (larguraDaFolha(window.innerWidth) * folha.height) / folha.width;
     secao.style.setProperty('--altura-folha', `${altura}px`);
+    // O celular segue o desktop: um só gatilho, que prende e anda a timeline; só a linha é mais curta, para caber em retrato.
+    const cel = ehCelular(window.innerWidth);
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         defaults: { ease: LINEAR },
@@ -74,9 +79,11 @@ export function Decisoes() {
           refreshPriority: PRIORIDADE.decisoes,
           onUpdate: ({ progress }) => (estado.current.visivel = progress > 0),
           onLeaveBack: () => (estado.current.visivel = false),
+          // Remontada pela troca de língua no meio da seção, a folha aparece sem esperar a próxima rolagem.
+          onRefresh: ({ progress }) => (estado.current.visivel = progress > 0),
         },
       });
-      tl.to('.titulo-decisoes .linha', { width: LINHA_CHEIA, duration: tempo('tempo-linha') }, TRECHOS.linhaEm)
+      tl.to('.titulo-decisoes .linha', { width: cel ? '22vw' : 'calc(60vw + 200px)', duration: tempo('tempo-linha') }, TRECHOS.linhaEm)
         .to('.titulo-decisoes', { gap: VAO_TITULO, duration: tempo('tempo-rapido') }, TRECHOS.linhaEm)
         .from('.frase', { text: '', duration: tempo('tempo-digitar-frase'), stagger: INTERVALOS['intervalo-meio'] }, TRECHOS.fraseEm)
         .to(estado.current, { descida: 1, duration: TRECHOS.descida }, TRECHOS.descidaEm);
@@ -85,7 +92,7 @@ export function Decisoes() {
     return () => ctx.revert();
   }, [comLencol, folha]);
 
-  // Celular e sem WebGL: a linha cresce e as frases se digitam uma vez, quando a seção entra, sem prender.
+  // Sem WebGL (ou celular sem canvas): a linha cresce e as frases se digitam uma vez, quando a seção entra, sem prender.
   useEfeitoDeLayout(() => {
     if (!leve) return;
     const secao = document.querySelector<HTMLElement>('.secao-decisoes')!;

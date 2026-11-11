@@ -6,7 +6,7 @@ import { CartaoTrabalho } from '@/compartilhados/CartaoTrabalho';
 import { t } from '@/conteudo/textos';
 import { trabalhos, trabalhosVisiveis } from '@/conteudo/trabalhos';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
-import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { prefereMenosMovimento } from '@/lib/ambiente';
 import { suave } from '@/lib/suave';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { useIdioma } from '@/lib/useIdioma';
@@ -15,7 +15,7 @@ import { BarraProgresso } from './BarraProgresso';
 import { CenaCartoes, type EstadoCartoes } from './CenaCartoes';
 import './estilo.css';
 
-type Modo = 'galeria' | 'estatica' | 'grade' | 'lista';
+type Modo = 'galeria' | 'estatica' | 'grade';
 const LINEAR = CURVAS['curva-linear'];
 const HOVER = CURVAS['curva-padrao'];
 
@@ -35,7 +35,8 @@ export function Capitulos() {
   const estado = useRef<EstadoCartoes>({ progresso: 0, hover: lista.map(() => 0) });
 
   useEffect(() => {
-    setModo((atual) => (prefereMenosMovimento() ? 'grade' : ehCelular(window.innerWidth) ? 'lista' : atual));
+    // Celular também roda a galeria presa (decisão de 2026-11-10); só o movimento reduzido vira grade parada.
+    setModo((atual) => (prefereMenosMovimento() ? 'grade' : atual));
   }, []);
 
   const comWebgl = (modo === 'galeria' || modo === 'estatica') && isCanvasAvailable && capas.length > 0;
@@ -47,6 +48,21 @@ export function Capitulos() {
     const ctx = gsap.context(() => {
       const fileira = secao.querySelector<HTMLElement>('.cartoes')!;
       const tracinhos = secao.querySelectorAll<HTMLElement>('.tracinho');
+      // Toque não tem hover: o cartão com capa mais perto do centro da tela faz o papel do cartão sob o mouse.
+      const semHover = window.matchMedia('(hover: none)').matches;
+      const cartoes = [...fileira.querySelectorAll<HTMLElement>('.cartao')];
+      let centrado = -1;
+      const centrar = () => {
+        const meio = window.innerWidth / 2;
+        const i = cartoes.findIndex((c) => {
+          const r = c.getBoundingClientRect();
+          return c.classList.contains('com-capa') && r.left < meio && r.right > meio;
+        });
+        if (i === centrado) return;
+        if (centrado >= 0) passar(centrado, false);
+        if (i >= 0) passar(i, true);
+        centrado = i;
+      };
       // Só anda quando a fileira passa da tela; com poucos quadros ela fica centrada, parada.
       const extra = Math.max(0, fileira.scrollWidth - window.innerWidth);
       if (extra === 0) {
@@ -66,6 +82,7 @@ export function Capitulos() {
           onUpdate: ({ progress }) => {
             const p = Math.max(0, 1.2 * progress - 0.04);
             tracinhos.forEach((tr, i) => (tr.style.opacity = String(suave(0.02, 0.1, (i + 1) / 28 - p))));
+            if (semHover) centrar();
           },
         },
       });

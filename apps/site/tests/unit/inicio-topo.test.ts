@@ -12,13 +12,13 @@ describe('textos da abertura e do hero', () => {
   });
 
   // Rafael, 2026-11-10: os trechos da abertura e a intro do hero em português; o inglês segue pendente para a trava.
-  it('os 3 trechos da abertura e a intro têm o texto escolhido; falta só o inglês', () => {
+  it('os 3 trechos da abertura e a intro têm o texto escolhido e o inglês', () => {
     expect(inicioTopo.trechos.map((x) => x.pt)).toEqual(['Estratégia.', 'Design.', 'Tecnologia.']);
     expect(inicioTopo.intro.pt).toBe('Sites, landing pages e automações para empresas que querem crescer com tecnologia.');
     expect(inicioTopo.intro.pt.split(/\s+/).length).toBeLessThanOrEqual(30);
     const p = pendencias({ inicioTopo });
     expect(p).not.toEqual(expect.arrayContaining(['inicioTopo.intro (pt)']));
-    expect(p).toEqual(expect.arrayContaining(['inicioTopo.trechos.0 (en)', 'inicioTopo.intro (en)']));
+    expect(p).toEqual([]);
     expect(inicioTopo.rolar).toEqual({ pt: 'Role para baixo', en: 'Scroll down' });
   });
 

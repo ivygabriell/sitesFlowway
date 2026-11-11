@@ -13,7 +13,7 @@ const CAMERA_Z = 600;
 export const PALAVRA = { z: -0.2, acimaDoMeio: 0.178 };
 
 // Escala de repouso (em unidades): a logo grande, quase da largura da tela, como a forma de vidro da referência.
-export const ESCALA = { principal: 1.57, principalCelular: 2 };
+export const ESCALA = { principal: 1.57, principalCelular: 1.85 };
 // Inclinação (rotação em x, rad) da logo: zero, de frente. Inclinada (−0,12), a perspectiva achatava o F e ele parecia uma laje.
 export const INCLINACAO = 0;
 
@@ -56,7 +56,7 @@ export function repouso(largura: number, altura: number) {
 export const PARALAXE = { palavra: 1.6, principal: 0.1 };
 
 // Saída ligada à rolagem (referência 3.2).
-export const SAIDA = { scrub: TEMPOS['tempo-scrub'], inicio: 'top+=10', alturas: { desktop: 2, celular: 0.7 } };
+export const SAIDA = { scrub: TEMPOS['tempo-scrub'], inicio: 'top+=10', alturas: { desktop: 2, celular: 1 } };
 
 // O que a logo faz na saída: cresce pouco (× a escala de repouso) enquanto o vidro some, sem girar (rad, somado à
 // rotação de repouso). Rafael, 2026-11-09: crescendo 1,7× e girando, virava placas gigantes por cima do texto.

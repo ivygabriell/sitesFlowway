@@ -8,7 +8,7 @@ export const seo = {
     titulo: pendente('título da Início, até 60 caracteres, sem nichos'),
     descricao: pendente('descrição da Início, até 155 caracteres'),
   },
-  trabalhos: { titulo: { pt: 'Trabalhos · Floway' }, descricao: pendente('descrição de Trabalhos, até 155 caracteres') },
-  contato: { titulo: { pt: 'Contato · Floway' }, descricao: pendente('descrição de Contato, até 155 caracteres') },
+  trabalhos: { titulo: { pt: 'Trabalhos · Floway', en: 'Work · Floway' }, descricao: pendente('descrição de Trabalhos, até 155 caracteres') },
+  contato: { titulo: { pt: 'Contato · Floway', en: 'Contact · Floway' }, descricao: pendente('descrição de Contato, até 155 caracteres') },
   privacidade: { titulo: pendente('título de Privacidade, até 60 caracteres'), descricao: pendente('descrição de Privacidade, até 155 caracteres') },
 } as const satisfies Record<Pagina, { titulo: Texto; descricao: Texto }> & Textos;

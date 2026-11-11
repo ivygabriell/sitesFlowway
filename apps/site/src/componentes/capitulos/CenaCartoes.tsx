@@ -51,13 +51,13 @@ export function CenaCartoes({ capas, indices, estado }: { capas: string[]; indic
     [materiais],
   );
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, size }) => {
     // O GSAP (que anda a fileira) pode rodar depois deste quadro do canvas, quando acorda do repouso: sem isto, o plano
     // usa a posição do quadro anterior e a capa fica até 70 px atrás do texto do cartão enquanto a fileira anda.
     gsap.ticker.tick();
     const imagens = document.querySelectorAll<HTMLImageElement>('.secao-capitulos .cartao-img img');
     const W = window.innerWidth;
-    const H = window.innerHeight;
+    const H = size.height; // altura do canvas (100vh): no iPhone innerHeight muda com a barra do Safari
     imagens.forEach((img, k) => {
       const plano = planos.current[k];
       if (!plano) return;

@@ -11,13 +11,15 @@
 
 /* ---------- cubo da marca ---------- */
 /* Tempos: tokens de src/movimento/tokens.css (tempo-palavras-cubo, intervalo-palavras-cubo). A curva das palavras é linear (curva-linear no GSAP). */
-.cubo-palco { width: calc(1000px * var(--escala-cubo)); height: calc(600px * var(--escala-cubo)); perspective: 2600px; }
+/* O cubo tem 1000×600 e é reduzido por --escala-cubo (≈0,33 no celular): os traços usam --linha (1 px / escala) para
+   continuarem com 1 px na tela; com 1 px fixo ficavam com 0,3 px e o iOS os desenhava falhados e serrilhados. */
+.cubo-palco { --linha: calc(1px / var(--escala-cubo)); width: calc(1000px * var(--escala-cubo)); height: calc(600px * var(--escala-cubo)); perspective: 2600px; }
 .cubo-escala { width: 1000px; height: 600px; transform: scale(var(--escala-cubo)); transform-origin: top left; transform-style: preserve-3d; }
 .cubo { position: relative; width: 1000px; height: 600px; transform-style: preserve-3d; transform: translateZ(-500px); will-change: transform; }
 .cubo-frente, .cubo-lado { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; }
 .cubo-frente { background: var(--escuro); transform: translateZ(500px); }
-.cubo-lado { transform: rotateY(90deg) translateZ(500px); background: var(--escuro) center / cover no-repeat; filter: grayscale(1); border: 0 solid var(--claro); }
-.palavra-contorno { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 700 230px/174px var(--sans); letter-spacing: -0.02em; color: transparent; -webkit-text-stroke: 1px var(--claro); transform-origin: center bottom; animation: girar-x var(--tempo-palavras-cubo) linear infinite; will-change: transform; }
+.cubo-lado { transform: rotateY(90deg) translateZ(500px); background: var(--escuro) center / cover no-repeat; filter: grayscale(1); --borda-lado: 0; border: calc(var(--borda-lado) * var(--linha)) solid var(--claro); }
+.palavra-contorno { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 700 230px/174px var(--sans); letter-spacing: -0.02em; color: transparent; -webkit-text-stroke: var(--linha) var(--claro); transform-origin: center bottom; animation: girar-x var(--tempo-palavras-cubo) linear infinite; will-change: transform; }
 .palavra-contorno.linha-1 { top: calc(30% - 329px); }
 .palavra-contorno.linha-3 { top: calc(30% + 329px); }
 .palavra-contorno.parada { animation: none; }
@@ -33,17 +35,23 @@
   75% { transform: perspective(600px) rotateX(270deg); }
   100% { transform: perspective(1000px) rotateX(360deg); }
 }
-.caixa { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 1px solid var(--claro); pointer-events: none; z-index: 2; }
+.caixa { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: var(--linha) solid var(--claro); pointer-events: none; z-index: 2; }
 .cubo-legenda { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 260px; text-align: center; font: 400 9px/11px var(--mono); text-transform: uppercase; z-index: 3; }
 .cubo-girado .cubo { transform: translateZ(-500px) rotateY(-90deg); }
-.cubo-girado .cubo-lado { border-width: 1px; }
+.cubo-girado .cubo-lado { --borda-lado: 1; }
 
 @media (max-width: 899px) {
-  .secao-manifesto { padding: 140px 18px 100px; }
-  .manifesto-texto { font-size: 6.4vw; line-height: 6vw; }
-  .rotulo-manifesto { top: -40px; font-size: 14px; }
+  /* Texto à esquerda (justificado, a coluna estreita abria buracos entre as palavras) e um só ritmo de 32 px
+     entre rótulo, texto, apoio, cubo e (O que é único); os paddings encurtam os vãos vazios antes e depois. */
+  .secao-manifesto { padding: 48px 18px 40px; }
+  .manifesto-texto { font-size: 6.4vw; line-height: 1.08; text-align: left; }
+  .rotulo-manifesto { position: static; transform: none; display: block; margin-bottom: 16px; font-size: 14px; }
+  .manifesto-apoio { margin-top: 32px; }
+  .manifesto-conteudo { margin-top: 32px; gap: 32px; }
   .manifesto-apoio, .unico { font-size: 15px; line-height: 21px; }
-  .rotulo-unico { position: static; display: block; margin-bottom: 10px; }
+  .rotulo-unico { position: static; display: block; margin-bottom: 16px; }
+  /* A legenda de 9 px viraria 3 px com a escala do cubo: compensa para dar 12 px na tela. */
+  .cubo-legenda { width: 80%; font-size: calc(12px / var(--escala-cubo)); line-height: 1.25; }
 }
 @media (prefers-reduced-motion: reduce) {
   .palavra-contorno { animation: none; }

@@ -23,10 +23,9 @@ describe('Cabecalho', () => {
     expect(document.querySelector('.ponto-relogio')).toBeTruthy();
   });
 
-  it('tem "©FLOWAY" e o descritor que recolhe', () => {
+  it('tem só "©FLOWAY", sem descritor', () => {
     const { container } = render(<Cabecalho visivel idioma="pt" pagina="inicio" />);
-    expect(container.querySelector('.nome')?.textContent).toContain('©FLOWAY');
-    expect(container.querySelector('.nome .recolhe')?.textContent).toBe(casca.descritor.pt);
+    expect(container.querySelector('.nome')?.textContent).toBe('©FLOWAY');
   });
 
   it('em inglês, o menu leva às páginas em /en e o seletor leva ao português', () => {

@@ -4,8 +4,6 @@
 .cabecalho.visivel { opacity: 1; transform: none; transition: transform var(--tempo-cabecalho) var(--curva-cabecalho) var(--intervalo-cabecalho), opacity 0s var(--intervalo-cabecalho); }
 .cabecalho .relogio { display: flex; align-items: center; padding-left: 15px; }
 .cabecalho .nome { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; padding: 0 30px; white-space: nowrap; }
-.cabecalho .nome .recolhe { display: inline-block; width: 15ch; overflow: hidden; text-align: center; transition: width var(--tempo-curto) var(--curva-hover); }
-.cabecalho .nome:hover .recolhe, .cabecalho .nome:focus-visible .recolhe { width: 0; }
 .cabecalho-direita { display: flex; align-items: center; gap: 30px; }
 .cabecalho nav { display: flex; gap: 20px; }
 
@@ -41,7 +39,7 @@
 
 @media (max-width: 899px) {
   .cabecalho { left: 18px; right: 18px; font-size: 12px; }
-  .cabecalho .relogio, .ponto-relogio, .cabecalho .nome .recolhe, .cabecalho a .menu-texto2 { display: none; }
+  .cabecalho .relogio, .ponto-relogio, .cabecalho a .menu-texto2 { display: none; }
   .cabecalho .nome { position: static; transform: none; padding: 0; }
   .cabecalho nav { gap: 12px; }
   .cabecalho-direita { gap: 12px; }
@@ -68,6 +66,15 @@
   .cabecalho .idioma .menu-texto2 { pointer-events: auto; }
   /* Alvo de toque de 44 px, sem mudar o desenho. */
   .cabecalho nav a, .cabecalho .voltar, .cabecalho .idioma { padding: 15px 0; margin: -15px 0; }
-  .cabecalho .idioma .menu-texto2 { top: 37px; }
+  /* A outra língua só aparece, 37 px abaixo, depois do primeiro toque em "PT ▾". */
+  .cabecalho .idioma .menu-texto2, .cabecalho a.idioma:hover .menu-texto2 { top: 37px; transform: none; }
+  .cabecalho .idioma .menu-texto2 { visibility: hidden; }
+  .cabecalho .idioma.aberto .menu-texto2 { visibility: visible; }
+  .cabecalho .idioma.aberto .seta { transform: rotate(180deg); }
   .rodape-cta { padding: 12px 0; margin-top: -12px; margin-bottom: 0; }
 }
+
+/* Troca de língua no lugar: o conteúdo esmaece 200 ms, o texto troca e volta. */
+body { transition: opacity 200ms ease; }
+html.trocando-idioma body { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }

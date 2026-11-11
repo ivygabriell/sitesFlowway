@@ -89,14 +89,14 @@ describe('Lençol "(O que entregamos)"', () => {
     });
   });
 
-  it('em inglês usa "(What we" e "deliver)" e mostra o português onde ainda não há tradução', async () => {
+  it('em inglês usa "(What we" e "deliver)" e os itens em inglês', async () => {
     const { container } = await montar(
       <ProvedorIdioma idioma="en">
         <Decisoes />
       </ProvedorIdioma>,
     );
     expect([...container.querySelectorAll('.titulo-parte')].map((e) => e.textContent)).toEqual(['(What we', 'deliver)']);
-    expect(container.querySelector('.lista-decisoes li')?.textContent).toBe(`${ITENS[0]}(1)`);
+    expect(container.querySelector('.lista-decisoes li')?.textContent).toBe('Digital strategy(1)');
   });
 
   it('não lê mais o conteúdo da página de identidade', () => {

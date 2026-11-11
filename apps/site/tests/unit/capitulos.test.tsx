@@ -55,15 +55,16 @@ describe('Capitulos (trabalhos em destaque)', () => {
     expect(container.querySelectorAll('video, [role="dialog"]')).toHaveLength(0);
   });
 
-  it('cada cartão mostra o nome e a linha de informações', () => {
+  // 2026-11-10: a face do cartão mostra só o nome; data e oferta ficam no nome acessível do link.
+  it('cada cartão mostra só o nome, e o nome acessível leva a oferta e a data', () => {
     const { container } = render(<Capitulos />);
     const cartoes = [...container.querySelectorAll('.cartao')];
     cartoes.forEach((c, i) => {
       const tr = listaDeTrabalhos[i];
-      expect(c.querySelector('.cartao-titulo')?.textContent).toBe(t(tr.nome, 'pt'));
+      expect(c.querySelector('.cartao-info')?.textContent).toBe(t(tr.nome, 'pt'));
       const [data, oferta] = linhaDoCartao(tr, 'pt');
-      expect(c.querySelector('.cartao-subtitulo')?.textContent).toBe(data + oferta);
       expect(oferta.endsWith('· Conceito')).toBe(true);
+      expect(c.getAttribute('aria-label')).toContain(`${t(tr.nome, 'pt')}, ${oferta}, ${data}`);
     });
   });
 });

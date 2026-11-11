@@ -7,7 +7,8 @@ import { t, type Idioma } from '@/conteudo/textos';
 import { useAbertura } from '@/estado/abertura';
 import { paginaDoCaminho, rota, type Pagina } from '@/lib/idioma';
 import { relogio } from '@/lib/relogio';
-import { useIdioma } from '@/lib/useIdioma';
+import { ScrollTrigger } from '@/gsap';
+import { useIdioma, useTrocarIdioma } from '@/lib/useIdioma';
 import { useFundoSobCabecalho } from './useFundoSobCabecalho';
 import './estilo.css';
 
@@ -25,12 +26,12 @@ function Giro({ texto }: { texto: string }) {
   );
 }
 
-function Relogio() {
-  const [agora, setAgora] = useState(() => relogio(new Date()));
+function Relogio({ idioma }: { idioma: Idioma }) {
+  const [agora, setAgora] = useState(() => relogio(new Date(), idioma));
   useEffect(() => {
-    const id = setInterval(() => setAgora(relogio(new Date())), 1000);
+    const id = setInterval(() => setAgora(relogio(new Date(), idioma)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [idioma]);
   return (
     <span className="relogio">
       <span suppressHydrationWarning>{agora}</span>
@@ -46,17 +47,54 @@ function PontoDoRelogio({ visivel }: { visivel: boolean }) {
 
 const naoNavegar = (e: MouseEvent) => e.preventDefault();
 
-// Relógio REC (só na Início) ou "Voltar ao início", nome com descritor que recolhe, seletor PT/EN e menu.
+// Relógio REC (só na Início) ou "Voltar ao início", nome, seletor PT/EN e menu.
 // Inverte sozinho com mix-blend-mode. `pagina` nula é um endereço fora do mapa (404).
 export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idioma: Idioma; pagina: Pagina | null }) {
   const naInicio = pagina === 'inicio';
   const outra: Idioma = idioma === 'pt' ? 'en' : 'pt';
+  // No toque não há hover: o primeiro toque abre a outra língua embaixo, o segundo troca.
+  const [aberto, setAberto] = useState(false);
+  useEffect(() => {
+    if (!aberto) return;
+    const fechar = () => setAberto(false);
+    const id = setTimeout(() => document.addEventListener('click', fechar, { once: true }));
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener('click', fechar);
+    };
+  }, [aberto]);
+  const destinoIdioma = rota(pagina ?? 'inicio', outra);
+  const trocar = useTrocarIdioma();
+  const tocarIdioma = (e: MouseEvent) => {
+    e.preventDefault();
+    if (!aberto && window.matchMedia('(hover: none)').matches) return setAberto(true);
+    // Sem recarregar: o texto esmaece, troca de língua no lugar e volta; o endereço muda sem entrada nova no histórico.
+    // A página não pode encolher enquanto o lençol remonta (o navegador puxaria a rolagem para cima e o círculo do
+    // contato voltaria a crescer): segura a altura, troca, devolve a rolagem e só então mostra.
+    const html = document.documentElement;
+    const y = window.scrollY;
+    html.classList.add('trocando-idioma');
+    setTimeout(() => {
+      document.body.style.minHeight = `${html.scrollHeight}px`;
+      trocar(outra);
+      setAberto(false);
+      history.replaceState(history.state, '', destinoIdioma);
+      html.lang = outra === 'pt' ? 'pt-BR' : 'en';
+      setTimeout(() => {
+        document.body.style.minHeight = '';
+        ScrollTrigger.refresh();
+        window.scrollTo(0, y);
+        ScrollTrigger.update();
+        html.classList.remove('trocando-idioma');
+      }, 500);
+    }, 200);
+  };
 
   return (
     <>
       <header className={`cabecalho${visivel ? ' visivel' : ''}`} inert={!visivel}>
         {naInicio ? (
-          <Relogio />
+          <Relogio idioma={idioma} />
         ) : (
           <a className="voltar" href={rota('inicio', idioma)}>
             <Giro texto={t(casca.voltar, idioma)} />
@@ -64,11 +102,10 @@ export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idiom
         )}
         <a className="nome" href={naInicio ? '#topo' : rota('inicio', idioma)}>
           <span>{t(casca.nome, idioma)}</span>
-          <span className="recolhe">{t(casca.descritor, idioma)}</span>
         </a>
         <div className="cabecalho-direita">
           {/* Cruza os dois layouts raiz: recarga completa, sem a transição de página. */}
-          <a className="idioma" href={rota(pagina ?? 'inicio', outra)} hrefLang={outra === 'pt' ? 'pt-BR' : 'en'} data-sem-transicao="">
+          <a className={`idioma${aberto ? ' aberto' : ''}`} onClick={tocarIdioma} aria-expanded={aberto} href={destinoIdioma} hrefLang={outra === 'pt' ? 'pt-BR' : 'en'} data-sem-transicao="">
             <span className="menu-texto">{SIGLA[idioma]}</span>
             <span className="menu-texto2" aria-hidden="true">
               {SIGLA[outra]}

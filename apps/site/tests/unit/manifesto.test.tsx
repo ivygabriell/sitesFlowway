@@ -56,14 +56,14 @@ describe('Manifesto', () => {
     expect(paragrafos).toEqual([UNICO_P1, UNICO_P2]);
   });
 
-  it('em inglês usa "(Who we are)" e mostra o português onde ainda não há tradução', () => {
+  it('em inglês usa "(Who we are)" e o apoio em inglês', () => {
     const { container } = render(
       <ProvedorIdioma idioma="en">
         <Manifesto />
       </ProvedorIdioma>,
     );
     expect(container.querySelector('h2.rotulo-manifesto')?.textContent).toBe('(Who we are)');
-    expect(container.querySelector('.manifesto-apoio')?.textContent).toBe(APOIO);
+    expect(container.querySelector('.manifesto-apoio')?.textContent).toMatch(/^Great digital experiences/);
   });
 
   it('não lê mais o conteúdo da página de identidade', () => {

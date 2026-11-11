@@ -21,6 +21,7 @@ describe('relogio', () => {
   it('mostra REC, o dia em português e a hora com zeros', () => {
     expect(relogio(new Date(2026, 9, 20, 13, 7, 5))).toBe('REC ter13:07:05');
     expect(relogio(new Date(2026, 9, 24, 9, 0, 0))).toBe('REC sáb09:00:00');
+    expect(relogio(new Date(2026, 9, 20, 13, 7, 5), 'en')).toBe('REC tue13:07:05');
   });
 });
 

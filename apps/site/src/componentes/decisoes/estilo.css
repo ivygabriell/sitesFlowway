@@ -29,3 +29,14 @@
 
 /* Reserva as linhas das frases: a digitação não empurra a lista. */
 @media (max-width: 899px) { .frases { min-height: 92px; } }
+/* No celular a folha ocupa quase a largura toda: o título fica acima da linha, para a folha não cobrir as palavras. */
+@media (max-width: 899px) { .com-lencol .titulo-decisoes { align-items: flex-end; top: calc(50vh - 29px); } }
+/* Celular com lençol: título a 34vh (menos tela preta antes do pin), frases logo acima, folha logo abaixo
+   e 44 px livres à direita para a aba fixa "Iniciar projeto" não cortar "entregamos)". */
+@media (max-width: 899px) {
+  .com-lencol { padding-top: 34vh; min-height: calc(34vh + var(--altura-folha, 92vw) + 60px); }
+  .com-lencol .frases { top: calc(34vh - 150px); padding: 0 44px 0 16px; }
+  .com-lencol .titulo-decisoes { top: calc(34vh - 29px); padding: 0 44px 0 24px; box-sizing: border-box; gap: 10px; }
+  .titulo-decisoes { font-size: 20px; white-space: nowrap; }
+  .com-lencol .mascara-decisoes { height: calc(34vh + 1px); }
+}

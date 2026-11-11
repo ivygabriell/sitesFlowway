@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { cena } from '@/estado/cena';
+import { ehCelular } from '@/lib/ambiente';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
 import { vertUv } from '@/shaders/comum';
 import { passagemFrag } from '@/shaders/passagem';
@@ -26,8 +27,10 @@ export function CenaPassagem() {
 
   useEffect(() => {
     plano.current?.scale.set(2 * window.innerWidth, 2 * window.innerHeight, 1);
+    // No celular o escuro chega antes: o texto claro do manifesto já entra na tela na primeira meia tela de rolagem.
+    const [inicio, duracao] = ehCelular(window.innerWidth) ? [0.15, 0.45] : [0.6, 0.6];
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: '.secao-hero', start: `top+=${0.6 * window.innerHeight}`, end: `+=${0.6 * window.innerHeight}`, scrub: 1, refreshPriority: PRIORIDADE.hero },
+      scrollTrigger: { trigger: '.secao-hero', start: `top+=${inicio * window.innerHeight}`, end: `+=${duracao * window.innerHeight}`, scrub: 1, refreshPriority: PRIORIDADE.hero },
     });
     tl.to(progresso.current, { valor: 0, duration: 1, ease: 'none' });
     recalcularGatilhos();
