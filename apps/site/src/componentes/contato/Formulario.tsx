@@ -15,7 +15,7 @@ const VAZIO: Pedido = { nome: '', empresa: '', contato: '', mensagem: '' };
 const INDISPONIVEL: ContatoServidorDTO = { versao: 'contato-b.1', intencao: null, chave: null, repetirAte: null, conversaDisponivel: false, envioDisponivel: false };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export function Formulario({ servidor = INDISPONIVEL, pedido: recebido, aoEditar, aoEnviar, aoBloquear, revisarAgora = false, aoAjustar }: { servidor?: ContatoServidorDTO; pedido?: Pedido; aoEditar?: (p: Pedido) => void; aoEnviar?: () => void; aoBloquear?: (v: boolean) => void; revisarAgora?: boolean; aoAjustar?: () => void }) {
+export function Formulario({ servidor = INDISPONIVEL, pedido: recebido, aoEditar, aoEnviar, aoBloquear, revisarAgora = false, semResumo = false }: { servidor?: ContatoServidorDTO; pedido?: Pedido; aoEditar?: (p: Pedido) => void; aoEnviar?: () => void; aoBloquear?: (v: boolean) => void; revisarAgora?: boolean; semResumo?: boolean }) {
   const idioma = useIdioma();
   const f = contato.formulario, c = contato.conversa;
   const [local, setLocal] = useState<Pedido>(VAZIO);
@@ -130,9 +130,10 @@ export function Formulario({ servidor = INDISPONIVEL, pedido: recebido, aoEditar
       <div className="formulario-acoes"><button type="submit">{t(c.revisar, idioma)}</button></div>
       <p className="formulario-aviso"><a href={rota('privacidade', idioma)}>{t(c.privacidade, idioma)}</a></p>
     </form> : <div className="formulario-contato formulario-revisao">
-      <h2 ref={revisao} tabIndex={-1}>{t(c.resumo, idioma)}</h2>
-      <dl>{CAMPOS.map(campo => <div key={campo}><dt>{t(f[campo], idioma)}</dt><dd>{copia?.[campo]}</dd></div>)}</dl>
-      {!pendente && <div className="formulario-acoes"><button type="button" onClick={() => { if (aoAjustar) { aoAjustar(); return; } setEstado('edicao'); setAviso(''); requestAnimationFrame(() => document.getElementById('pedido-nome')?.focus()); }}>{t(c.ajustar, idioma)}</button><button type="button" onClick={() => void enviar()} disabled={expirado}>{t(c.confirmar, idioma)}</button></div>}
+      {/* Vindo da conversa guiada, o resumo já está na conversa: aqui ficam só as ações de envio. */}
+      {!semResumo && <><h2 ref={revisao} tabIndex={-1}>{t(c.resumo, idioma)}</h2>
+      <dl>{CAMPOS.map(campo => <div key={campo}><dt>{t(f[campo], idioma)}</dt><dd>{copia?.[campo]}</dd></div>)}</dl></>}
+      {!pendente && <div className="formulario-acoes">{!semResumo && <button type="button" onClick={() => { setEstado('edicao'); setAviso(''); requestAnimationFrame(() => document.getElementById('pedido-nome')?.focus()); }}>{t(c.ajustar, idioma)}</button>}<button type="button" onClick={() => void enviar()} disabled={expirado}>{t(c.confirmar, idioma)}</button></div>}
       {estado === 'pendente' && !expirado && <div className="formulario-acoes"><button type="button" disabled={agora < aguardarAte || !!retentativa.current} onClick={() => void enviar()}>{t(c.repetir, idioma)}</button></div>}
     </div>}
     <p className="formulario-falha" role={estado === 'pendente' || aviso ? 'alert' : 'status'} tabIndex={-1} ref={status}>{estado === 'enviando' ? t(f.enviando, idioma) : estado === 'pendente' ? t(expirado ? c.expirado : c.pendente, idioma) : aviso}</p>

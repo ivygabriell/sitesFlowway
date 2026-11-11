@@ -16,7 +16,6 @@ export function PaginaContato({ estado, servidor }: { estado?: string; servidor?
   const idioma = useIdioma();
   const [enviado, setEnviado] = useState(false);
   const [pronto, setPronto] = useState(false);
-  const [rodada, setRodada] = useState(0);
   const [pedido, setPedido] = useState<Pedido>({ nome: '', empresa: '', contato: '', mensagem: '' });
   const { reflow } = useScrollRig();
   // O ScrollRig precisa reler a posição da esfera quando a conversa cresce.
@@ -26,8 +25,8 @@ export function PaginaContato({ estado, servidor }: { estado?: string; servidor?
     <main className="pagina-contato" data-fundo="claro" id="topo">
       <h1 className="frase-contato">{t(contato.frase, idioma)}</h1>
       <div className="pagina-contato-corpo contato-guiada-corpo">
-        <ConversaGuiada key={rodada} aoConcluir={p => { setPedido(p); setPronto(true); }}>
-          {pronto && <div className="guiada-balao floway guiada-resumo"><Formulario servidor={servidor} pedido={pedido} revisarAgora aoAjustar={() => { setPronto(false); setRodada(r => r + 1); }} aoEnviar={() => setEnviado(true)} /></div>}
+        <ConversaGuiada aoConcluir={p => { setPedido(p); setPronto(true); }} aoEditar={() => setPronto(false)}>
+          {pronto && <Formulario key={JSON.stringify(pedido)} servidor={servidor} pedido={pedido} revisarAgora semResumo aoEnviar={() => setEnviado(true)} />}
         </ConversaGuiada>
         {/* Sem JavaScript a conversa não anda: o formulário simples só existe para esse caso, nunca atrás da conversa. */}
         <noscript><Formulario servidor={servidor} /></noscript>
