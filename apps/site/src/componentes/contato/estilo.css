@@ -191,3 +191,80 @@ html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minma
   .rodape-info { grid-template-columns: 1fr; gap: 6px; font-size: 10px; line-height: 14px; }
   .rodape-info .rodape-linha, .rodape-info .rodape-linha:first-child, .rodape-info .rodape-linha:last-child { text-align: center; }
 }
+
+/* ---------- conversa guiada (estilo chat) ---------- */
+/* A janela de conversa fica no meio; a esfera vira fundo, atrás dela. Cores da marca: balões da Floway escuros,
+   os da pessoa em azul, fundo claro. */
+.contato-guiada-corpo { position: relative; display: flex; justify-content: center; align-items: stretch; }
+.guiada { position: relative; z-index: 1; display: flex; flex-direction: column; width: min(100%, 620px); height: min(68vh, 640px); overflow: hidden; border: 1px solid var(--escuro); border-radius: 22px; background: var(--claro); box-shadow: 0 24px 60px rgb(18 18 18 / 0.16); }
+.guiada-topo { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--escuro); color: var(--claro); }
+.guiada-topo strong { display: block; font: 600 15px/18px var(--sans); }
+.guiada-topo small { display: block; font: 400 11px/14px var(--mono); opacity: 0.7; text-transform: lowercase; }
+.guiada-avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--azul); font: 700 16px/1 var(--sans); }
+.guiada-lista { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 18px; overflow-y: auto; overscroll-behavior: contain; background-image: radial-gradient(rgb(18 18 18 / 0.07) 1px, transparent 1px); background-size: 16px 16px; }
+.guiada-balao { max-width: 82%; padding: 10px 14px 6px; border-radius: 16px; font: 400 16px/22px var(--sans); }
+.guiada-balao p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.guiada-balao time { display: block; margin-top: 2px; text-align: right; font: 400 10px/12px var(--mono); opacity: 0.6; }
+.guiada-balao.floway { align-self: flex-start; border-bottom-left-radius: 4px; background: var(--escuro); color: var(--claro); }
+.guiada-balao.voce { align-self: flex-end; border-bottom-right-radius: 4px; background: var(--azul); color: var(--claro); }
+.guiada-digitando { display: flex; gap: 4px; padding: 14px 16px; }
+.guiada-digitando i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.4; }
+@media (prefers-reduced-motion: no-preference) {
+  .guiada-balao { animation: guiada-entra 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .guiada-digitando i { animation: guiada-ponto 1s infinite; }
+  .guiada-digitando i:nth-child(2) { animation-delay: 0.15s; }
+  .guiada-digitando i:nth-child(3) { animation-delay: 0.3s; }
+}
+@keyframes guiada-entra { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes guiada-ponto { 50% { opacity: 1; transform: translateY(-3px); } }
+.guiada-opcoes { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 12px 18px 16px; border: 0; border-top: 1px solid rgb(18 18 18 / 0.12); background: var(--claro); }
+.guiada-opcoes label, .guiada-opcoes button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 16px; border: 1px solid var(--escuro); border-radius: 999px; background: transparent; color: var(--escuro); font: 400 14px/1 var(--sans); cursor: pointer; }
+.guiada-opcoes input { width: 16px; height: 16px; margin: 0; accent-color: var(--azul); }
+.guiada-opcoes label.marcado { border-color: var(--azul); background: var(--azul); color: var(--claro); }
+.guiada-opcoes button:hover, .guiada-opcoes label:hover { border-color: var(--azul); }
+.guiada-opcoes .guiada-continuar { margin-left: auto; border-color: var(--escuro); background: var(--escuro); color: var(--claro); font-family: var(--mono); text-transform: uppercase; }
+.guiada-opcoes .guiada-continuar:disabled { opacity: 0.35; cursor: default; }
+.guiada-entrada { display: flex; align-items: flex-end; gap: 8px; padding: 12px 14px; border-top: 1px solid rgb(18 18 18 / 0.12); background: var(--claro); }
+.guiada-entrada textarea { flex: 1; min-height: 44px; max-height: 140px; padding: 11px 16px; border: 1px solid var(--escuro); border-radius: 22px; outline: 0; background: #fff; color: var(--escuro); font: 400 16px/20px var(--sans); resize: none; }
+.guiada-entrada textarea:focus { border-color: var(--azul); }
+.guiada-enviar { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--azul); color: var(--claro); font: 400 20px/1 var(--sans); cursor: pointer; }
+.guiada-enviar:disabled { background: var(--escuro); opacity: 0.3; cursor: default; }
+.guiada-pular { flex: none; height: 44px; padding: 0 14px; border: 1px solid var(--escuro); border-radius: 22px; background: transparent; color: var(--escuro); font: 400 12px/1 var(--mono); text-transform: uppercase; cursor: pointer; }
+.guiada button:focus-visible, .guiada label:focus-within { outline: 2px solid var(--azul); outline-offset: 2px; }
+/* O resumo do pedido entra como último balão da Floway, com os botões de ajustar e enviar. */
+.guiada-resumo { width: 82%; }
+.guiada-resumo .formulario-contato, .guiada-resumo .pedido-contato { color: var(--claro); }
+.guiada-resumo h2 { margin: 0 0 8px; font: 600 15px/20px var(--sans); }
+.guiada-resumo dl { margin: 0; display: grid; gap: 6px; }
+.guiada-resumo dt { font: 400 10px/12px var(--mono); text-transform: uppercase; opacity: 0.6; }
+.guiada-resumo dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.guiada-resumo .formulario-acoes { justify-content: flex-start; margin-top: 12px; }
+.guiada-resumo button { padding: 10px 16px; border: 1px solid var(--claro); border-radius: 999px; background: transparent; color: var(--claro); font: 400 12px/1 var(--mono); text-transform: uppercase; cursor: pointer; }
+.guiada-resumo button:last-child { border-color: var(--azul); background: var(--azul); }
+.guiada-resumo p:empty { display: none; }
+
+@media (max-width: 899px) {
+  .contato-guiada-corpo { margin: 0 -18px; }
+  .guiada { width: 100%; height: 78svh; border-right: 0; border-left: 0; border-radius: 0; box-shadow: none; }
+  .guiada-balao, .guiada-resumo { max-width: 88%; font-size: 15px; }
+  .guiada-resumo { width: 88%; }
+  .guiada-opcoes label, .guiada-opcoes button { min-height: 44px; }
+  .guiada-opcoes .guiada-continuar { width: 100%; justify-content: center; margin-left: 0; }
+}
+
+/* Ajustes pedidos: sem a frase grande na página de contato (fica só para leitores de tela), janela de conversa maior
+   ocupando a altura livre, e rodapé numa linha só, mais limpo. */
+.pagina-contato .frase-contato { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pagina-contato { gap: 20px; }
+.guiada { width: min(100%, 860px); height: calc(100vh - 190px); min-height: 480px; }
+.guiada-balao { font-size: 17px; line-height: 24px; }
+.guiada-entrada textarea:focus-visible { outline: 0; }
+.pagina-contato .rodape-info { grid-template-columns: 1fr auto auto; gap: 32px; padding-top: 14px; border-top-color: rgb(18 18 18 / 0.25); }
+.pagina-contato .rodape-info .rodape-linha { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 899px) {
+  .pagina-contato { padding-top: 60px; }
+  .guiada { height: calc(100svh - 150px); min-height: 0; }
+  .guiada-balao { font-size: 15px; line-height: 21px; }
+  .pagina-contato .rodape-info { grid-template-columns: 1fr; gap: 4px; }
+  .pagina-contato .rodape-info .rodape-linha { white-space: normal; }
+}

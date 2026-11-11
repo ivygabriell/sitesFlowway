@@ -67,6 +67,46 @@ const contato = {
     demorado: { pt: 'Está demorando. Você pode cancelar a espera; isso não cancela uma chamada já iniciada.', en: 'This is taking a while. You can stop waiting; that won\'t cancel a request already in progress.' },
     privacidade: { pt: 'Política de Privacidade', en: 'Privacy Policy' },
   },
+  // Conversa guiada em formato de chat. Perguntas de exemplo até a pessoa mandar as definitivas.
+  guiada: {
+    titulo: { pt: 'Conversa com a Floway', en: 'Chat with Floway' },
+    digitando: { pt: 'digitando…', en: 'typing…' },
+    suaResposta: { pt: 'Sua resposta', en: 'Your answer' },
+    enviarResposta: { pt: 'Enviar resposta', en: 'Send answer' },
+    pular: { pt: 'Pular', en: 'Skip' },
+    continuar: { pt: 'Continuar', en: 'Continue' },
+    rotuloNecessidades: { pt: 'Preciso de', en: 'I need' },
+    rotuloPrazo: { pt: 'Prazo', en: 'Timeline' },
+    perguntas: {
+      nome: { pt: 'Olá! Que bom ter você aqui. Qual é o seu nome?', en: 'Hi! Great to have you here. What is your name?' },
+      empresa: { pt: 'Prazer, {nome}! Qual é a sua empresa?', en: 'Nice to meet you, {nome}! What is your company?' },
+      necessidades: { pt: 'O que você precisa? Pode marcar mais de um.', en: 'What do you need? You can pick more than one.' },
+      prazo: { pt: 'Para quando você precisa?', en: 'When do you need it?' },
+      contato: { pt: 'Qual o melhor WhatsApp ou e-mail para falarmos com você?', en: 'What is the best WhatsApp or e-mail to reach you?' },
+      descricao: { pt: 'Por último, conte um pouco sobre o projeto.', en: 'Last one: tell us a bit about the project.' },
+    },
+    placeholders: {
+      nome: { pt: 'Seu nome', en: 'Your name' },
+      empresa: { pt: 'Nome da empresa', en: 'Company name' },
+      necessidades: { pt: '', en: '' },
+      prazo: { pt: '', en: '' },
+      contato: { pt: 'WhatsApp ou e-mail', en: 'WhatsApp or e-mail' },
+      descricao: { pt: 'Escreva aqui…', en: 'Write here…' },
+    },
+    necessidades: [
+      { pt: 'Site', en: 'Website' },
+      { pt: 'Sistema ou app', en: 'System or app' },
+      { pt: 'Inteligência artificial', en: 'Artificial intelligence' },
+      { pt: 'Automações', en: 'Automation' },
+      { pt: 'Estratégia digital', en: 'Digital strategy' },
+      { pt: 'Outro', en: 'Other' },
+    ],
+    prazos: [
+      { pt: 'Urgente', en: 'Urgent' },
+      { pt: '1 a 3 meses', en: '1 to 3 months' },
+      { pt: 'Sem pressa', en: 'No rush' },
+    ],
+  },
   privacidade: pendente('texto do aviso de privacidade, C2'),
 } as const satisfies Textos;
 
