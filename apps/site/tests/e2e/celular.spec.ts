@@ -21,18 +21,22 @@ test('no celular a abertura toca uma vez, cabe na tela, e some', async ({ page }
   await expect(page.locator('.abertura')).toBeHidden();
 });
 
-test('no celular os capítulos viram lista e as decisões, folha estática', async ({ page }) => {
+// Rafael, 2026-11-10: o celular roda a mesma galeria presa e o mesmo lençol do desktop.
+test('no celular os capítulos são a galeria em fileira e as decisões, o lençol', async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
   await page.goto('/');
   await page.waitForTimeout(1000);
   await expect(page.locator('.abertura')).toBeHidden();
-  const topos = await page.$$eval('.cartao', (cs) => cs.map((c) => c.getBoundingClientRect().top));
-  expect(topos).toHaveLength(5);
-  for (let i = 1; i < topos.length; i++) expect(topos[i]).toBeGreaterThan(topos[i - 1]);
+  await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-galeria/);
+  const caixas = await page.$$eval('.cartao', (cs) => cs.map((c) => c.getBoundingClientRect().toJSON()));
+  expect(caixas).toHaveLength(5);
+  for (let i = 1; i < caixas.length; i++) {
+    expect(Math.abs(caixas[i].top - caixas[0].top)).toBeLessThan(2);
+    expect(caixas[i].left).toBeGreaterThan(caixas[i - 1].left);
+  }
   // No toque, a capa fica parada e cada cartão é um link para o site do conceito.
   await expect(page.locator('a.cartao[target="_blank"]')).toHaveCount(5);
   await expect(page.locator('.cartao video, [role="dialog"]')).toHaveCount(0);
-  await page.locator('.lista-decisoes').scrollIntoViewIfNeeded();
-  await expect(page.locator('.lista-decisoes')).toBeVisible();
+  await expect(page.locator('.secao-decisoes')).toHaveClass(/com-lencol/, { timeout: 5000 });
   await expect(page.locator('html')).not.toHaveClass(/js-smooth-scrollbar-enabled/);
 });
