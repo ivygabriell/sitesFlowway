@@ -5,7 +5,7 @@ import { pendente, type Texto, type Textos } from './textos';
 // nichos, que a spec tirou do foco; por isso ficam pendentes até C2, exceto os títulos que não citam nicho.
 export const seo = {
   inicio: {
-    titulo: pendente('título da Início, até 60 caracteres, sem nichos'),
+    titulo: { pt: 'Floway', en: 'Floway' },
     descricao: pendente('descrição da Início, até 155 caracteres'),
   },
   trabalhos: { titulo: { pt: 'Trabalhos · Floway', en: 'Work · Floway' }, descricao: pendente('descrição de Trabalhos, até 155 caracteres') },

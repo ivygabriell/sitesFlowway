@@ -17,9 +17,9 @@ describe('buscadores e metadados', () => {
     expect(metadadosDaPagina('contato', 'pt').alternates?.languages).toEqual({ 'pt-BR': '/contato', en: '/en/contact', 'x-default': '/contato' });
   });
 
-  it('o título e a descrição da Início ficam pendentes (C2), em português também em /en', () => {
+  it('o título da Início é Floway e a descrição fica pendente (C2), em português também em /en', () => {
     const m = metadadosDaPagina('inicio', 'en');
-    expect(m.title).toBe('[pendente: título da Início, até 60 caracteres, sem nichos]');
+    expect(m.title).toBe('Floway');
     expect(m.description).toBe('[pendente: descrição da Início, até 155 caracteres]');
   });
 
