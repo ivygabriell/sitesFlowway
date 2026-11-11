@@ -1,6 +1,6 @@
 /* ---------- trecho escuro ---------- */
-/* Do manifesto até as decisões o texto é claro. No desktop o fundo escuro vem do plano WebGL;
-   no celular e com movimento reduzido, cada seção escura pinta o próprio fundo. */
+/* Do manifesto até as decisões o texto é claro. O fundo escuro vem do plano WebGL (também no celular);
+   com movimento reduzido, cada seção escura pinta o próprio fundo. */
 .trecho-escuro { color: var(--claro); }
 .fundo-por-secao .trecho-escuro { background: var(--escuro); }
 

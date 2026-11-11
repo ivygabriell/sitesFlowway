@@ -31,7 +31,7 @@ export function Manifesto() {
 
   useEfeitoDeLayout(() => {
     const secao = document.querySelector<HTMLElement>('.secao-manifesto')!;
-    const ajustarEscala = () => secao.style.setProperty('--escala-cubo', String(Math.min(1, (window.innerWidth - 60) / 1000)));
+    const ajustarEscala = () => secao.style.setProperty('--escala-cubo', String(Math.min(1, (window.innerWidth - 60) / 1000, (0.8 * window.innerHeight) / 600)));
     ajustarEscala();
     window.addEventListener('resize', ajustarEscala);
     if (prefereMenosMovimento()) {
@@ -40,11 +40,6 @@ export function Manifesto() {
     }
 
     const ctx = gsap.context(() => {
-      if (ehCelular(window.innerWidth)) {
-        gsap.timeline({ scrollTrigger: { trigger: '.cubo-palco', start: 'top 80%' } }).to('.cubo', { rotateY: '-90deg', duration: tempo('tempo-cubo-celular'), ease: LINEAR });
-        return;
-      }
-
       // Os vãos do manifesto abrem enquanto o texto entra.
       gsap.to('.manifesto-texto .vao', {
         width: 0.03 * window.innerWidth,
@@ -63,17 +58,33 @@ export function Manifesto() {
         const y = (e.clientY - r.top) / r.height;
         caixas.forEach((c, i) => seguidores.push(gsap.to(c, { left: `${100 * x}%`, top: `${100 * y}%`, duration: INTERVALOS['intervalo-seguir'] * i })));
       };
+      // No toque o toque simula mousemove e puxaria as caixas: lá elas só encolhem.
+      const temMouse = window.matchMedia('(pointer: fine)').matches;
       let seguindo = false;
-      const topoCubo = cuboEl.getBoundingClientRect().top - secao.getBoundingClientRect().top;
+      // O pin trava com o cubo no meio da tela. No desktop fica como antes (topo do .cubo e meia altura de 300 px); no
+      // celular o palco é escalado (≈200 px de altura) e com 300 o cubo travava perto do topo: usa o palco medido.
+      const palco = ehCelular(window.innerWidth) ? secao.querySelector<HTMLElement>('.cubo-palco') : null;
+      const alvo = palco ?? cuboEl;
+      // Topo pelo layout (offsetTop), refeito a cada refresh: a troca de língua muda a altura do texto acima do cubo.
+      // `ajuste` guarda, da montagem, o deslocamento da escala inicial do cubo, para o desktop travar no mesmo ponto de antes.
+      const topoLayout = (el: HTMLElement | null) => {
+        let y = 0;
+        for (; el; el = el.offsetParent as HTMLElement | null) y += el.offsetTop;
+        return y;
+      };
+      const topoNoLayout = () => topoLayout(alvo) - topoLayout(secao);
+      const ajuste = alvo.getBoundingClientRect().top - secao.getBoundingClientRect().top - topoNoLayout();
+      const meioCubo = palco ? palco.offsetHeight / 2 : 300;
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: secao,
-          start: `top+=${topoCubo - 0.5 * window.innerHeight + 300}`,
+          start: () => `top+=${topoNoLayout() + ajuste - 0.5 * window.innerHeight + meioCubo}`,
           end: `+=${0.8 * window.innerHeight}`,
           scrub: tempo('tempo-scrub'),
           pin: true,
           refreshPriority: PRIORIDADE.manifesto,
           onUpdate: ({ progress }) => {
+            if (!temMouse) return;
             if (progress > GIRO.seguirAcima && !seguindo) {
               palavras.forEach((p) => (p.style.animationPlayState = 'paused'));
               cuboEl.addEventListener('mousemove', seguir);
@@ -89,7 +100,7 @@ export function Manifesto() {
         },
       });
       tl.to('.cubo', { rotateY: '-90.01deg', duration: GIRO.giro, ease: LINEAR }, GIRO.inicio)
-        .to('.cubo-lado', { borderWidth: 1, duration: GIRO.borda, ease: LINEAR }, GIRO.bordaEm)
+        .to('.cubo-lado', { '--borda-lado': 1, duration: GIRO.borda, ease: LINEAR }, GIRO.bordaEm)
         .from('.caixa', { width: 1200, height: 800, duration: GIRO.caixas, stagger: INTERVALOS['intervalo-minimo'], ease: LINEAR }, GIRO.caixasEm)
         .to('.cubo', { scale: 1, duration: GIRO.escala, ease: LINEAR }, GIRO.escalaEm);
       recalcularGatilhos();

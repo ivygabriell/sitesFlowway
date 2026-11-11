@@ -17,7 +17,9 @@
 
 @media (max-width: 899px) {
   .titulo-hero { left: 5vw; width: 90vw; top: calc(50vh - 0.178 * 100vh - 45vw * 292 / 1360); top: calc(50svh - 0.178 * 100svh - 45vw * 292 / 1360); }
-  .secao-hero .intro { left: 18px; right: 18px; width: auto; top: calc(50vh + 50px); top: calc(50svh + 50px); font: 400 13px/16px var(--sans); text-transform: none; text-align: left; }
+  /* Faixas sem fundo próprio: no celular a tira branca cortava o F e parecia um segundo fundo. */
+  .secao-hero .faixas { background: transparent; }
+  .secao-hero .intro { left: 52px; right: 52px; width: auto; top: calc(50vh + 50px); top: calc(50svh + 50px); font: 400 12px/15px var(--sans); text-transform: none; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .secao-hero .faixa { animation: none; }

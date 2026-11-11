@@ -30,24 +30,22 @@ test.describe('no celular', () => {
   const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } = devices['iPhone 13'];
   test.use({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch });
 
-  test('a folha estática mostra os 7 itens, e a linha e as frases animam ao entrar, sem prender', async ({ page }) => {
+  // Rafael, 2026-11-10: com WebGL, o celular segue o desktop (lençol preso); a folha estática fica para quem não tem WebGL.
+  test('com WebGL, o lençol prende a seção e a linha e as frases animam com a rolagem', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
     const secao = page.locator('.secao-decisoes');
-    await expect(secao).not.toHaveClass(/com-lencol/);
-    const itens = page.locator('.lista-decisoes li');
-    await expect(itens).toHaveCount(7);
-    // A folha é tracejada em cima e embaixo, como no protótipo 06.
-    for (const lado of ['::before', '::after']) {
-      expect(await page.locator('.lista-decisoes').evaluate((e, l) => getComputedStyle(e, l).borderTopStyle, lado)).toBe('dashed');
-    }
-    for (let i = 0; i < ITENS.length; i++) {
-      await itens.nth(i).scrollIntoViewIfNeeded();
-      await expect(itens.nth(i)).toBeVisible();
-      await expect(itens.nth(i)).toHaveText(`${ITENS[i]}(${i + 1})`);
-    }
-    expect(await secao.evaluate((e) => e.parentElement?.classList.contains('pin-spacer'))).toBe(false);
-    await expect(page.locator('.frase').first()).toHaveText('Do primeiro esboço à automação rodando, cuidamos de cada etapa.', { timeout: 5000 });
+    await expect(secao).toHaveClass(/com-lencol/, { timeout: 5000 });
+    expect(await secao.evaluate((e) => e.parentElement?.classList.contains('pin-spacer'))).toBe(true);
+    await expect(page.locator('.lista-decisoes li')).toHaveCount(ITENS.length);
+    const inicio = await secao.evaluate((e) => e.getBoundingClientRect().top + scrollY);
+    await page.evaluate((y) => scrollTo(0, y), inicio + 2);
+    await page.waitForTimeout(1000);
+    const frase = page.locator('.frase').first();
+    const textoInicial = (await frase.textContent()) ?? '';
+    await page.evaluate((y) => scrollTo(0, y + 0.7 * innerHeight), inicio);
+    await page.waitForTimeout(2000);
     expect(await page.locator('.titulo-decisoes .linha').evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThan(50);
+    expect(((await frase.textContent()) ?? '').length).toBeGreaterThan(textoInicial.length);
   });
 });

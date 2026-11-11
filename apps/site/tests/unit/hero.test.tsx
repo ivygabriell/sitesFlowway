@@ -85,10 +85,10 @@ describe('disposição da logo de vidro do hero', () => {
     expect(PARALAXE).toEqual({ palavra: 1.6, principal: 0.1 });
   });
 
-  it('a saída usa scrub 1, do topo do hero + 10 px até 2 alturas de tela (0,7 no celular)', () => {
+  it('a saída usa scrub 1, do topo do hero + 10 px até 2 alturas de tela (1 no celular)', () => {
     expect(SAIDA.scrub).toBe(1);
     expect(SAIDA.inicio).toBe('top+=10');
-    expect(SAIDA.alturas).toEqual({ desktop: 2, celular: 0.7 });
+    expect(SAIDA.alturas).toEqual({ desktop: 2, celular: 1 });
   });
 
   // Rafael, 2026-11-09: crescendo 1,7× e girando, o F virava placas gigantes por cima do texto ao rolar.

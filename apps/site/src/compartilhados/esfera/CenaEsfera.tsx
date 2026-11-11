@@ -119,10 +119,10 @@ function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respond
     material.uniforms.uDpr.value = gl.getPixelRatio();
   }, [scale, n, gl, material]);
 
-  // Morfose automática só no desktop: esfera e alvo se alternam a cada INTERVALO_MORFOSE.
+  // Morfose automática no desktop e no celular (não no reduzido): esfera e alvo se alternam a cada INTERVALO_MORFOSE.
   const morfose = useRef<gsap.core.Timeline | null>(null);
   useEffect(() => {
-    if (modo !== 'desktop' || formarAlvo !== undefined) return;
+    if (modo === 'reduzido' || formarAlvo !== undefined) return;
     const s = estado.current;
     const dur = TEMPOS['tempo-planos'];
     const tl = gsap

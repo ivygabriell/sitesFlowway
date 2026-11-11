@@ -18,20 +18,20 @@ export type Trabalho = {
 };
 
 export const NOMES_OFERTA = {
-  'landing-page': { pt: 'Landing page' },
-  'site-institucional': { pt: 'Site institucional' },
-  automacao: { pt: 'Automação' },
+  'landing-page': { pt: 'Landing page', en: 'Landing page' },
+  'site-institucional': { pt: 'Site institucional', en: 'Company website' },
+  automacao: { pt: 'Automação', en: 'Automation' },
 } as const satisfies Record<Oferta, Texto>;
 
 // A lista real: as peças conceito do repositório de Sites (spec 2026-11-09, P1), nomeadas pelo setor, sem a
 // marca fictícia. Capa capturada do build de cada peça em 1280×1894 e reduzida a 730×1080; mês e ano do primeiro
 // commit da pasta da peça. O site é o build da peça (repositório CreateHubAI/sitesOfertas) com a base /conceitos/<slug>/, em
 // public/; o caminho leva o index.html porque o Next não serve o índice de uma pasta.
-const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabalho => ({
+const peca = (slug: string, nome: Texto, setor: Texto, oferta: Oferta): Trabalho => ({
   slug,
-  nome: { pt: nome },
-  setor: { pt: setor },
-  mesAno: { pt: 'Novembro 2026' },
+  nome,
+  setor,
+  mesAno: { pt: 'Novembro 2026', en: 'November 2026' },
   oferta,
   conceito: true,
   capa: `/trabalhos/${slug}/capa.webp`,
@@ -39,26 +39,25 @@ const peca = (slug: string, nome: string, setor: string, oferta: Oferta): Trabal
 });
 
 export const listaDeTrabalhos: Trabalho[] = [
-  peca('ferramenta-criativa', 'Ferramenta criativa', 'Tecnologia', 'landing-page'),
-  peca('companhia-aerea', 'Companhia aérea', 'Aviação', 'site-institucional'),
-  peca('banco-digital', 'Banco digital', 'Finanças', 'landing-page'),
-  peca('estudio-de-marca', 'Estúdio de marca', 'Design', 'site-institucional'),
-  peca('plataforma-de-deploy', 'Plataforma de deploy', 'Tecnologia', 'landing-page'),
+  peca('ferramenta-criativa', { pt: 'Ferramenta criativa', en: 'Creative tool' }, { pt: 'Tecnologia', en: 'Technology' }, 'landing-page'),
+  peca('companhia-aerea', { pt: 'Companhia aérea', en: 'Airline' }, { pt: 'Aviação', en: 'Aviation' }, 'site-institucional'),
+  peca('banco-digital', { pt: 'Banco digital', en: 'Digital bank' }, { pt: 'Finanças', en: 'Finance' }, 'landing-page'),
+  peca('estudio-de-marca', { pt: 'Estúdio de marca', en: 'Brand studio' }, { pt: 'Design', en: 'Design' }, 'site-institucional'),
+  peca('plataforma-de-deploy', { pt: 'Plataforma de deploy', en: 'Deploy platform' }, { pt: 'Tecnologia', en: 'Technology' }, 'landing-page'),
 ];
 
-// Árvore de textos da seção (o índice pede o export com o nome do arquivo). O inglês das ofertas, do rótulo
-// "Conceito" e das peças ainda não foi aprovado: sem `en`, /en mostra o português e a trava aponta cada um.
+// Árvore de textos da seção (o índice pede o export com o nome do arquivo).
 const trabalhos = {
   rotulo: { pt: '(Trabalhos)', en: '(Work)' },
   ofertas: NOMES_OFERTA,
-  conceito: { pt: 'Conceito' },
+  conceito: { pt: 'Conceito', en: 'Concept' },
   lista: listaDeTrabalhos.map(({ nome, setor, mesAno }) => ({ nome, setor, mesAno })),
 } as const satisfies Textos;
 
 // Marcadores de construção: as ofertas do protótipo 05, sem data nem setor (a spec não fixa).
 const marcador = (n: number, oferta: Oferta): Trabalho => ({
   slug: `marcador-${n}`,
-  nome: { pt: `Conceito · ${NOMES_OFERTA[oferta].pt}` },
+  nome: { pt: `Conceito · ${NOMES_OFERTA[oferta].pt}`, en: `Concept · ${NOMES_OFERTA[oferta].en}` },
   setor: pendente('setor do trabalho'),
   mesAno: pendente('mês e ano do trabalho'),
   oferta,

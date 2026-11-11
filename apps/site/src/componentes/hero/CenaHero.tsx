@@ -167,7 +167,8 @@ export function CenaHero() {
         .to(principal.scale, { x: escala, y: escala, z: escala, duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto'])
         .to(principal.rotation, { x: rx + (giro.x ?? 0), y: ry + (giro.y ?? 0), z: rz + (giro.z ?? 0), duration: T['tempo-planos'], ease: C['curva-saida'] }, INTERVALOS['intervalo-curto']);
       // O vidro some cedo (até 0,6 de 2,1 da saída: pouco mais de meia tela de rolagem no desktop).
-      saida.to(s, { opacidade: 0, duration: 0.5, ease: C['curva-entrada'] }, 0.1);
+      // No celular o vidro não some no meio da tela: sai com a rolagem, e o onLeave o esconde já fora dela.
+      if (!celular) saida.to(s, { opacidade: 0, duration: 0.5, ease: C['curva-entrada'] }, 0.1);
       recalcularGatilhos();
     }, 1000);
 
@@ -188,8 +189,8 @@ export function CenaHero() {
     const un = u();
     const t = reduzido ? 0 : estadoR3f.clock.elapsedTime;
     const sy = rolagemSuave ? scroll.y : window.scrollY;
-    // Com movimento reduzido tudo anda com a página (×1) e some com a seção.
-    const px = (fator: number) => (reduzido ? 1 : fator) * sy;
+    // Com movimento reduzido, e no celular, tudo anda com a página (×1) e sai da tela junto com o conteúdo.
+    const px = (fator: number) => (reduzido || celular ? 1 : fator) * sy;
 
     materialLogo.uniforms.uProgresso.value = s.progresso;
     refLogo.current.position.y = 0.178 * window.innerHeight + px(PARALAXE.palavra);
@@ -199,10 +200,13 @@ export function CenaHero() {
     principal.position.set(POSICAO.x * un + 0.07 * Math.sin(0.9 * t) * un, r.principal.y + 0.03 * Math.sin(celular ? 0.7 * t : 0.6 * t) * un + s.yPrincipal + px(PARALAXE.principal), 0);
     const { uniforms } = vidro;
     uniforms.uTempo.value = t;
-    uniforms.uOpacidade.value = s.opacidade;
+    // No celular o escuro da passagem sobe já a 0,15 tela de rolagem: o vidro claro sobre ele virava uma placa cinza
+    // cortada na borda da tela; ele esmaece entre 0,1 e 0,35 tela, antes de o escuro chegar ao F.
+    const opacidade = celular ? s.opacidade * THREE.MathUtils.clamp((0.35 * window.innerHeight - sy) / (0.25 * window.innerHeight), 0, 1) : s.opacidade;
+    uniforms.uOpacidade.value = opacidade;
 
     // Fora do hero (inclusive com movimento reduzido, quando não há gatilho de saída) o passo da refração para.
-    if (!s.ativo || s.opacidade < 0.01 || sy > 2 * window.innerHeight) return;
+    if (!s.ativo || opacidade < 0.01 || sy > 2 * window.innerHeight) return;
     // Passo da refração: a cena sem o vidro vai para o alvo, e o vidro amostra esse alvo.
     principal.visible = false;
     gl.setRenderTarget(alvo);

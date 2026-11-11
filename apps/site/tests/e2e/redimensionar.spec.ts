@@ -7,9 +7,11 @@ test('redimensionar recarrega a página no modo certo para a nova largura', asyn
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
   await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-galeria/);
 
+  // No celular a galeria continua, mas remontada com os cartões de retrato (até 80% da largura).
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-lista/, { timeout: 5000 });
-  await expect(page.locator('.secao-decisoes')).not.toHaveClass(/com-lencol/);
+  await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-galeria/, { timeout: 5000 });
+  await expect.poll(() => page.locator('.cartao').first().evaluate((e) => e.getBoundingClientRect().width), { timeout: 5000 }).toBeLessThanOrEqual(390 * 0.8);
+  await expect(page.locator('.secao-decisoes')).toHaveClass(/com-lencol/, { timeout: 5000 });
   await expect(page.locator('html')).not.toHaveClass(/js-smooth-scrollbar-enabled/);
 
   await page.setViewportSize({ width: 1100, height: 800 });

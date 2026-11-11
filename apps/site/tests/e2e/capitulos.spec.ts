@@ -111,7 +111,7 @@ test('os cartões são as cinco peças com capa, cada uma um link para o site do
   await expect(page.locator('.secao-capitulos .cartao.com-capa')).toHaveCount(5);
   await expect(page.locator('.secao-capitulos a.cartao[target="_blank"]')).toHaveCount(5);
   await expect(page.locator('.secao-capitulos .cartao-img img')).toHaveCount(5);
-  for (const cartao of await cartoes.all()) await expect(cartao.locator('.cartao-subtitulo')).toContainText('Conceito');
+  for (const cartao of await cartoes.all()) await expect(cartao).toHaveAttribute('aria-label', /Conceito/);
 });
 
 // Rafael, 2026-11-09: com o mouse em cima fica a capa; clicar abre o site do conceito numa aba nova, logo que a
@@ -197,17 +197,19 @@ test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 
 test.describe('no celular', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('os cartões ocupam a largura da lista', async ({ page }) => {
+  test('roda a galeria presa com cartões de retrato inteiros na tela', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-lista/, { timeout: 5000 });
-    const larguras = await page.$$eval('.cartao', (cs) => cs.map((c) => c.getBoundingClientRect().width));
-    expect(larguras).toHaveLength(5);
-    for (const l of larguras) expect(l).toBeGreaterThan(300);
-    await expect(page.locator('.secao-capitulos .barra-progresso')).toHaveCount(0);
-    await expect(page.locator('.pin-spacer > .secao-capitulos')).toHaveCount(0);
-    const medidas = await page.locator('.cartoes').boundingBox();
-    expect(medidas!.x).toBe(18);
-    expect(medidas!.x + medidas!.width).toBe(372);
+    const secao = page.locator('.secao-capitulos');
+    await expect(secao).toHaveClass(/modo-galeria/, { timeout: 5000 });
+    await expect(page.locator('.pin-spacer > .secao-capitulos')).toHaveCount(1);
+    await expect(secao.locator('.barra-progresso')).toHaveCount(1);
+    for (const c of await secao.locator('.cartao').all()) {
+      const caixa = (await c.boundingBox())!;
+      expect(caixa.width).toBeGreaterThan(280);
+      expect(caixa.width).toBeLessThanOrEqual(390 * 0.8);
+      expect(caixa.height).toBeLessThanOrEqual(844);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
 });
 
@@ -224,7 +226,7 @@ test.describe('movimento reduzido', () => {
     await expect(secao.locator('.cartao')).toHaveCount(5);
     for (const cartao of await secao.locator('.cartao').all()) {
       await expect(cartao.locator('.cartao-titulo')).toBeVisible();
-      await expect(cartao.locator('.cartao-subtitulo')).toBeVisible();
+      await expect(cartao.locator('.cartao-subtitulo')).toHaveCount(0);
       const caixa = await cartao.boundingBox();
       expect(caixa!.x).toBeGreaterThanOrEqual(18);
       expect(caixa!.x + caixa!.width).toBeLessThanOrEqual(1422);
@@ -249,7 +251,7 @@ test.describe('sem WebGL', () => {
       await expect(cartao.locator('.cartao-img img')).toBeVisible();
       await expect(cartao.locator('.cartao-img img')).toHaveCSS('opacity', '1');
       await expect(cartao.locator('.cartao-titulo')).toBeVisible();
-      await expect(cartao.locator('.cartao-subtitulo')).toBeVisible();
+      await expect(cartao.locator('.cartao-subtitulo')).toHaveCount(0);
     }
     expect(erros).toEqual([]);
   });

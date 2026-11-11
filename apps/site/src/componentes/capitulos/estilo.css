@@ -9,18 +9,21 @@
 .barra-ativa { position: relative; z-index: 2; width: 0; height: 16px; border: 1px solid var(--claro); background: var(--escuro); }
 .tracinho { position: absolute; top: 0; width: 1px; height: 16px; background: var(--claro); z-index: 1; }
 
-/* Celular: lista vertical. Movimento reduzido: grade parada. */
-.modo-lista, .modo-grade { height: auto; padding: 120px 18px 60px; }
-.modo-lista .cartoes, .modo-grade .cartoes { margin: 0; padding: 0; width: auto; }
-.modo-lista .capitulos-palco { width: 100%; }
-.modo-lista .cartoes { flex-direction: column; gap: 24px; }
-.modo-grade .cartoes { flex-wrap: wrap; gap: 24px; justify-content: center; }
-
-.modo-lista .rotulo-capitulos, .modo-grade .rotulo-capitulos { position: static; margin-bottom: 20px; }
-.modo-lista .cartao.sem-capa, .modo-lista .cartao-img img { width: 100%; height: auto; aspect-ratio: 730 / 1080; }
+/* Movimento reduzido: grade parada. */
+.modo-grade { height: auto; padding: 120px 18px 60px; }
+.modo-grade .cartoes { margin: 0; padding: 0; width: auto; flex-wrap: wrap; gap: 24px; justify-content: center; min-width: 0; }
+.modo-grade .rotulo-capitulos { position: static; margin-bottom: 20px; }
 .modo-grade { --cartao-largura: 30vh; --cartao-altura: 44vh; }
+
+/* Celular em retrato: a mesma galeria presa, com cartões de ~75vw que cabem na altura visível (proporção da capa). */
+@media (max-width: 899px) {
+  .modo-galeria, .modo-estatica { height: 100svh; }
+  .modo-galeria, .modo-estatica { --cartao-largura: min(75vw, 50svh); --cartao-altura: calc(var(--cartao-largura) * 1080 / 730); }
+  .modo-galeria .cartoes, .modo-estatica .cartoes { gap: 6vw; padding: 0 12.5vw; }
+  .rotulo-capitulos { left: 12.5vw; }
+  .barra-progresso { bottom: 20px; }
+}
 
 /* Sem WebGL */
 .js-global-canvas-error .cartao-img img { opacity: 1; }
 
-.modo-lista .cartoes, .modo-grade .cartoes { min-width: 0; }

@@ -25,6 +25,7 @@ export function Contato() {
   const [modo, setModo] = useState<Modo | null>(null);
 
   useEffect(() => {
+    // O celular usa o mesmo caminho do desktop (sticky + scrub); a classe modo-celular só ajusta o CSS.
     setModo(prefereMenosMovimento() ? 'reduzido' : ehCelular(window.innerWidth) ? 'celular' : 'desktop');
   }, []);
 
@@ -32,6 +33,11 @@ export function Contato() {
     if (!modo) return;
     const secao = document.querySelector<HTMLElement>('.secao-contato')!;
     const rodape = secao.querySelector<HTMLElement>('.rodape')!;
+    // Celular: a esfera fica só na área livre abaixo da frase (a altura da frase muda com a língua).
+    if (modo === 'celular') {
+      const frase = secao.querySelector<HTMLElement>('.frase-contato')!;
+      secao.style.setProperty('--topo', `${frase.offsetTop + frase.offsetHeight + 12}px`);
+    }
     const ativar = (sim: boolean) => {
       cena.contatoAtivo = sim;
       rodape.classList.toggle('visivel', sim);
@@ -51,20 +57,6 @@ export function Contato() {
     const ctx = gsap.context(() => {
       const circulo = secao.querySelector<HTMLElement>('.circulo-escuro')!;
       const encolher = { scale: 0, duration: TEMPOS['tempo-circulo'], ease: CURVAS['curva-circulo'] };
-      if (modo === 'celular') {
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: secao,
-              start: 'top top+=35%',
-              refreshPriority: PRIORIDADE.contato,
-              onEnter: () => ativar(true),
-              onLeaveBack: () => ativar(false),
-            },
-          })
-          .to(circulo, encolher);
-        return;
-      }
       // A tela fica presa por CSS (position: sticky) enquanto a seção, 1,8 altura da tela, passa: o círculo encolhe nesse trecho.
       gsap
         .timeline({

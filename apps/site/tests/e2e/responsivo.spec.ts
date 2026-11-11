@@ -34,17 +34,24 @@ test.describe('390×844, detalhes', () => {
     }
   });
 
+  // A galeria anda na horizontal: no fim do percurso, o último cartão para dentro da margem direita.
   test('os cartões respeitam a margem direita', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(500);
-    const direita = await page.locator('.cartoes').evaluate((e) => e.getBoundingClientRect().right);
+    await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+    const fim = await page.locator('.pin-spacer:has(> .secao-capitulos)').evaluate((e) => e.getBoundingClientRect().bottom + scrollY - innerHeight);
+    await page.evaluate((y) => scrollTo(0, y - 2), fim);
+    await page.waitForTimeout(1500);
+    const direita = await page.locator('.cartao').last().evaluate((e) => e.getBoundingClientRect().right);
     expect(direita).toBeLessThanOrEqual(390 - 18);
   });
 
+  // Rafael, 2026-11-10: o primeiro toque em "PT ▾" mostra a outra língua; o segundo troca no lugar, sem recarregar.
   test('tocar na outra língua troca o idioma', async ({ page }) => {
     await page.goto('/contato');
+    await page.locator('.cabecalho .idioma').tap();
     await page.locator('.cabecalho .idioma .menu-texto2').tap();
     await page.waitForURL('**/en/contact');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
   test('os links do cabeçalho têm alvo de toque de 44 px', async ({ page }) => {

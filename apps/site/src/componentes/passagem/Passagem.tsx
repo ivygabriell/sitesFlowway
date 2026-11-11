@@ -2,16 +2,16 @@
 
 import { UseCanvas } from '@14islands/r3f-scroll-rig';
 import { useEffect, useState } from 'react';
-import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { prefereMenosMovimento } from '@/lib/ambiente';
 import { temWebgl } from '@/lib/webgl';
 import { CenaPassagem } from './CenaPassagem';
 import './estilo.css';
 
-// No celular, com movimento reduzido ou sem WebGL não há plano: as seções escuras pintam o próprio fundo (classe no <html>).
+// Com movimento reduzido ou sem WebGL não há plano: as seções escuras pintam o próprio fundo (classe no <html>).
 export function Passagem() {
   const [usarPlano, setUsarPlano] = useState(false);
   useEffect(() => {
-    const plano = !ehCelular(window.innerWidth) && !prefereMenosMovimento() && temWebgl();
+    const plano = !prefereMenosMovimento() && temWebgl();
     document.documentElement.classList.toggle('fundo-por-secao', !plano);
     setUsarPlano(plano);
   }, []);

@@ -21,13 +21,9 @@ type Props = {
 export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
   const nome = t(trabalho.nome, idioma);
   const [data, oferta] = linhaDoCartao(trabalho, idioma);
+  // Na face do cartão só o nome, embaixo (2026-11-10); data e oferta seguem no nome acessível do link.
   const info = (
     <div className="cartao-info">
-      <p className="cartao-subtitulo">
-        {data}
-        <br />
-        {oferta}
-      </p>
       <h3 className="cartao-titulo">{nome}</h3>
     </div>
   );
