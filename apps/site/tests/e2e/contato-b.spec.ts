@@ -15,22 +15,28 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ status: 202, json: { ok: false, estado: 'incerto', codigo: 'RESULTADO_INCERTO' }, headers: { 'Retry-After': '60' } });
   });
 });
-for (const caminho of ['/contato', '/en/contact']) {
+// Rafael, 2026-11-10: a página de contato ganhou o inglês; /en/contact não cai mais nos rótulos em português.
+const ROTULOS = {
+  '/contato': { naoSei: 'Ainda não sei', simples: 'Usar formulário simples', campos: ['Nome', 'Empresa', 'Contato', 'Mensagem'], revisar: 'Revisar pedido', resumo: 'Confira o resumo', confirmar: 'Confirmar e enviar', pendente: /Resultado pendente/, ajustar: 'Ajustar', voltar: 'Voltar à conversa' },
+  '/en/contact': { naoSei: "I'm not sure yet", simples: 'Use simple form', campos: ['Name', 'Company', 'Contact', 'Message'], revisar: 'Review request', resumo: 'Check the summary', confirmar: 'Confirm and send', pendente: /Result pending/, ajustar: 'Edit', voltar: 'Back to chat' },
+};
+for (const [caminho, r] of Object.entries(ROTULOS)) {
   test(`${caminho}: B vazio, conversa, edição e confirmação pendente`, async ({ page }) => {
     await page.goto(caminho);
     await expect(page.locator('.contato-b-vazio')).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveCount(0);
-    await page.getByRole('button', { name: 'Ainda não sei', exact: true }).click();
+    await expect(page.getByRole('textbox', { name: r.campos[0], exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: r.naoSei, exact: true }).click();
     await expect(page.locator('.contato-b-aberta')).toBeVisible();
     await expect(page.locator('.assistente .resposta-visual')).toHaveText('Qual é o objetivo do projeto?');
-    await page.getByRole('button', { name: 'Usar formulário simples' }).click();
-    for (const [name, valor] of [['Nome', 'Pessoa de teste'], ['Empresa', 'Empresa de teste'], ['Contato', 'Contato livre'], ['Mensagem', 'Minha descrição editada']]) await page.getByRole('textbox', { name, exact: true }).fill(valor);
-    await page.getByRole('button', { name: 'Revisar pedido' }).click();
-    await expect(page.getByRole('heading', { name: 'Confira o resumo' })).toBeFocused();
-    await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
-    await expect(page.getByText(/Resultado pendente/)).toBeFocused();
-    await expect(page.getByRole('button', { name: 'Ajustar' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Voltar à conversa' })).toHaveCount(0);
+    await page.getByRole('button', { name: r.simples }).click();
+    const valores = ['Pessoa de teste', 'Empresa de teste', 'Contato livre', 'Minha descrição editada'];
+    for (const [i, name] of r.campos.entries()) await page.getByRole('textbox', { name, exact: true }).fill(valores[i]);
+    await page.getByRole('button', { name: r.revisar }).click();
+    await expect(page.getByRole('heading', { name: r.resumo })).toBeFocused();
+    await page.getByRole('button', { name: r.confirmar }).click();
+    await expect(page.getByText(r.pendente)).toBeFocused();
+    await expect(page.getByRole('button', { name: r.ajustar, exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: r.voltar })).toHaveCount(0);
     await expect(page.getByRole('definition').filter({ hasText: 'Minha descrição editada' })).toBeVisible();
   });
 }
