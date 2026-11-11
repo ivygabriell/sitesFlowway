@@ -193,21 +193,29 @@ html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minma
 }
 
 /* ---------- conversa guiada (estilo chat) ---------- */
-/* A janela de conversa fica no meio; a esfera vira fundo, atrás dela. Cores da marca: balões da Floway escuros,
-   os da pessoa em azul, fundo claro. */
+/* Página de contato só com o "voltar" e a janela de conversa no meio. Cores da marca: Floway em preto, pessoa em azul. */
+.pagina-contato { gap: 0; padding: 64px 30px 24px; }
+.pagina-contato .frase-contato { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .contato-guiada-corpo { position: relative; display: flex; justify-content: center; align-items: stretch; }
-.guiada { position: relative; z-index: 1; display: flex; flex-direction: column; width: min(100%, 620px); height: min(68vh, 640px); overflow: hidden; border: 1px solid var(--escuro); border-radius: 22px; background: var(--claro); box-shadow: 0 24px 60px rgb(18 18 18 / 0.16); }
-.guiada-topo { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--escuro); color: var(--claro); }
-.guiada-topo strong { display: block; font: 600 15px/18px var(--sans); }
-.guiada-topo small { display: block; font: 400 11px/14px var(--mono); opacity: 0.7; text-transform: lowercase; }
-.guiada-avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--azul); font: 700 16px/1 var(--sans); }
-.guiada-lista { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 18px; overflow-y: auto; overscroll-behavior: contain; background-image: radial-gradient(rgb(18 18 18 / 0.07) 1px, transparent 1px); background-size: 16px 16px; }
-.guiada-balao { max-width: 82%; padding: 10px 14px 6px; border-radius: 16px; font: 400 16px/22px var(--sans); }
+
+.guiada { --g-borda: rgb(18 18 18 / 0.12); display: flex; flex-direction: column; width: min(100%, 920px); height: calc(100vh - 96px); min-height: 520px; overflow: hidden; border: 1px solid var(--g-borda); border-radius: 24px; background: #fff; box-shadow: 0 30px 80px rgb(18 18 18 / 0.12); }
+.guiada-coluna { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.guiada-topo { display: flex; align-items: center; gap: 14px; padding: 16px 24px; background: var(--escuro); color: var(--claro); }
+.guiada-avatar { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--azul); font: 700 18px/1 var(--sans); }
+.guiada-quem strong { display: block; font: 600 17px/20px var(--sans); }
+.guiada-quem small { display: block; font: 400 11px/14px var(--mono); opacity: 0.65; }
+/* Progresso: quantas perguntas já foram respondidas, com uma barra sobre um trilho. */
+.guiada-progresso { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 120px; font: 400 11px/1 var(--mono); }
+.guiada-progresso i { display: block; align-self: stretch; height: 3px; border-radius: 3px; background: linear-gradient(var(--azul-no-escuro), var(--azul-no-escuro)) left / var(--p, 0%) 100% no-repeat, rgb(247 247 245 / 0.18); }
+
+.guiada-lista { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 28px 28px 20px; background: var(--claro) radial-gradient(rgb(18 18 18 / 0.06) 1px, transparent 1px) 0 0 / 18px 18px; }
+.guiada-balao { max-width: 72%; padding: 11px 16px 7px; border-radius: 18px; font: 400 17px/24px var(--sans); }
 .guiada-balao p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.guiada-balao time { display: block; margin-top: 2px; text-align: right; font: 400 10px/12px var(--mono); opacity: 0.6; }
-.guiada-balao.floway { align-self: flex-start; border-bottom-left-radius: 4px; background: var(--escuro); color: var(--claro); }
-.guiada-balao.voce { align-self: flex-end; border-bottom-right-radius: 4px; background: var(--azul); color: var(--claro); }
-.guiada-digitando { display: flex; gap: 4px; padding: 14px 16px; }
+.guiada-balao time { display: block; margin-top: 3px; text-align: right; font: 400 10px/12px var(--mono); opacity: 0.55; }
+.guiada-balao.floway { align-self: flex-start; border-bottom-left-radius: 6px; background: var(--escuro); color: var(--claro); }
+.guiada-balao.voce { align-self: flex-end; border-bottom-right-radius: 6px; background: var(--azul); color: #fff; }
+.guiada-digitando { display: flex; gap: 5px; padding: 15px 18px; }
 .guiada-digitando i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.4; }
 @media (prefers-reduced-motion: no-preference) {
   .guiada-balao { animation: guiada-entra 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -215,85 +223,57 @@ html.js-global-canvas-error .pagina-contato-corpo { grid-template-columns: minma
   .guiada-digitando i:nth-child(2) { animation-delay: 0.15s; }
   .guiada-digitando i:nth-child(3) { animation-delay: 0.3s; }
 }
-@keyframes guiada-entra { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes guiada-entra { from { opacity: 0; transform: translateY(8px); } }
 @keyframes guiada-ponto { 50% { opacity: 1; transform: translateY(-3px); } }
-.guiada-opcoes { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 12px 18px 16px; border: 0; border-top: 1px solid rgb(18 18 18 / 0.12); background: var(--claro); }
-.guiada-opcoes label, .guiada-opcoes button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 16px; border: 1px solid var(--escuro); border-radius: 999px; background: transparent; color: var(--escuro); font: 400 14px/1 var(--sans); cursor: pointer; }
-.guiada-opcoes input { width: 16px; height: 16px; margin: 0; accent-color: var(--azul); }
-.guiada-opcoes label.marcado { border-color: var(--azul); background: var(--azul); color: var(--claro); }
-.guiada-opcoes button:hover, .guiada-opcoes label:hover { border-color: var(--azul); }
-.guiada-opcoes .guiada-continuar { margin-left: auto; border-color: var(--escuro); background: var(--escuro); color: var(--claro); font-family: var(--mono); text-transform: uppercase; }
-.guiada-opcoes .guiada-continuar:disabled { opacity: 0.35; cursor: default; }
-.guiada-entrada { display: flex; align-items: flex-end; gap: 8px; padding: 12px 14px; border-top: 1px solid rgb(18 18 18 / 0.12); background: var(--claro); }
-.guiada-entrada textarea { flex: 1; min-height: 44px; max-height: 140px; padding: 11px 16px; border: 1px solid var(--escuro); border-radius: 22px; outline: 0; background: #fff; color: var(--escuro); font: 400 16px/20px var(--sans); resize: none; }
-.guiada-entrada textarea:focus { border-color: var(--azul); }
-.guiada-enviar { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--azul); color: var(--claro); font: 400 20px/1 var(--sans); cursor: pointer; }
-.guiada-enviar:disabled { background: var(--escuro); opacity: 0.3; cursor: default; }
-.guiada-pular { flex: none; height: 44px; padding: 0 14px; border: 1px solid var(--escuro); border-radius: 22px; background: transparent; color: var(--escuro); font: 400 12px/1 var(--mono); text-transform: uppercase; cursor: pointer; }
-.guiada button:focus-visible, .guiada label:focus-within { outline: 2px solid var(--azul); outline-offset: 2px; }
+
+/* Área de resposta de borda a borda, separada da conversa por um filete. */
+.guiada-rodape { padding: 16px 24px 18px; border-top: 1px solid var(--g-borda); background: #fff; }
+.guiada-opcoes { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; border: 0; }
+.guiada-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.guiada-opcoes label, .guiada-grade button { position: relative; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 12px 16px; border: 1px solid var(--g-borda); border-radius: 14px; background: var(--claro); color: var(--escuro); font: 500 15px/1.2 var(--sans); text-align: left; cursor: pointer; transition: border-color 150ms, background-color 150ms, color 150ms; }
+.guiada-grade button { justify-content: center; text-align: center; }
+.guiada-opcoes label:hover, .guiada-grade button:hover { border-color: var(--azul); }
+.guiada-opcoes input { position: absolute; opacity: 0; pointer-events: none; }
+.guiada-check { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border: 1.5px solid currentColor; border-radius: 6px; opacity: 0.5; }
+.guiada-opcoes label.marcado { border-color: var(--azul); background: var(--azul); color: #fff; }
+.guiada-opcoes label.marcado .guiada-check { opacity: 1; background: #fff; border-color: #fff; }
+.guiada-opcoes label.marcado .guiada-check::after { content: ''; width: 10px; height: 5px; border: solid var(--azul); border-width: 0 0 2px 2px; transform: translateY(-1px) rotate(-45deg); }
+.guiada-opcoes label:focus-within, .guiada-grade button:focus-visible, .guiada-continuar:focus-visible, .guiada-enviar:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.guiada-continuar { height: 52px; border: 0; border-radius: 14px; background: var(--escuro); color: var(--claro); font: 500 13px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; }
+.guiada-continuar:disabled { opacity: 0.25; cursor: not-allowed; }
+
+.guiada-entrada { display: flex; flex-direction: column; gap: 8px; }
+.guiada-linha { display: flex; align-items: flex-end; gap: 10px; }
+.guiada-entrada textarea { flex: 1; min-height: 52px; max-height: 160px; padding: 14px 18px; border: 1px solid var(--g-borda); border-radius: 14px; outline: 0; background: var(--claro); color: var(--escuro); font: 400 17px/22px var(--sans); resize: none; }
+.guiada-entrada textarea:focus { border-color: var(--azul); background: #fff; }
+.guiada-entrada textarea[aria-invalid="true"] { border-color: var(--azul); }
+.guiada-enviar { flex: none; width: 52px; height: 52px; border: 0; border-radius: 14px; background: var(--azul); color: #fff; font: 400 22px/1 var(--sans); cursor: pointer; }
+.guiada-enviar:disabled { background: var(--escuro); opacity: 0.2; cursor: not-allowed; }
+.guiada-erro { margin: 0; color: var(--azul); font: 500 13px/18px var(--sans); }
+.guiada-dica { margin: 0; font: 400 10px/14px var(--mono); text-transform: uppercase; opacity: 0.45; }
+
 /* O resumo do pedido entra como último balão da Floway, com os botões de ajustar e enviar. */
-.guiada-resumo { width: 82%; }
-.guiada-resumo .formulario-contato, .guiada-resumo .pedido-contato { color: var(--claro); }
-.guiada-resumo h2 { margin: 0 0 8px; font: 600 15px/20px var(--sans); }
-.guiada-resumo dl { margin: 0; display: grid; gap: 6px; }
+.guiada-resumo { width: 72%; }
+.guiada-resumo h2 { margin: 0 0 10px; font: 600 16px/20px var(--sans); }
+.guiada-resumo dl { margin: 0; display: grid; gap: 8px; }
 .guiada-resumo dt { font: 400 10px/12px var(--mono); text-transform: uppercase; opacity: 0.6; }
 .guiada-resumo dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.guiada-resumo .formulario-acoes { justify-content: flex-start; margin-top: 12px; }
-.guiada-resumo button { padding: 10px 16px; border: 1px solid var(--claro); border-radius: 999px; background: transparent; color: var(--claro); font: 400 12px/1 var(--mono); text-transform: uppercase; cursor: pointer; }
+.guiada-resumo .formulario-acoes { justify-content: flex-start; gap: 8px; margin-top: 14px; }
+.guiada-resumo button { padding: 11px 18px; border: 1px solid rgb(247 247 245 / 0.5); border-radius: 12px; background: transparent; color: var(--claro); font: 500 12px/1 var(--mono); text-transform: uppercase; cursor: pointer; }
 .guiada-resumo button:last-child { border-color: var(--azul); background: var(--azul); }
 .guiada-resumo p:empty { display: none; }
 
 @media (max-width: 899px) {
-  .contato-guiada-corpo { margin: 0 -18px; }
-  .guiada { width: 100%; height: 78svh; border-right: 0; border-left: 0; border-radius: 0; box-shadow: none; }
-  .guiada-balao, .guiada-resumo { max-width: 88%; font-size: 15px; }
-  .guiada-resumo { width: 88%; }
-  .guiada-opcoes label, .guiada-opcoes button { min-height: 44px; }
-  .guiada-opcoes .guiada-continuar { width: 100%; justify-content: center; margin-left: 0; }
-}
-
-/* Ajustes pedidos: sem a frase grande na página de contato (fica só para leitores de tela), janela de conversa maior
-   ocupando a altura livre, e rodapé numa linha só, mais limpo. */
-.pagina-contato .frase-contato { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.pagina-contato { gap: 20px; }
-.guiada { width: min(100%, 860px); height: calc(100vh - 190px); min-height: 480px; }
-.guiada-balao { font-size: 17px; line-height: 24px; }
-.guiada-entrada textarea:focus-visible { outline: 0; }
-.pagina-contato .rodape-info { grid-template-columns: 1fr auto auto; gap: 32px; padding-top: 14px; border-top-color: rgb(18 18 18 / 0.25); }
-.pagina-contato .rodape-info .rodape-linha { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 899px) {
-  .pagina-contato { padding-top: 60px; }
-  .guiada { height: calc(100svh - 150px); min-height: 0; }
-  .guiada-balao { font-size: 15px; line-height: 21px; }
-  .pagina-contato .rodape-info { grid-template-columns: 1fr; gap: 4px; }
-  .pagina-contato .rodape-info .rodape-linha { white-space: normal; }
-}
-
-/* Sem rodapé nem menu, a conversa ocupa a altura livre abaixo do "voltar". */
-.guiada { height: calc(100vh - 120px); }
-@media (max-width: 899px) { .guiada { height: calc(100svh - 90px); } }
-
-/* Quadro maior e mais arrumado: largura quase total, conteúdo numa coluna central de leitura, respiro maior. */
-.pagina-contato { padding-top: 64px; padding-bottom: 24px; }
-.guiada { width: min(100%, 1180px); height: calc(100vh - 96px); border-radius: 26px; }
-.guiada-topo { padding: 18px 28px; }
-.guiada-avatar { width: 44px; height: 44px; font-size: 18px; }
-.guiada-topo strong { font-size: 17px; }
-.guiada-lista, .guiada-opcoes, .guiada-entrada { padding-left: max(28px, calc((100% - 820px) / 2)); padding-right: max(28px, calc((100% - 820px) / 2)); }
-.guiada-lista { gap: 12px; padding-top: 28px; padding-bottom: 28px; }
-.guiada-balao { max-width: 70%; padding: 12px 18px 8px; font-size: 18px; line-height: 26px; }
-.guiada-resumo { width: 70%; }
-.guiada-opcoes { gap: 10px; padding-top: 16px; padding-bottom: 20px; }
-.guiada-opcoes label, .guiada-opcoes button { min-height: 46px; padding: 10px 20px; font-size: 15px; }
-.guiada-entrada { gap: 12px; padding-top: 16px; padding-bottom: 20px; }
-.guiada-entrada textarea { min-height: 52px; padding: 14px 20px; border-radius: 26px; font-size: 17px; }
-.guiada-enviar { width: 52px; height: 52px; }
-.guiada-pular { height: 52px; }
-@media (max-width: 899px) {
-  .pagina-contato { padding-top: 56px; padding-bottom: 0; }
-  .guiada { height: calc(100svh - 56px); border-radius: 0; }
-  .guiada-topo { padding: 14px 18px; }
-  .guiada-lista, .guiada-opcoes, .guiada-entrada { padding-left: 14px; padding-right: 14px; }
+  .pagina-contato { padding: 56px 0 0; }
+  .guiada { width: 100%; height: calc(100svh - 56px); min-height: 0; border-width: 1px 0 0; border-radius: 0; box-shadow: none; }
+  .guiada-topo { padding: 12px 16px; }
+  .guiada-progresso { width: 80px; }
+  .guiada-lista { padding: 18px 14px 14px; }
   .guiada-balao, .guiada-resumo { max-width: 86%; font-size: 16px; line-height: 22px; }
   .guiada-resumo { width: 86%; }
+  .guiada-rodape { padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); }
+  .guiada-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .guiada-grade-3 { grid-template-columns: 1fr; }
+  .guiada-opcoes label, .guiada-grade button { min-height: 48px; font-size: 14px; }
+  .guiada-entrada textarea { font-size: 16px; }
 }
