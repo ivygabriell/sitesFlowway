@@ -14,11 +14,19 @@ async function dadosIniciais() {
   await responder('Ana');
   await screen.findByText('Prazer, Ana! Qual é a sua empresa?');
   await responder('Floway');
+  await screen.findByText('Qual é o seu WhatsApp, com DDD?');
+  await responder('123');
+  expect(screen.getByRole('alert').textContent).toMatch(/WhatsApp com DDD/);
+  await responder('(11) 98765-4321');
+  await screen.findByText('E qual é o seu e-mail?');
+  await responder('ana@');
+  expect(screen.getByRole('alert').textContent).toMatch(/e-mail válido/);
+  await responder('ana@x.dev');
   await screen.findByRole('button', { name: 'Quero uma landing page' });
 }
 
 describe('ConversaIA', () => {
-  it('pede nome e empresa antes, sem chamar a IA, e só então abre a conversa com atalhos', async () => {
+  it('pede nome, empresa, WhatsApp e e-mail antes, sem chamar a IA, e só então abre a conversa com atalhos', async () => {
     const fetch = resposta('Para qual campanha ou produto é a página?'); vi.stubGlobal('fetch', fetch);
     render(<ConversaIA aoConcluir={vi.fn()} />);
     await dadosIniciais();
@@ -37,19 +45,12 @@ describe('ConversaIA', () => {
     await screen.findByRole('button', { name: 'R$ 5 a 15 mil' });
   });
 
-  it('depois do resumo da IA pergunta WhatsApp e e-mail validados e entrega o pedido completo', async () => {
+  it('com o resumo da IA, mostra tudo preenchido e entrega o pedido completo', async () => {
     vi.stubGlobal('fetch', resposta('Montei um resumo para você conferir.', 'Projeto: Landing page\nObjetivo: Vender'));
     const aoConcluir = vi.fn();
     render(<ConversaIA aoConcluir={aoConcluir} />);
     await dadosIniciais();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Ainda não sei' })); });
-    await screen.findByText('Qual é o seu WhatsApp, com DDD?');
-    expect(screen.queryByRole('region', { name: 'Resumo do pedido' })).toBeNull();
-    await responder('123');
-    expect(screen.getByRole('alert').textContent).toMatch(/WhatsApp com DDD/);
-    await responder('(11) 98765-4321');
-    await screen.findByText('E qual é o seu e-mail?');
-    await responder('ana@x.dev');
     const resumo = await screen.findByRole('region', { name: 'Resumo do pedido' });
     expect((within(resumo).getByLabelText('Resumo do projeto') as HTMLTextAreaElement).value).toBe('Projeto: Landing page\nObjetivo: Vender');
     expect((within(resumo).getByLabelText('Nome') as HTMLInputElement).value).toBe('Ana');

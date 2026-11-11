@@ -7,9 +7,9 @@ import { useIdioma } from '@/lib/useIdioma';
 import type { Pedido } from '@/lib/pedidoDeContato';
 import { emailValido, whatsappValido } from './ConversaGuiada';
 
-// Conversa em três partes, numa janela só:
-// 1. perguntas fixas: nome e empresa; 2. o Gemini qualifica o projeto (rota /api/contato/conversa) até devolver um
-// resumo; 3. perguntas fixas: WhatsApp e e-mail, validados. No fim, o resumo editável com tudo preenchido.
+// Conversa em duas partes, numa janela só:
+// 1. perguntas fixas: nome, empresa, WhatsApp e e-mail (validados); 2. o Gemini qualifica o projeto
+// (rota /api/contato/conversa) até devolver um resumo. No fim, o resumo editável com tudo preenchido.
 // Só as mensagens da parte 2 vão para a IA: dados de contato nunca saem para o modelo.
 type Mensagem = { de: 'floway' | 'voce'; texto: string; hora: string; ia: boolean };
 type Campos = { nome: string; empresa: string; whatsapp: string; email: string };
@@ -58,7 +58,7 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
       dizer(d.resposta, true);
       if (typeof d.mensagemSugerida === 'string' && d.mensagemSugerida.trim()) {
         setResumo(d.mensagemSugerida.trim());
-        perguntar('whatsapp', t(g.perguntas.whatsapp, idioma));
+        perguntar('resumo', t(ia.confira, idioma));
       }
     } catch {
       // A mensagem volta ao campo para a pessoa tentar de novo sem redigitar.
@@ -80,9 +80,9 @@ export function ConversaIA({ aoConcluir, aoEditar, children }: { aoConcluir: (p:
     setMensagens(m => [...m, { de: 'voce', texto, hora: hora(), ia: false }]);
     setCampos(c => ({ ...c, [fase]: texto }));
     if (fase === 'nome') perguntar('empresa', t(g.perguntas.empresa, idioma).replace('{nome}', texto.split(' ')[0]));
-    else if (fase === 'empresa') perguntar('ia', t(ia.abertura, idioma));
+    else if (fase === 'empresa') perguntar('whatsapp', t(g.perguntas.whatsapp, idioma));
     else if (fase === 'whatsapp') perguntar('email', t(g.perguntas.email, idioma));
-    else if (fase === 'email') perguntar('resumo', t(ia.confira, idioma));
+    else if (fase === 'email') perguntar('ia', t(ia.abertura, idioma));
   }
   function enviar(e: FormEvent) { e.preventDefault(); responder(entrada); }
 
