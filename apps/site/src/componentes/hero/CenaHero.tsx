@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useAbertura } from '@/estado/abertura';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
-import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { dprMaximo, ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { restaurandoNestaCarga } from '@/lib/restauracao';
 import { CURVAS, INTERVALOS, TEMPOS } from '@/movimento/tokens';
 import { vertUv } from '@/shaders/comum';
@@ -90,7 +90,7 @@ export function CenaHero() {
     Promise.resolve().then(() => {
       if (!vivo) return;
       const largura = window.innerWidth * (celular ? 0.9 : 0.86);
-      const tela = desenharPalavra(largura * Math.min(window.devicePixelRatio, 2));
+      const tela = desenharPalavra(largura * Math.min(window.devicePixelRatio, dprMaximo(window.innerWidth)));
       const textura = new THREE.CanvasTexture(tela);
       textura.colorSpace = THREE.SRGBColorSpace;
       materialLogo.uniforms.uLogo.value = textura;

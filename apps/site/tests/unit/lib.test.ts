@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ehCelular } from '@/lib/ambiente';
+import { dprMaximo, ehCelular } from '@/lib/ambiente';
 import { razaoContraste } from '@/lib/contraste';
 import { relogio } from '@/lib/relogio';
 import { limita, suave } from '@/lib/suave';
@@ -40,5 +40,13 @@ describe('ehCelular', () => {
   it('corta em 900px, como a referência', () => {
     expect(ehCelular(899)).toBe(true);
     expect(ehCelular(900)).toBe(false);
+  });
+});
+
+describe('dprMaximo', () => {
+  it('limita o canvas a 1,5 no celular (o preenchimento a 2× derrubava os quadros pela metade) e a 2 no computador', () => {
+    expect(dprMaximo(390)).toBe(1.5);
+    expect(dprMaximo(899)).toBe(1.5);
+    expect(dprMaximo(900)).toBe(2);
   });
 });

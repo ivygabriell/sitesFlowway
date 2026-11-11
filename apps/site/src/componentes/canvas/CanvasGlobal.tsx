@@ -2,6 +2,7 @@
 
 import { GlobalCanvas } from '@14islands/r3f-scroll-rig';
 import { Suspense, useEffect, useState } from 'react';
+import { dprMaximo } from '@/lib/ambiente';
 import { temWebgl } from '@/lib/webgl';
 
 // Um único canvas WebGL atrás de todo o DOM; cada seção envia a própria cena com <UseCanvas>.
@@ -21,7 +22,7 @@ export function CanvasGlobal() {
     <GlobalCanvas
       flat
       style={{ zIndex: -1 }}
-      dpr={[1, 2]}
+      dpr={[1, dprMaximo(window.innerWidth)]}
       gl={{ antialias: true, failIfMajorPerformanceCaveat: false }}
       camera={{ near: 0.01, far: 10000, position: [0, 0, 600] }}
       eventSource={typeof document !== 'undefined' ? document.body : undefined}
