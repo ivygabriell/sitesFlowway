@@ -17,17 +17,19 @@ export function Rodape({ naPaginaDeContato = false }: { naPaginaDeContato?: bool
           {t(cta, idioma)}
         </a>
       )}
-      <p className="rodape-linha">
-        <i>{t(rodape.especialidades.rotulo, idioma)}</i>
-        <span>{t(rodape.especialidades.valor, idioma)}</span>
-      </p>
-      <p className="rodape-linha">
-        <i>{t(rodape.localizacao.rotulo, idioma)}</i>
-        <span>{t(rodape.localizacao.valor, idioma)}</span>
-        <i>{t(rodape.instagram.rotulo, idioma)}</i>
-        <span>{t(rodape.instagram.valor, idioma)}</span>
-      </p>
-      <p className="rodape-linha">{t(rodape.direitos, idioma)}</p>
+      <div className="rodape-info">
+        <p className="rodape-linha">
+          <i>{t(rodape.especialidades.rotulo, idioma)}</i>
+          <span>{t(rodape.especialidades.valor, idioma)}</span>
+        </p>
+        <p className="rodape-linha">
+          <i>{t(rodape.localizacao.rotulo, idioma)}</i>
+          <span>{t(rodape.localizacao.valor, idioma)}</span>
+          <i>{t(rodape.instagram.rotulo, idioma)}</i>
+          <span>{t(rodape.instagram.valor, idioma)}</span>
+        </p>
+        <p className="rodape-linha">{t(rodape.direitos, idioma)}</p>
+      </div>
     </footer>
   );
 }
