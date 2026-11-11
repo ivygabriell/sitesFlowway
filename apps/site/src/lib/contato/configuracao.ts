@@ -10,7 +10,12 @@ export function lerConfiguracao(env: Record<string, string | undefined> = proces
 }
 export type Configuracao = ReturnType<typeof lerConfiguracao>;
 export function origemSegura(origem: string): boolean {
-  try { const url = new URL(origem); return url.protocol === 'https:' && url.origin === origem; } catch { return false; }
+  try {
+    const url = new URL(origem);
+    // Fora de produção, http://localhost também vale, para testar a conversa no computador.
+    const local = process.env.NODE_ENV !== 'production' && url.protocol === 'http:' && url.hostname === 'localhost';
+    return (url.protocol === 'https:' || local) && url.origin === origem;
+  } catch { return false; }
 }
 export function assinaturaConfigurada(c: Configuracao): boolean {
   return origemSegura(c.origem) && Buffer.byteLength(c.segredo, 'utf8') >= 32 && /^[a-zA-Z0-9_-]{1,128}$/.test(c.canal);

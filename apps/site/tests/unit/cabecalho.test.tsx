@@ -38,18 +38,23 @@ describe('Cabecalho', () => {
   });
 
   it('em português, o menu leva às páginas e o seletor ao inglês da mesma página', () => {
-    const { container } = render(<Cabecalho visivel idioma="pt" pagina="contato" />);
+    const { container } = render(<Cabecalho visivel idioma="pt" pagina="trabalhos" />);
     expect([...container.querySelectorAll('nav a')].map((a) => a.getAttribute('href'))).toEqual(['/trabalhos', '/contato']);
-    expect(container.querySelector('a.idioma')?.getAttribute('href')).toBe('/en/contact');
+    expect(container.querySelector('a.idioma')?.getAttribute('href')).toBe('/en/work');
+  });
+
+  it('na página de contato fica só o voltar ao início', () => {
+    const { container } = render(<Cabecalho visivel idioma="pt" pagina="contato" />);
+    expect([...container.querySelectorAll('header a')].map((a) => a.className)).toEqual(['voltar']);
   });
 
   it('o item da página atual tem aria-current e o clique nele não navega', () => {
-    const { container } = render(<Cabecalho visivel idioma="pt" pagina="contato" />);
+    const { container } = render(<Cabecalho visivel idioma="pt" pagina="trabalhos" />);
     const [trabalhos, contato] = [...container.querySelectorAll('nav a')];
-    expect(contato.getAttribute('aria-current')).toBe('page');
-    expect(trabalhos.hasAttribute('aria-current')).toBe(false);
-    expect(fireEvent.click(contato)).toBe(false); // preventDefault
-    expect(fireEvent.click(trabalhos)).toBe(true);
+    expect(trabalhos.getAttribute('aria-current')).toBe('page');
+    expect(contato.hasAttribute('aria-current')).toBe(false);
+    expect(fireEvent.click(trabalhos)).toBe(false); // preventDefault
+    expect(fireEvent.click(contato)).toBe(true);
   });
 
   it('fora da Início, o relógio vira "Voltar ao início"', () => {

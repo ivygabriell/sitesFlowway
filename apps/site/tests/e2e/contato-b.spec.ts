@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test';
-import { PNG } from 'pngjs';
+import { expect, test, type Page } from '@playwright/test';
 
-// Provedores são substituídos somente nas APIs da borda, antes da navegação.
+// Perfil com IA: a conversa pede os dados, o "Gemini" (simulado aqui, sem serviço externo) qualifica o projeto e
+// devolve o resumo; o envio segue pelo protocolo de sempre, também simulado na borda.
 test.beforeEach(async ({ page }) => {
   await page.route('**/*', route => {
     const u = new URL(route.request().url());
@@ -9,103 +9,83 @@ test.beforeEach(async ({ page }) => {
   });
   await page.route('**/api/contato/conversa', async route => {
     const d = route.request().postDataJSON();
-    await route.fulfill({ status: 200, json: { turnoId: d.turnoId, resposta: 'Qual é o objetivo do projeto?', mensagemSugerida: 'Descrição para conferir.' } });
+    const primeira = d.historico.length === 0;
+    await route.fulfill({ status: 200, json: primeira
+      ? { turnoId: d.turnoId, resposta: 'Qual é o objetivo do projeto?', mensagemSugerida: null, opcoes: ['Gerar contatos', 'Vender mais'] }
+      : { turnoId: d.turnoId, resposta: 'Montei um resumo para você conferir.', mensagemSugerida: 'Projeto: Site\nObjetivo: Gerar contatos', opcoes: [] } });
   });
   await page.route('**/api/contato', async route => {
     await route.fulfill({ status: 202, json: { ok: false, estado: 'incerto', codigo: 'RESULTADO_INCERTO' }, headers: { 'Retry-After': '60' } });
   });
 });
-// Rafael, 2026-11-10: a página de contato ganhou o inglês; /en/contact não cai mais nos rótulos em português.
-const ROTULOS = {
-  '/contato': { naoSei: 'Ainda não sei', simples: 'Usar formulário simples', campos: ['Nome', 'Empresa', 'Contato', 'Mensagem'], revisar: 'Revisar pedido', resumo: 'Confira o resumo', confirmar: 'Confirmar e enviar', pendente: /Resultado pendente/, ajustar: 'Ajustar', voltar: 'Voltar à conversa' },
-  '/en/contact': { naoSei: "I'm not sure yet", simples: 'Use simple form', campos: ['Name', 'Company', 'Contact', 'Message'], revisar: 'Review request', resumo: 'Check the summary', confirmar: 'Confirm and send', pendente: /Result pending/, ajustar: 'Edit', voltar: 'Back to chat' },
+
+const TEXTOS = {
+  '/contato': { campo: 'Sua resposta', naoSei: 'Ainda não sei', resumo: 'Resumo do pedido', projeto: 'Resumo do projeto', revisar: 'Revisar envio', confirmar: 'Confirmar e enviar', pendente: /Resultado pendente/ },
+  '/en/contact': { campo: 'Your answer', naoSei: 'Not sure yet', resumo: 'Request summary', projeto: 'Project summary', revisar: 'Review submission', confirmar: 'Confirm and send', pendente: /Result pending/ },
 };
-for (const [caminho, r] of Object.entries(ROTULOS)) {
-  test(`${caminho}: B vazio, conversa, edição e confirmação pendente`, async ({ page }) => {
-    await page.goto(caminho);
-    await expect(page.locator('.contato-b-vazio')).toBeVisible();
-    await expect(page.getByRole('textbox', { name: r.campos[0], exact: true })).toHaveCount(0);
-    await page.getByRole('button', { name: r.naoSei, exact: true }).click();
-    await expect(page.locator('.contato-b-aberta')).toBeVisible();
-    await expect(page.locator('.assistente .resposta-visual')).toHaveText('Qual é o objetivo do projeto?');
-    await page.getByRole('button', { name: r.simples }).click();
-    const valores = ['Pessoa de teste', 'Empresa de teste', 'Contato livre', 'Minha descrição editada'];
-    for (const [i, name] of r.campos.entries()) await page.getByRole('textbox', { name, exact: true }).fill(valores[i]);
-    await page.getByRole('button', { name: r.revisar }).click();
-    await expect(page.getByRole('heading', { name: r.resumo })).toBeFocused();
+
+async function ateOEnvio(page: Page, caminho: keyof typeof TEXTOS = '/contato') {
+  const r = TEXTOS[caminho];
+  await page.goto(caminho);
+  const campo = page.getByRole('textbox', { name: r.campo });
+  for (const valor of ['Pessoa de teste', 'Empresa de teste', '(11) 98765-4321', 'pessoa@empresa.dev']) {
+    await expect(campo).toBeEnabled();
+    await campo.fill(valor); await campo.press('Enter');
+  }
+  await page.getByRole('button', { name: r.naoSei, exact: true }).click();
+  await page.getByRole('button', { name: 'Gerar contatos' }).click();
+  const resumo = page.getByRole('region', { name: r.resumo });
+  await expect(resumo).toBeVisible();
+  await page.getByRole('button', { name: r.revisar }).click();
+  return resumo;
+}
+
+for (const caminho of Object.keys(TEXTOS) as (keyof typeof TEXTOS)[]) {
+  test(`${caminho}: dados, conversa com opções, resumo preenchido e confirmação pendente`, async ({ page }) => {
+    const r = TEXTOS[caminho];
+    const conversas: unknown[] = [];
+    page.on('request', q => { if (q.url().endsWith('/api/contato/conversa')) conversas.push(q.postDataJSON()); });
+    const resumo = await ateOEnvio(page, caminho);
+    // Nome, empresa, WhatsApp e e-mail nunca vão para a IA.
+    expect(JSON.stringify(conversas)).not.toMatch(/Pessoa de teste|98765|pessoa@empresa/);
+    await expect(resumo.getByLabel(r.projeto)).toHaveValue('Projeto: Site\nObjetivo: Gerar contatos');
     await page.getByRole('button', { name: r.confirmar }).click();
-    await expect(page.getByText(r.pendente)).toBeFocused();
-    await expect(page.getByRole('button', { name: r.ajustar, exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: r.voltar })).toHaveCount(0);
-    await expect(page.getByRole('definition').filter({ hasText: 'Minha descrição editada' })).toBeVisible();
+    await expect(page.getByText(r.pendente)).toBeVisible();
+    await expect(resumo.getByLabel(r.projeto)).toBeDisabled();
   });
 }
 
-async function aceitar(page: import('@playwright/test').Page) {
+async function aceitar(page: Page) {
   await page.route('**/api/contato', async route => {
     const request = route.request();
     const form = await new Response(request.postData() ?? '', { headers: { 'content-type': request.headers()['content-type'] } }).formData();
-    // Token só em memória, sem anexos/log/captura ou persistência.
     const prazo = JSON.parse(Buffer.from(String(form.get('intencao')).split('.')[1], 'base64url').toString()).expiraEm;
     await route.fulfill({ status: 200, json: { ok: true, estado: 'aceito', requestId: '10000000-0000-4000-8000-000000000001', repetirAte: prazo } });
   });
 }
-async function conferirGeometria(page: import('@playwright/test').Page) {
-  const medidas = await page.evaluate(() => {
-    const ret = (s: string) => { const el = document.querySelector(s)!; const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom }; };
-    const painel = [...document.querySelectorAll('.contato-painel')].find(e => !(e as HTMLElement).hidden)!;
-    const p = painel.getBoundingClientRect();
-    return { lateral: document.documentElement.scrollWidth > innerWidth, painel: { x: p.x, y: p.y, right: p.right, bottom: p.bottom }, frase: ret('.frase-contato'), esfera: ret('.pagina-contato .esfera'), rodape: ret('.rodape') };
-  });
-  expect(medidas.lateral).toBe(false);
-  expect(medidas.painel.y).toBeGreaterThanOrEqual(medidas.frase.bottom);
-  expect(medidas.rodape.y).toBeGreaterThanOrEqual(medidas.painel.bottom);
-  const a = medidas.painel, b = medidas.esfera;
-  const esferaVisivel = await page.locator('.pagina-contato .esfera').isVisible();
-  if (esferaVisivel) expect(a.right <= b.x || b.right <= a.x || a.bottom <= b.y || b.bottom <= a.y).toBe(true);
-}
+
 for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]]) {
-  test(`${width}x${height}: fontes reais, vazio/aberta/resumo/aceito sem sobreposição`, async ({ page }) => {
+  test(`${width}x${height}: do primeiro dado ao aceito sem rolagem lateral nem erro no console`, async ({ page }) => {
     const erros: string[] = []; page.on('pageerror', e => erros.push(e.message)); page.on('console', m => { if (m.type() === 'error') erros.push(m.text()); });
-    await page.setViewportSize({ width, height }); await aceitar(page); await page.goto('/contato');
-    await page.evaluate(() => document.fonts.ready); await expect(page.locator('.contato-b-vazio')).toBeVisible();
-    await page.waitForTimeout(1600); await conferirGeometria(page);
-    await page.screenshot({ path: `/tmp/floway-front41-${width}-vazio.png`, fullPage: true });
-    await page.getByRole('button', { name: 'Quero uma landing page', exact: true }).click();
-    await expect(page.locator('.assistente .resposta-visual')).toHaveText('Qual é o objetivo do projeto?'); await conferirGeometria(page);
-    await page.screenshot({ path: `/tmp/floway-front41-${width}-aberta.png`, fullPage: true });
-    await page.getByRole('button', { name: 'Usar formulário simples' }).click();
-    for (const [name, value] of [['Nome', 'Pessoa de teste'], ['Contato', 'Contato livre'], ['Mensagem', '<b>Descrição literal</b>\nSegunda linha']]) await page.getByRole('textbox', { name, exact: true }).fill(value);
-    await page.getByRole('button', { name: 'Revisar pedido' }).click(); await conferirGeometria(page);
-    await page.screenshot({ path: `/tmp/floway-front41-${width}-resumo.png`, fullPage: true });
+    await page.setViewportSize({ width, height }); await aceitar(page);
+    await ateOEnvio(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
-    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeFocused(); await page.waitForTimeout(2200); await conferirGeometria(page);
-    await page.screenshot({ path: `/tmp/floway-front41-${width}-aceito.png`, fullPage: true }); expect(erros).toEqual([]);
+    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(erros).toEqual([]);
   });
 }
 
-test('teclado, Enter multiline e apagamento ao alternar', async ({ page }) => {
-  await page.goto('/contato'); const entrada = page.getByRole('textbox', { name: 'Conte o que você quer construir…' });
-  await entrada.focus(); await page.keyboard.type('Meu projeto'); await page.keyboard.press('Enter'); await page.keyboard.type('Outra linha');
-  await expect(entrada).toHaveValue('Meu projeto\nOutra linha'); await expect(page.locator('.conversa-mensagem')).toHaveCount(0);
-  await page.keyboard.press('Tab'); await page.keyboard.press('Enter'); await expect(page.locator('.assistente')).toBeVisible();
-  await page.getByRole('button', { name: 'Usar formulário simples' }).click(); await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toBeFocused();
-  await page.getByRole('textbox', { name: 'Mensagem', exact: true }).fill('');
-  await page.getByRole('button', { name: 'Voltar à conversa' }).click(); await expect(entrada).toBeFocused();
-  await entrada.fill('Mais detalhes'); await page.getByRole('button', { name: 'Enviar →' }).click(); await expect(page.locator('.assistente')).toHaveCount(2);
-  await page.getByRole('button', { name: 'Usar formulário simples' }).click(); await expect(page.getByRole('textbox', { name: 'Mensagem', exact: true })).toHaveValue('');
-});
-
-test('reduzido não digita e sem WebGL mantém conversa e sucesso textual', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(() => { const real = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function(this: HTMLCanvasElement, tipo: string, ...args: unknown[]) { return /webgl/i.test(tipo) ? null : Reflect.apply(real, this, [tipo, ...args]); } as typeof real; });
-  await aceitar(page); await page.goto('/contato'); await expect(page.locator('.circulo-escuro')).toBeHidden();
-  await page.getByRole('button', { name: 'Ainda não sei', exact: true }).click(); await expect(page.locator('.assistente .resposta-visual')).toHaveText('Qual é o objetivo do projeto?');
-  await page.getByRole('button', { name: 'Usar formulário simples' }).click();
-  for (const name of ['Nome', 'Contato', 'Mensagem']) await page.getByRole('textbox', { name, exact: true }).fill('Texto de teste');
-  await page.getByRole('button', { name: 'Revisar pedido' }).click(); await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
-  await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeVisible();
-  await page.screenshot({ path: '/tmp/floway-front41-reduzido-sem-webgl.png', fullPage: true });
+test('falha da IA mantém o texto no campo para tentar de novo', async ({ page }) => {
+  await page.route('**/api/contato/conversa', route => route.fulfill({ status: 503, json: { erro: { codigo: 'IA_INDISPONIVEL' } } }));
+  await page.goto('/contato');
+  const campo = page.getByRole('textbox', { name: 'Sua resposta' });
+  for (const valor of ['Pessoa de teste', 'Empresa de teste', '(11) 98765-4321', 'pessoa@empresa.dev']) { await expect(campo).toBeEnabled(); await campo.fill(valor); await campo.press('Enter'); }
+  await expect(campo).toBeEnabled();
+  await campo.fill('Meu projeto'); await campo.press('Enter');
+  await expect(page.locator('.guiada-erro')).toBeVisible();
+  await expect(campo).toHaveValue('Meu projeto');
 });
 
 for (const status of [429, 503, 409]) {
@@ -121,20 +101,18 @@ for (const status of [429, 503, 409]) {
       if (aceitou) await route.fulfill({ status: 200, json: { ok: true, estado: 'aceito', repetirAte, requestId: '10000000-0000-4000-8000-000000000001' } });
       else await route.fulfill({ status: chamadas === 1 ? 202 : status, json: { ok: false, estado: chamadas === 1 || status === 409 ? 'incerto' : 'falha', codigo: status === 409 ? 'ENVIO_EM_ANDAMENTO' : 'LIMITE_ATINGIDO', repetivel: false }, headers: { 'Retry-After': '1' } });
     });
-    await page.goto('/contato'); await page.getByRole('button', { name: 'Usar formulário simples' }).click();
-    for (const name of ['Nome', 'Contato', 'Mensagem']) await page.getByRole('textbox', { name, exact: true }).fill('Texto confirmado');
-    await page.getByRole('button', { name: 'Revisar pedido' }).click(); await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
+    await ateOEnvio(page);
+    await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
     await expect.poll(() => chamadas).toBeGreaterThanOrEqual(2);
     await expect(page.getByText(/Resultado pendente/)).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Ajustar' })).toHaveCount(0); await expect(page.getByRole('textbox', { name: 'Mensagem', exact: true })).toHaveCount(0);
     await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toHaveCount(0);
-    await page.screenshot({ path: `/tmp/floway-front41-pendencia-${status}.png`, fullPage: true });
     await expect(page.getByRole('button', { name: 'Repetir o mesmo envio' })).toBeEnabled({ timeout: 15000 });
     aceitou = true; await page.getByRole('button', { name: 'Repetir o mesmo envio' }).click();
-    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeFocused(); expect(mesmoCorpo).toBe(true);
+    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeVisible(); expect(mesmoCorpo).toBe(true);
   });
 }
-test('expiração da pendência conserva cópia sem renovar nem oferecer outro formulário', async ({ page }) => {
+
+test('expiração da pendência conserva a cópia sem renovar', async ({ page }) => {
   let prazo = '', chamadas = 0;
   await page.clock.install();
   await page.route('**/api/contato', async route => {
@@ -142,42 +120,13 @@ test('expiração da pendência conserva cópia sem renovar nem oferecer outro f
     prazo = JSON.parse(Buffer.from(String(f.get('intencao')).split('.')[1], 'base64url').toString()).expiraEm;
     await route.fulfill({ status: 202, json: { ok: false, estado: 'incerto', repetirAte: prazo }, headers: { 'Retry-After': '60' } });
   });
-  await page.goto('/contato'); await page.getByRole('button', { name: 'Usar formulário simples' }).click();
-  for (const name of ['Nome', 'Contato', 'Mensagem']) await page.getByRole('textbox', { name, exact: true }).fill('Cópia que permanece');
-  await page.getByRole('button', { name: 'Revisar pedido' }).click(); await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
+  const resumo = await ateOEnvio(page);
+  await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
   await expect(page.getByText(/Resultado pendente/)).toBeVisible();
   await page.clock.setFixedTime(new Date(prazo)); await page.clock.runFor(300);
   await expect(page.getByText(/Prazo de repetição encerrado/)).toBeVisible(); await expect(page.getByRole('button', { name: 'Repetir o mesmo envio' })).toHaveCount(0);
-  await expect(page.getByRole('definition').filter({ hasText: 'Cópia que permanece' })).toHaveCount(3);
-  expect(chamadas).toBe(1); await page.screenshot({ path: '/tmp/floway-front41-expirado.png', fullPage: true });
-});
-test('histórico longo: Tab alcança região e PageUp/PageDown rolam sem prender entrada', async ({ page }) => {
-  await page.route('**/api/contato/conversa', async route => { const d = route.request().postDataJSON(); await route.fulfill({ status: 200, json: { turnoId: d.turnoId, resposta: 'Descrição longa para conferir.\n'.repeat(45), mensagemSugerida: null } }); });
-  await page.goto('/contato'); await page.getByRole('button', { name: 'Ainda não sei', exact: true }).click();
-  const historico = page.getByRole('log', { name: 'Histórico da conversa' });
-  await expect(historico).toBeVisible(); await expect(page.locator('.assistente .resposta-visual')).toHaveText('Descrição longa para conferir.\n'.repeat(45).trim(), { timeout: 20000 });
-  await page.getByRole('textbox', { name: 'Conte o que você quer construir…' }).focus(); await page.keyboard.press('Shift+Tab'); await expect(historico).toBeFocused();
-  await historico.evaluate(e => { e.scrollTop = e.scrollHeight; }); const antes = await historico.evaluate(e => e.scrollTop);
-  await page.keyboard.press('PageUp'); await expect.poll(() => historico.evaluate(e => e.scrollTop)).toBeLessThan(antes);
-  await page.keyboard.press('PageDown'); await page.keyboard.press('Tab'); await expect(page.getByRole('textbox', { name: 'Conte o que você quer construir…' })).toBeFocused();
-});
-for (const [width, height] of [[1440, 900], [1883, 703]]) {
-  test(`${width}x${height}: vazio desktop mantém convite em uma linha com atalhos e rodapé na tela`, async ({ page }) => {
-    await page.setViewportSize({ width, height }); await page.goto('/contato'); await expect(page.locator('.contato-b-vazio')).toBeVisible();
-    await page.evaluate(() => document.fonts.ready);
-    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(height);
-    await expect(page.getByRole('button', { name: 'Revisar pedido' })).toHaveCount(0);
-  });
-}
-
-test('pixels WebGL acompanham a caixa da esfera ao abrir B, sem sobrepor entrada', async ({ page }) => {
-  await page.goto('/contato'); await page.getByRole('button', { name: 'Ainda não sei', exact: true }).click();
-  await expect(page.locator('.assistente .resposta-visual')).toHaveText('Qual é o objetivo do projeto?'); await page.waitForTimeout(1600);
-  const caixa = (await page.locator('.pagina-contato .esfera').boundingBox())!;
-  const png = PNG.sync.read(await page.screenshot({ clip: caixa }));
-  let escuros = 0;
-  for (let i = 0; i < png.data.length; i += 4) if (png.data[i] < 120 && png.data[i + 1] < 120 && png.data[i + 2] < 120) escuros++;
-  expect(escuros).toBeGreaterThan(1000);
+  await expect(resumo.getByLabel('Resumo do projeto')).toHaveValue('Projeto: Site\nObjetivo: Gerar contatos');
+  expect(chamadas).toBe(1);
 });
 
 for (const idioma of ['pt', 'en'] as const) {

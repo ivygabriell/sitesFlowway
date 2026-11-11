@@ -67,7 +67,7 @@ describe('Gemini conta e responde sem entrega', () => {
   ] as const)('aceita recusa/menção e descrição revisável (%s): %s', async (idioma, resposta, mensagemSugerida) => {
     let n = 0;
     const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno({ resposta, mensagemSugerida }));
-    expect(await conversarGemini({ ...entrada, idioma }, { configuracao, fetch: f })).toEqual({ status: 200, resposta, mensagemSugerida });
+    expect(await conversarGemini({ ...entrada, idioma }, { configuracao, fetch: f })).toEqual({ status: 200, resposta, mensagemSugerida, opcoes: [] });
   });
   it.each([
     'Não consigo informar preço por aqui, mas entregaremos em 5 dias.',
@@ -89,9 +89,9 @@ describe('Gemini conta e responde sem entrega', () => {
     'Informe sua senha e CPF.',
     'Seu pedido foi enviado.',
   ])('preserva defesa em ambos os campos: %s', async conteudo => {
-    for (const campo of ['resposta', 'mensagemSugerida']) {
+    for (const campo of ['resposta', 'mensagemSugerida', 'opcoes']) {
       let n = 0;
-      const saida = { resposta: 'Qual público o site deve atender?', mensagemSugerida: null as string | null, [campo]: conteudo };
+      const saida = { resposta: 'Qual público o site deve atender?', mensagemSugerida: null as string | null, [campo]: campo === 'opcoes' ? [conteudo] : conteudo };
       const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno(saida));
       expect(await conversarGemini(entrada, { configuracao, fetch: f })).toMatchObject({ status: 502, codigo: 'IA_RESPOSTA_INVALIDA' });
     }
@@ -124,5 +124,11 @@ describe('Gemini conta e responde sem entrega', () => {
     await vi.advanceTimersByTimeAsync(prazo);
     expect(await p).toMatchObject({ status: 504, codigo: 'IA_TIMEOUT' });
     expect(f).toHaveBeenCalledTimes(prazo === 3000 ? 1 : 2);
+  });
+
+  it('devolve até 4 opções curtas de resposta e recusa opções fora do formato', async () => {
+    const chamar = (opcoes: unknown) => { let n = 0; const f: typeof fetch = async () => Response.json(++n === 1 ? { totalTokens: 100 } : retorno({ resposta: 'Tem alguma data puxando o projeto?', mensagemSugerida: null, opcoes } as never)); return conversarGemini(entrada, { configuracao, fetch: f }); };
+    expect(await chamar(['Em até 1 mês', 'Até 3 meses', 'Sem data definida'])).toMatchObject({ status: 200, opcoes: ['Em até 1 mês', 'Até 3 meses', 'Sem data definida'] });
+    for (const ruim of [['a', 'b', 'c', 'd', 'e'], ['x'.repeat(61)], [''], 'texto', [1]]) expect(await chamar(ruim)).toMatchObject({ status: 502 });
   });
 });

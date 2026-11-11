@@ -47,15 +47,16 @@ test.describe('390×844, detalhes', () => {
 
   // Rafael, 2026-11-10: o primeiro toque em "PT ▾" mostra a outra língua; o segundo troca no lugar, sem recarregar.
   test('tocar na outra língua troca o idioma', async ({ page }) => {
-    await page.goto('/contato');
+    // Na página de contato o cabeçalho só tem o voltar; o seletor de língua fica nas outras páginas.
+    await page.goto('/trabalhos');
     await page.locator('.cabecalho .idioma').tap();
     await page.locator('.cabecalho .idioma .menu-texto2').tap();
-    await page.waitForURL('**/en/contact');
+    await page.waitForURL('**/en/work');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
   test('os links do cabeçalho têm alvo de toque de 44 px', async ({ page }) => {
-    await page.goto('/contato');
+    await page.goto('/trabalhos');
     for (const seletor of ['.cabecalho .voltar', '.cabecalho .idioma', '.cabecalho nav a >> nth=0']) {
       const caixa = await page.locator(seletor).boundingBox();
       expect(caixa!.height, seletor).toBeGreaterThanOrEqual(44);

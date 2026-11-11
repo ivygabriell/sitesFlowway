@@ -54,6 +54,8 @@ it('rodapé da página não oferece CTA para a própria página', () => {
   const { container } = render(<ProvedorIdioma idioma="pt"><Rodape naPaginaDeContato /></ProvedorIdioma>);
   expect(container.querySelector('.rodape-cta')).toBeNull(); expect(container.querySelector('.rodape.visivel')).not.toBeNull();
 });
-it('URL enviada não comprova entrega nem forma F', () => {
-  render(<PaginaContato estado="enviado" />); expect(esfera.mock.lastCall?.[0].formarAlvo).toBe(false); expect(screen.queryByText(/Envio aceito/)).toBeNull(); screen.getByLabelText('Nome');
+it('URL enviada não comprova entrega; a página abre a conversa guiada, sem esfera nem círculo animado', () => {
+  const { container } = render(<PaginaContato estado="enviado" />);
+  expect(screen.queryByText(/Envio aceito/)).toBeNull(); screen.getByRole('region', { name: 'Conversa com a Floway' });
+  expect(esfera).not.toHaveBeenCalled(); expect(container.querySelector('.circulo-escuro')).toBeNull();
 });
