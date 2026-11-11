@@ -152,3 +152,10 @@ Mantenha **uma linha por memória** no índice (`MEMORY.md`), com um gancho que 
 - **Decisão da pessoa:** harness² é o ciclo de melhorar o próprio harness. Retrabalho, correção da pessoa ou bug achado por ela vira "proposta de harness"; só entra em `docs/agentes` depois de uma sonda A/B com dois subagentes no mesmo caso (A sem a regra, B com ela). Adotar é decisão da pessoa. Resumo em `docs/DESENVOLVIMENTO.md`.
 - **Propostas de harness pendentes:**
   - 2026-11-09, correção de Rafael (escolheu "opção A" num protótipo e, ao ver no site, pediu o F do tamanho original): "mudança visual escolhida em protótipo é mostrada no site rodando antes do commit final, ao lado de como estava". Falta a sonda A/B.
+
+## Desempenho no celular · 2026-11-11 (branch `fix/celular-desempenho`, Claude)
+
+- A pessoa disse que o celular estava "lento e travado" e pediu a correção no repositório novo `ivygabriell/sitesFlowway` (remoto local `sitesflowway`; o `origin` continua `CreateHubAI/siteOficialFloway`).
+- **Causa medida:** o canvas WebGL global cobre a tela toda e desenha a cada quadro em densidade 2×. Com GPU por software (aproximação de GPU fraca) e perfil Pixel 7, a rolagem ficava em ~33 ms por quadro (30 fps) em todas as seções; forçando a densidade 1,5 ou 1, caiu para ~17 ms (60 fps). **Correção:** `dprMaximo` em `lib/ambiente.ts` limita o canvas e as texturas desenhadas (palavra do hero, folha do lençol) a 1,5× no celular; computador segue em 2×. Rolagem: p50 33→17 ms, p99 67→33 ms.
+- Testado e descartado: o alvo da refração do hero em meia resolução (ganho de 1 ms, revertido). Hero ainda fica em ~22 ms por quadro no mesmo perfil.
+- Falta: ensaio num aparelho real (a medida é de laboratório, sem INP de campo). LCP de ~4 s vem da abertura, que é decisão de desenho e não foi mexida.

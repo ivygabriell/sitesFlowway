@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { 'inicio-lencol' as textos } from '@/conteudo/inicio-lencol';
 import { t } from '@/conteudo/textos';
 import { PRIORIDADE, gsap, recalcularGatilhos } from '@/gsap';
-import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { dprMaximo, ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { useEfeitoDeLayout } from '@/lib/useEfeitoDeLayout';
 import { useIdioma } from '@/lib/useIdioma';
 import { temWebgl } from '@/lib/webgl';
@@ -52,7 +52,7 @@ function SecaoDecisoes() {
     const atual = modoDeExibicao(window.innerWidth, menosMovimento, temWebgl());
     setModo(atual);
     setReduzido(menosMovimento);
-    if (atual === 'desktop' || atual === 'celular') document.fonts.ready.then(() => setFolha(desenharFolha(itens, larguraDaFolha(window.innerWidth) * Math.min(window.devicePixelRatio, 2))));
+    if (atual === 'desktop' || atual === 'celular') document.fonts.ready.then(() => setFolha(desenharFolha(itens, larguraDaFolha(window.innerWidth) * Math.min(window.devicePixelRatio, dprMaximo(window.innerWidth)))));
   }, [itens]);
 
   const comLencol = (modo === 'desktop' || modo === 'celular') && isCanvasAvailable && folha !== null;
