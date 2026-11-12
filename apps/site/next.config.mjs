@@ -1,4 +1,4 @@
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** @type {import('next').NextConfig} */
@@ -7,7 +7,9 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: false, // as timelines do GSAP e o canvas global não suportam montagem dupla no desenvolvimento
   transpilePackages: ['three'],
-  outputFileTracingRoot: dirname(fileURLToPath(import.meta.url)), // há outro package-lock.json acima desta pasta
+  // Raiz do monorepo: o npm workspaces instala as dependências (inclusive o next) no node_modules de lá. Com a raiz em
+  // apps/site, as funções da Vercel subiam sem elas e toda rota dinâmica respondia 500.
+  outputFileTracingRoot: join(dirname(fileURLToPath(import.meta.url)), '../..'),
 };
 
 export default nextConfig;
