@@ -38,5 +38,6 @@ test('no celular os capítulos são a galeria em fileira e as decisões, o lenç
   await expect(page.locator('a.cartao[target="_blank"]')).toHaveCount(5);
   await expect(page.locator('.cartao video, [role="dialog"]')).toHaveCount(0);
   await expect(page.locator('.secao-decisoes')).toHaveClass(/com-lencol/, { timeout: 5000 });
-  await expect(page.locator('html')).not.toHaveClass(/js-smooth-scrollbar-enabled/);
+  // Versão B (2026-11-11): o celular também usa a rolagem suave, para os pins e o canvas andarem com ela.
+  await expect(page.locator('html')).toHaveClass(/js-smooth-scrollbar-enabled/);
 });
