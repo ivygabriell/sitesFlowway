@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ScrollTrigger } from '@/gsap';
 import { useAbertura } from '@/estado/abertura';
-import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
+import { prefereMenosMovimento } from '@/lib/ambiente';
 import { guardarRolagem as guardar, marcarVolta, mostrarPagina, posicaoGuardada, voltouNestaCarga } from '@/lib/restauracao';
 
 // Depois de a hero montar a saída (1 s) e os gatilhos recalcularem: antes disso, a altura dos pins ainda não existe.
@@ -67,14 +67,15 @@ function useRestaurarRolagem() {
   }, [caminho]);
 }
 
-// Lenis com os valores padrão (rolagem lenta e limpa). Desligado no celular e para quem pede menos movimento.
+// Lenis com os valores padrão (rolagem lenta e limpa), desligado só para quem pede menos movimento. No celular também
+// (syncTouch): com o scroll nativo, os pins e o canvas andavam separados da rolagem e travavam (versão B, 2026-11-11).
 export function Rolagem() {
   const { terminou } = useAbertura();
   const [ligada, setLigada] = useState(false);
   useRestaurarRolagem();
 
   useEffect(() => {
-    setLigada(!ehCelular(window.innerWidth) && !prefereMenosMovimento());
+    setLigada(!prefereMenosMovimento());
   }, []);
 
   return (
