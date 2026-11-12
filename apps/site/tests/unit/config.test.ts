@@ -39,6 +39,7 @@ describe('next.config', () => {
   // Em produção (Vercel) toda rota dinâmica respondia 500: o rastreio de arquivos parava em apps/site e as funções
   // subiam sem o `next`, que o npm workspaces instala no node_modules da raiz do monorepo (2026-11-12).
   it('rastreia os arquivos das funções a partir da raiz do monorepo, onde fica o node_modules', async () => {
+    // @ts-expect-error o next.config.mjs é JavaScript, sem declaração de tipos
     const { default: config } = await import('../../next.config.mjs');
     const raiz = JSON.parse(readFileSync(`${config.outputFileTracingRoot}/package.json`, 'utf8'));
     expect(raiz.workspaces).toContain('apps/site');
