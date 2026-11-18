@@ -10,7 +10,8 @@ test('redimensionar recarrega a página no modo certo para a nova largura', asyn
   // No celular a galeria continua, mas remontada com os cartões de retrato (até 80% da largura).
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.secao-capitulos')).toHaveClass(/modo-galeria/, { timeout: 5000 });
-  await expect.poll(() => page.locator('.cartao').first().evaluate((e) => e.getBoundingClientRect().width), { timeout: 5000 }).toBeLessThanOrEqual(390 * 0.8);
+  // A página recarrega sozinha depois do redimensionamento: uma medida que cai no meio da recarga falha e é refeita.
+  await expect.poll(() => page.locator('.cartao').first().evaluate((e) => e.getBoundingClientRect().width).catch(() => Infinity), { timeout: 5000 }).toBeLessThanOrEqual(390 * 0.8);
   await expect(page.locator('.secao-decisoes')).toHaveClass(/com-lencol/, { timeout: 5000 });
   // Versão B (2026-11-11): o celular também usa a rolagem suave, para os pins e o canvas andarem com ela.
   await expect(page.locator('html')).toHaveClass(/js-smooth-scrollbar-enabled/);
