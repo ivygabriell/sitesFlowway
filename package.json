@@ -2,9 +2,7 @@
   "name": "floway",
   "private": true,
   "workspaces": [
-    "apps/site",
-    "apps/conceitos/*",
-    "packages/*"
+    "apps/site"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",

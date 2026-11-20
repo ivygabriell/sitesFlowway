@@ -1,5 +1,5 @@
 # CI do monorepo da Floway. O NOME DO JOB vira o nome do check que a proteção da `main` exige.
-# Os comandos da raiz rodam em todos os workspaces (apps/site, apps/conceitos/*, packages/*).
+# Os comandos da raiz rodam em todos os workspaces (hoje só apps/site).
 name: CI
 
 # Roda em todo push de qualquer branch: a branch é checada no GitHub antes de ir para a main.
