@@ -1,6 +1,6 @@
 import { SIMBOLO } from './simbolo';
 
-// Amostragem do símbolo para o alvo da esfera de letras (decisão 004 de docs/arquitetura.md):
+// Amostragem do símbolo para o alvo da esfera de letras (decisão 004 de processo/arquitetura.md):
 // os paths viram polígonos, cada linha horizontal vira faixas dentro do desenho, e cada ponto sorteia
 // uma faixa (com peso pelo comprimento) e um x dentro dela. dentro() fica como oráculo dos testes.
 

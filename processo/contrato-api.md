@@ -6,7 +6,7 @@ O protocolo normativo novo está abaixo; o [fluxo legado observado](#fluxo-legad
 
 ## Contato B — protocolo normativo `contato-b.1`
 
-**Base aprovada:** [spec 4.6](superpowers/specs/2026-10-31-estrutura-site-design.md#46-contato-12), [reconciliação B](superpowers/specs/2026-11-02-contato-b-correcao-design.md), [protótipo B](superpowers/specs/prototipos-correcao/contato-b.html), [Segurança](seguranca.md) e proposta completa dos commits citados, incluindo a preservação de incerteza em JS e HTML. Os limites de ativação ao fim desta seção não alteram a interface aprovada.
+**Base aprovada:** [spec 4.6](../docs/superpowers/specs/2026-10-31-estrutura-site-design.md#46-contato-12), [reconciliação B](../docs/superpowers/specs/2026-11-02-contato-b-correcao-design.md), [protótipo B](../docs/superpowers/specs/prototipos-correcao/contato-b.html), [Segurança](seguranca.md) e proposta completa dos commits citados, incluindo a preservação de incerteza em JS e HTML. Os limites de ativação ao fim desta seção não alteram a interface aprovada.
 
 ### Decisão e limites
 
@@ -256,7 +256,7 @@ As páginas leem `estado` e só aceitam `enviado` ou `falha` como estado inicial
 
 **Observado agora:** `entregarPedido` retorna `false` deliberadamente; serviço e destino de e-mail não foram escolhidos. Não há armazenamento do pedido, fila, prazo de entrega, retentativa automática, deduplicação ou suporte a `Idempotency-Key`. O limite de frequência não garante envio único. Se uma entrega real for conectada no futuro, a perda da resposta poderá deixar o cliente sem saber se houve entrega; esta versão não resolve esse caso. O handler também não captura uma eventual rejeição de `entregarPedido`, portanto a tabela de respostas não promete formato para essa exceção. Não há logs, métricas ou identificador de rastreio próprios nesta rota. Fontes: [handler](../apps/site/app/api/contato/route.ts#L6) e [entrega indisponível](../apps/site/src/lib/pedidoDeContato.ts#L34).
 
-**Futuro, sem aprovação ou implementação nesta issue:** escolher o serviço e o destino, definir prazo e tratamento de falha/resultado desconhecido, garantia de repetição e observabilidade sem dados pessoais; revisar o limite conforme a hospedagem e seus proxies. Essas decisões exigem tarefa e portão da pessoa pela integradora quando mudarem o contrato, trouxerem serviço ou custo. A entrega indisponível continua bloqueando a publicação, conforme a [spec de contato, seções 1 e 4](superpowers/specs/2026-11-01-bugs-cta-celular-design.md). Nenhum endpoint ou formato de conversa com IA é definido aqui.
+**Futuro, sem aprovação ou implementação nesta issue:** escolher o serviço e o destino, definir prazo e tratamento de falha/resultado desconhecido, garantia de repetição e observabilidade sem dados pessoais; revisar o limite conforme a hospedagem e seus proxies. Essas decisões exigem tarefa e portão da pessoa pela integradora quando mudarem o contrato, trouxerem serviço ou custo. A entrega indisponível continua bloqueando a publicação, conforme a [spec de contato, seções 1 e 4](../docs/superpowers/specs/2026-11-01-bugs-cta-celular-design.md). Nenhum endpoint ou formato de conversa com IA é definido aqui.
 
 ### Evidências e cobertura
 
@@ -266,4 +266,4 @@ As páginas leem `estado` e só aceitam `enviado` ou `falha` como estado inicial
 | [Unitários do formulário, linhas 20–50](../apps/site/tests/unit/pagina-contato.test.tsx#L20) | Campos e envio nativo, confirmação, falha preservando o texto com JS e estado inicial |
 | [E2E do contato, linhas 28–48 e 79–89](../apps/site/tests/e2e/pagina-contato.spec.ts#L28) | Sucesso simulado, falha real preservando texto com JS e envio sem JS voltando com falha |
 
-Os limites exatos dos demais campos, expiração da janela, corpo ilegível, valores repetidos ou `File` e exceção da entrega foram descritos por leitura do código; esses casos não têm ensaio específico nos testes citados. Esta revisão não cria teste de comportamento novo: não há implementação nova. Notas dos limites visuais e das decisões 001–006 estão em [referências da arquitetura](referencias/arquitetura.md#2026-11-02--limites-das-correções-e-contrato-observado-issue-28).
+Os limites exatos dos demais campos, expiração da janela, corpo ilegível, valores repetidos ou `File` e exceção da entrega foram descritos por leitura do código; esses casos não têm ensaio específico nos testes citados. Esta revisão não cria teste de comportamento novo: não há implementação nova. Notas dos limites visuais e das decisões 001–006 estão em [referências da arquitetura](referencias/architect.md#2026-11-02--limites-das-correções-e-contrato-observado-issue-28).
