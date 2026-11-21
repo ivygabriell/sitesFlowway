@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { type Idioma, t } from '@/conteudo/textos';
 import { type Trabalho, linhaDoCartao } from '@/conteudo/trabalhos';
 import './estilo.css';
@@ -16,6 +17,17 @@ type Props = {
   detalhes?: boolean; // página Trabalhos (spec 4.4): título em h2 e a linha setor / mês e ano / oferta visível
 };
 
+// Junta cada separador ("/" ou "·") às palavras vizinhas: a linha quebra só entre outras palavras, e nenhuma linha
+// renderizada começa ou termina num separador (issue #12). Os espaços continuam normais, e o texto não muda.
+function grupos(linha: string) {
+  return linha.split(' ').reduce<string[]>((acc, palavra, i, palavras) => {
+    if (i > 0 && (SEPARADORES.has(palavra) || SEPARADORES.has(palavras[i - 1]))) acc[acc.length - 1] += ` ${palavra}`;
+    else acc.push(palavra);
+    return acc;
+  }, []);
+}
+const SEPARADORES = new Set(['/', '·']);
+
 // Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII e sem ação.
 // Com capa: a imagem (que a cena WebGL da seção revela em ASCII e aproxima no hover); com site, o cartão é um link que
 // abre o site do conceito numa aba nova (Rafael, 2026-11-09: "deixa a imagem inicial e quando clica abre o site").
@@ -28,7 +40,16 @@ export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar, detalhes }:
   const info = (
     <div className="cartao-info">
       <Titulo className="cartao-titulo">{nome}</Titulo>
-      {detalhes && <p className="cartao-detalhes">{linha}</p>}
+      {detalhes && (
+        <p className="cartao-detalhes">
+          {grupos(linha).map((s, i) => (
+            <Fragment key={i}>
+              {i > 0 && ' '}
+              <span>{s}</span>
+            </Fragment>
+          ))}
+        </p>
+      )}
     </div>
   );
 
