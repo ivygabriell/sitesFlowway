@@ -15,7 +15,7 @@ Os detalhes de cada fase, os cenários, os casos e as lições ficam no reposit�
 3. **Teste primeiro, em duas camadas.** Micro (TDD, visto falhar antes do código) e macro (suíte completa, build, exploração).
 4. **Quem constrói não valida.** A sessão Lead refaz os testes e explora o resultado antes de integrar.
 5. **As branches integradas ficam no GitHub.** Integre com `gh pr merge N --merge`, sem `--delete-branch`.
-6. **O humano decide o que é externo ou irreversível:** publicar, integrar, apagar, reescrever histórico.
+6. **A pessoa decide o que tem impacto grande** (seção Aprovações, abaixo): publicar, apagar, reescrever histórico e o que aciona um gatilho; o resto, inclusive integrar o PR sem gatilho, a Lead decide e registra.
 
 ## Ferramenta por papel
 

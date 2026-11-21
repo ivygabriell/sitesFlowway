@@ -25,7 +25,7 @@ Leia, nesta ordem: `CLAUDE.md`, `processo/DESENVOLVIMENTO.md` e `processo/memori
 
 ## Método de desenvolvimento
 
-Atualização para o método 3.1.0, aprovada pela pessoa em 2026-11-02. As regras desta seção substituem a identificação de todo Codex como trabalhadora e a escolha de ferramenta por tema. A proibição de integrar acima aplica-se às trabalhadoras e aos especialistas; a coordenadora só integra com o "pode integrar" da pessoa. Os modos Orca e com especialistas valem sem o selo de rascunho. As demais regras e decisões do projeto continuam valendo.
+**Histórico (método 3.1.0, 2026-11-02), substituído pela seção "Atualização para o método 6.0.0" abaixo onde houver conflito; em especial, a Lead integra sozinha o PR sem gatilho.** Atualização para o método 3.1.0, aprovada pela pessoa em 2026-11-02. As regras desta seção substituem a identificação de todo Codex como trabalhadora e a escolha de ferramenta por tema. A proibição de integrar acima aplica-se às trabalhadoras e aos especialistas; a coordenadora só integra com o "pode integrar" da pessoa. Os modos Orca e com especialistas valem sem o selo de rascunho. As demais regras e decisões do projeto continuam valendo.
 
 O projeto usa o Claude Code e o Codex juntos: cada papel tem a sua ferramenta na tabela **Ferramenta por papel** do `processo/DESENVOLVIMENTO.md` (a Lead fica no Claude Code; Backend, Security e Ops costumam ficar no Codex). Uma Builder Codex pode também ter sido aberta por um papel do Claude, quando a cota dele apertou: a issue diz a ferramenta e, numa passagem, onde a outra parou. Se o seu papel não está no Codex e nada na issue explica, avise quem abriu você e pare.
 
