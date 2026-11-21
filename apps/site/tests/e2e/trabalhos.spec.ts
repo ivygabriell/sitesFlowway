@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { corNoPonto, perto } from './util/pixel';
 
 // Texto visível de cada cartão (spec 4.4): nome e a linha setor / mês e ano / oferta · Conceito.
 const CARTOES = {
@@ -20,8 +21,13 @@ const CARTOES = {
 
 const SITES = ['ferramenta-criativa', 'companhia-aerea', 'banco-digital', 'estudio-de-marca', 'plataforma-de-deploy'];
 
-// Issue #8: página Trabalhos (spec 4.4), etapa 1: lista de cartões nos dois idiomas.
-for (const [caminho, lang, titulo] of [['/trabalhos', 'pt-BR', 'Trabalhos · Floway'], ['/en/work', 'en', 'Work · Floway']] as const) {
+const PAGINAS = [['/trabalhos', 'pt-BR', 'Trabalhos · Floway'], ['/en/work', 'en', 'Work · Floway']] as const;
+
+// Issue #8: página Trabalhos (spec 4.4), etapa 1: lista de cartões nos dois idiomas. Desde a etapa 2 (issue #11) a lista
+// é a página do celular, do movimento reduzido e do sem WebGL; no desktop com WebGL entra a pilha (abaixo).
+test.describe('lista no celular', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+for (const [caminho, lang, titulo] of PAGINAS) {
   test(`${caminho} existe, lista os 5 conceitos e abre cada site em outra aba`, async ({ page }) => {
     const erros: string[] = [];
     page.on('pageerror', (e) => erros.push(e.message));
@@ -89,7 +95,9 @@ for (const [caminho, lang, titulo] of [['/trabalhos', 'pt-BR', 'Trabalhos · Flo
   });
 
   // Issue #12: a linha de detalhes só quebra entre segmentos; nenhuma linha renderizada começa ou termina com "/".
+  // Com movimento reduzido, para a lista existir também nas larguras de desktop.
   test(`${caminho} não quebra a linha de detalhes junto a um "/"`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     for (const largura of [1920, 1440, 1100, 900, 390]) {
       await page.setViewportSize({ width: largura, height: 900 });
       await page.goto(caminho);
@@ -121,6 +129,10 @@ for (const [caminho, lang, titulo] of [['/trabalhos', 'pt-BR', 'Trabalhos · Flo
     }
   });
 
+}
+});
+
+for (const [caminho] of PAGINAS) {
   test(`${caminho} não tem rolagem lateral no desktop, em 1100 px, no celular nem com movimento reduzido`, async ({ page }) => {
     for (const [largura, reduzido] of [[1440, false], [1100, false], [390, false], [1440, true], [390, true]] as const) {
       await page.emulateMedia({ reducedMotion: reduzido ? 'reduce' : 'no-preference' });
@@ -144,4 +156,146 @@ test('um caminho dentro de Trabalhos continua 404', async ({ page }) => {
   for (const caminho of ['/trabalhos/qualquer', '/en/work/qualquer']) {
     expect((await page.goto(caminho))?.status(), caminho).toBe(404);
   }
+});
+
+// Issue #11: página Trabalhos, etapa 2 (spec 4.4): no desktop com WebGL, a pilha de planos presa por (n − 1) telas.
+const PILHA = {
+  pt: { rotulo: 'Ver trabalho', nomes: CARTOES.pt.map(([n]) => n), info: CARTOES.pt.map(([, d]) => d) },
+  en: { rotulo: 'View work', nomes: CARTOES.en.map(([n]) => n), info: CARTOES.en.map(([, d]) => d) },
+};
+const infoDigitada = (linha: string) => linha.split(' / ').join('');
+
+test.describe('pilha no desktop com WebGL', () => {
+  for (const [caminho, lang] of PAGINAS) {
+    const esperado = PILHA[lang === 'en' ? 'en' : 'pt'];
+    test(`${caminho}: pilha presa por 4 telas, contador (01/05), nome em serifa 3,4vw e info digitada, sem a lista`, async ({ page }) => {
+      const erros: string[] = [];
+      page.on('pageerror', (e) => erros.push(e.message));
+      await page.goto(caminho);
+      const pilha = page.locator('.pilha-trabalhos');
+      await expect(pilha).toBeVisible();
+      await expect(page.locator('main a.cartao')).toHaveCount(0);
+      await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
+      const alvos = page.locator('a.pilha-alvo');
+      await expect(alvos).toHaveCount(5);
+      expect(await alvos.evaluateAll((as) => as.map((a) => [a.getAttribute('href'), a.getAttribute('target')]))).toEqual(SITES.map((s) => [`/conceitos/${s}/index.html`, '_blank']));
+      const nome = alvos.first().locator('.pilha-nome');
+      await expect(nome).toHaveText(esperado.nomes[0]);
+      await expect(nome).toBeVisible();
+      await expect(nome).toHaveCSS('font-size', `${(1440 * 3.4) / 100}px`);
+      expect(await nome.evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Instrument Serif/);
+      await expect(page.locator('.pilha-info')).toHaveText(infoDigitada(esperado.info[0]), { timeout: 6000 });
+      await expect(page.locator('.pilha-miniaturas img')).toHaveCount(5);
+      await expect(page.locator('.pilha-moldura')).toBeVisible();
+      // (n − 1) telas de rolagem presa: a página tem 5 alturas de tela.
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(5 * 900);
+      // Sem página de case (spec 4.5).
+      await expect(page.locator('main a[href^="/trabalhos/"], main a[href^="/en/work/"]')).toHaveCount(0);
+      expect(erros).toEqual([]);
+    });
+
+    test(`${caminho}: cada tela de rolagem troca o trabalho, e a rolagem assenta no mais próximo`, async ({ page }) => {
+      await page.goto(caminho);
+      await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
+      await page.waitForTimeout(2500); // fim da entrada
+      await page.evaluate(() => window.scrollTo(0, 900));
+      await expect(page.locator('.pilha-contador')).toHaveText('(02/05)');
+      await expect(page.locator('.pilha-info')).toHaveText(infoDigitada(esperado.info[1]));
+      await expect(page.locator('a.pilha-alvo.ativo .pilha-nome')).toHaveText(esperado.nomes[1]);
+      // Parada a 3/4 do caminho para o 4º trabalho: assenta nele.
+      await page.evaluate(() => window.scrollTo(0, 2 * 900 + 700));
+      await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBeGreaterThan(3 * 900 - 3);
+      await expect(page.locator('.pilha-contador')).toHaveText('(04/05)');
+    });
+  }
+
+  // Issue #15: fora da Início ninguém encerrava a abertura e o Lenis ficava travado; a roda do mouse não rolava a pilha.
+  test('a roda do mouse rola a pilha e assenta no trabalho seguinte', async ({ page }) => {
+    await page.goto('/trabalhos');
+    await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
+    await page.waitForTimeout(2500);
+    await page.mouse.move(720, 450);
+    for (let i = 0; i < 5; i++) {
+      await page.mouse.wheel(0, 100);
+      await page.waitForTimeout(50);
+    }
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBe(900);
+    await expect(page.locator('.pilha-contador')).toHaveText('(02/05)');
+  });
+
+  test('o plano do trabalho atual é desenhado no centro, sobre o fundo escuro', async ({ page }) => {
+    await page.goto('/trabalhos');
+    await page.waitForTimeout(3000);
+    // Pontos dentro do plano (50vh × 74vh no centro): a maioria mostra a capa, não o fundo #121212.
+    const dentro = [[-150, -250], [150, -250], [-150, 0], [150, 250], [-150, 250]];
+    let capa = 0;
+    for (const [dx, dy] of dentro) if (!perto(await corNoPonto(page, 720 + dx, 450 + dy), '#121212', 10)) capa++;
+    expect(capa).toBeGreaterThanOrEqual(3);
+    // Fora do plano, o fundo.
+    expect(perto(await corNoPonto(page, 200, 450 - 300), '#121212', 10)).toBe(true);
+  });
+
+  test('teclado: o Tab percorre os 5 "Ver trabalho", com foco visível, e o Enter abre o site em outra aba', async ({ page, context }) => {
+    await page.goto('/trabalhos');
+    await page.waitForTimeout(2500);
+    let classe = '';
+    for (let n = 0; n < 40 && !classe.includes('pilha-alvo'); n++) {
+      await page.keyboard.press('Tab');
+      classe = await page.evaluate(() => document.activeElement?.className ?? '');
+    }
+    for (let i = 0; i < 5; i++) {
+      if (i > 0) await page.keyboard.press('Tab');
+      const foco = await page.evaluate(() => {
+        const el = document.activeElement as HTMLElement;
+        const css = getComputedStyle(el);
+        return { href: el.getAttribute('href'), visivel: el.matches(':focus-visible'), contorno: css.outlineStyle !== 'none' && parseFloat(css.outlineWidth) > 0 };
+      });
+      expect(foco.href).toBe(`/conceitos/${SITES[i]}/index.html`);
+      expect(foco.visivel && foco.contorno, `foco visível no trabalho ${i + 1}`).toBe(true);
+      await expect(page.locator('.pilha-contador')).toHaveText(`(0${i + 1}/05)`);
+      await expect(page.locator('a.pilha-alvo:focus .pilha-rotulo')).toBeVisible();
+    }
+    const [aba] = await Promise.all([context.waitForEvent('page'), page.keyboard.press('Enter')]);
+    await aba.waitForLoadState();
+    expect(new URL(aba.url()).pathname).toBe(`/conceitos/${SITES[4]}/index.html`);
+  });
+
+  test('em 1100 px também é a pilha, sem rolagem lateral', async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await page.goto('/trabalhos');
+    await expect(page.locator('.pilha-trabalhos')).toBeVisible();
+    await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
+    const [rolagem, janela] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+    expect(rolagem).toBeLessThanOrEqual(janela);
+  });
+});
+
+test.describe('sem a pilha: celular e movimento reduzido ficam com a lista', () => {
+  for (const [largura, reduzido] of [[390, false], [1440, true]] as const) {
+    test(`${largura} px${reduzido ? ' com movimento reduzido' : ''}: lista de 5 cartões, sem pilha`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: reduzido ? 'reduce' : 'no-preference' });
+      await page.setViewportSize({ width: largura, height: 844 });
+      await page.goto('/trabalhos');
+      await expect(page.locator('main a.cartao')).toHaveCount(5);
+      await expect(page.locator('main a.cartao').first()).toBeVisible();
+      await page.waitForTimeout(500);
+      await expect(page.locator('.pilha-trabalhos')).toHaveCount(0);
+    });
+  }
+});
+
+test.describe('sem WebGL', () => {
+  // Navegador sem WebGL: o contexto não é criado (o launchOptions não pode mudar dentro deste arquivo).
+  test('no desktop fica a lista de 5 cartões, sem pilha', async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, tipo: string, ...resto: unknown[]) {
+        return /webgl/.test(tipo) ? null : (original as (...a: unknown[]) => unknown).call(this, tipo, ...resto);
+      } as typeof original;
+    });
+    await page.goto('/trabalhos');
+    await expect(page.locator('main a.cartao')).toHaveCount(5);
+    await page.waitForTimeout(500);
+    await expect(page.locator('.pilha-trabalhos')).toHaveCount(0);
+  });
 });
