@@ -7,7 +7,9 @@
 .manifesto-conteudo { display: flex; flex-direction: column; align-items: center; gap: 50px; margin-top: 50px; width: 100%; }
 .unico { position: relative; width: min(1000px, 100%); font: 400 18px/25px var(--sans); letter-spacing: -0.02em; }
 .unico p { margin-bottom: 15px; }
-.rotulo-unico { position: absolute; left: -148px; top: 0; }
+.rotulo-unico { position: absolute; right: calc(100% + 28px); top: 0; white-space: nowrap; }
+/* Abaixo de 1440 px a margem à esquerda da coluna (vw/2 - 500) não comporta o rótulo em inglês (178 px + 28): ele vai para cima do texto. */
+@media (max-width: 1439px) { .rotulo-unico { position: static; display: block; margin-bottom: 16px; } }
 
 /* ---------- cubo da marca ---------- */
 /* Tempos: tokens de src/movimento/tokens.css (tempo-palavras-cubo, intervalo-palavras-cubo). A curva das palavras é linear (curva-linear no GSAP). */
