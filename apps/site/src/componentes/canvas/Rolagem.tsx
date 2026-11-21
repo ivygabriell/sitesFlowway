@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { ScrollTrigger } from '@/gsap';
 import { useAbertura } from '@/estado/abertura';
 import { prefereMenosMovimento } from '@/lib/ambiente';
+import { paginaDoCaminho } from '@/lib/idioma';
 import { guardarRolagem as guardar, marcarVolta, mostrarPagina, posicaoGuardada, voltouNestaCarga } from '@/lib/restauracao';
 
 // Depois de a hero montar a saída (1 s) e os gatilhos recalcularem: antes disso, a altura dos pins ainda não existe.
@@ -71,6 +72,9 @@ function useRestaurarRolagem() {
 // (syncTouch): com o scroll nativo, os pins e o canvas andavam separados da rolagem e travavam (versão B, 2026-11-11).
 export function Rolagem() {
   const { terminou } = useAbertura();
+  // Só a Início tem abertura (e só ela chama terminar): nas outras páginas a rolagem começa livre (issue #15).
+  const naInicio = paginaDoCaminho(usePathname() ?? '/') === 'inicio';
+  const travada = !terminou && naInicio;
   const [ligada, setLigada] = useState(false);
   useRestaurarRolagem();
 
@@ -79,6 +83,6 @@ export function Rolagem() {
   }, []);
 
   return (
-    <SmoothScrollbar enabled={ligada} locked={!terminou} scrollRestoration="manual" config={{ syncTouch: true }} onScroll={() => ScrollTrigger.update()} />
+    <SmoothScrollbar enabled={ligada} locked={travada} scrollRestoration="manual" config={{ syncTouch: true }} onScroll={() => ScrollTrigger.update()} />
   );
 }
