@@ -11,4 +11,4 @@ scripts/                        tarefas (worktrees) e geração dos conceitos
 ```
 
 Comandos na raiz: `npm test`, `npm run check`, `npm run test:build`. Servidor local: `npm run dev -w apps/site`.
-Leia `CLAUDE.md` e `docs/memoria-do-projeto.md` antes de trabalhar.
+Leia `CLAUDE.md` e `processo/memoria-do-projeto.md` antes de trabalhar.

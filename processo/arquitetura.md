@@ -1,6 +1,6 @@
 # Arquitetura: registro de decisões
 
-Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Quem escreve é o especialista Arquitetura, num PR próprio. As fontes ficam em [`referencias/arquitetura.md`](referencias/arquitetura.md).
+Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Quem escreve é o especialista Arquitetura, num PR próprio. As fontes ficam em [`referencias/architect.md`](referencias/architect.md).
 
 **Contrato da API:** [contato B normativo e fluxo legado observado](contrato-api.md). O registro 007 foi aprovado pela pessoa; o contrato B orienta a construção, sem comprovar ativação ou mudar o app por esta adoção documental.
 
@@ -164,7 +164,7 @@ Num celular médio, a rejeição ocuparia a thread principal por meio segundo ou
 
 **APROVADA pela pessoa em 2026-11-05 — issue #39, gate `gate_a9c750e8db8e`.** A integradora registrou “aprovado pode seguir” para a proposta completa dos commits `9a1ce73` + `62ec98a` e a escolha de **Resend**. As revisões de Back, Front e Segurança e o ajuste da preservação de incerteza antecederam esta adoção. O [texto completo adotado como contrato normativo](contrato-api.md#contato-b--protocolo-normativo-contato-b1) é a fonte das interfaces e garantias entre Front e Back; o [fluxo legado observado](contrato-api.md#fluxo-legado-observado-sem-versão-explícita) permanece documentado separadamente.
 
-**Contexto.** A composição B e sua alternativa precisam de conversa sem efeito externo, resumo editável e confirmação explícita antes da entrega; o formulário temporário atual não demonstra entrega real. Fontes: [spec base 4.6](superpowers/specs/2026-10-31-estrutura-site-design.md#46-contato-12), [reconciliação B](superpowers/specs/2026-11-02-contato-b-correcao-design.md), [protótipo B](superpowers/specs/prototipos-correcao/contato-b.html), [Segurança](seguranca.md) e [referências consultadas](referencias/arquitetura.md#2026-11-04--contato-b-proposta-não-aprovada-issue-39).
+**Contexto.** A composição B e sua alternativa precisam de conversa sem efeito externo, resumo editável e confirmação explícita antes da entrega; o formulário temporário atual não demonstra entrega real. Fontes: [spec base 4.6](../docs/superpowers/specs/2026-10-31-estrutura-site-design.md#46-contato-12), [reconciliação B](../docs/superpowers/specs/2026-11-02-contato-b-correcao-design.md), [protótipo B](../docs/superpowers/specs/prototipos-correcao/contato-b.html), [Segurança](seguranca.md) e [referências consultadas](referencias/architect.md#2026-11-04--contato-b-proposta-não-aprovada-issue-39).
 
 **Decisão.** Reaproveitar Next e o formulário, acrescentar somente `POST /api/contato/conversa` com Gemini e evoluir `POST /api/contato` por `versao=contato-b.1`, preservando o legado sem versão. Front e Back compartilham a intenção assinada de 23 h, chave derivada, corpo confirmado, estados e códigos do contrato; somente aceitação verificável pelo Resend autoriza confirmação/F. O protocolo HTML privado sem JS mantém dados/tokens no próprio POST. Sem banco, fila, polling, consulta histórica, streaming ou serviço adicional.
 
