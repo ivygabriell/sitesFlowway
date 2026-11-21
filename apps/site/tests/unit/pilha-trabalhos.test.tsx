@@ -1,8 +1,9 @@
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { PilhaTrabalhos } from '@/componentes/pilha-trabalhos/PilhaTrabalhos';
 import { contador, curvaDaVelocidade, posePlano } from '@/componentes/pilha-trabalhos/pose';
 import { t } from '@/conteudo/textos';
+import { gsap } from '@/gsap';
 import { linhaDoCartao, listaDeTrabalhos, trabalhos } from '@/conteudo/trabalhos';
 import { ProvedorIdioma } from '@/lib/useIdioma';
 import { PaginaTrabalhos } from '@/paginas/PaginaTrabalhos';
@@ -55,7 +56,8 @@ describe('PilhaTrabalhos', () => {
       expect(a.rel).toBe('noopener');
       expect(a.querySelector('.pilha-rotulo')?.textContent).toBe('Ver trabalho');
       expect(a.querySelector('.pilha-nome')?.textContent).toBe(t(tr.nome, 'pt'));
-      expect(a.getAttribute('aria-label')).toBe(`${t(tr.nome, 'pt')}, ${t(tr.setor, 'pt')} / ${data} / ${oferta} (abre o site em nova aba)`);
+      // O nome acessível começa pelo CTA visível (comando de voz), seguido do nome e dos detalhes (revisão do PR #16).
+      expect(a.getAttribute('aria-label')).toBe(`Ver trabalho: ${t(tr.nome, 'pt')}, ${t(tr.setor, 'pt')} / ${data} / ${oferta} (abre o site em nova aba)`);
     });
     // Nenhum link para uma página de case (spec 4.5): só os sites dos conceitos.
     expect(container.querySelectorAll('a[href^="/trabalhos/"]')).toHaveLength(0);
@@ -80,7 +82,39 @@ describe('PilhaTrabalhos', () => {
     );
     expect(container.querySelector('.pilha-rotulo')?.textContent).toBe('View work');
     expect(t(trabalhos.ver, 'en')).toBe('View work');
-    expect(container.querySelector('a.pilha-alvo')?.getAttribute('aria-label')).toMatch(/\(opens the site in a new tab\)$/);
+    expect(container.querySelector('a.pilha-alvo')?.getAttribute('aria-label')).toMatch(/^View work: Creative tool, .*\(opens the site in a new tab\)$/);
+  });
+});
+
+// Revisão do PR #16: interações durante a entrada e limpeza ao desmontar.
+const timelineDaEntrada = () => {
+  const tween = gsap.globalTimeline.getChildren(true, true, false).find((tw) => tw.vars.entrada === 1)!;
+  return { tween, timeline: tween.parent!, estado: tween.targets()[0] as { entrada: number; empurrao: number; hover: number } };
+};
+
+describe('PilhaTrabalhos: interações', () => {
+  it('o hover antes do fim da entrada não cancela a descida nem a curva dos planos', () => {
+    const { container } = render(<PilhaTrabalhos />);
+    const { timeline, estado } = timelineDaEntrada();
+    timeline.pause().time(2.1);
+    fireEvent.mouseEnter(container.querySelector('a.pilha-alvo')!);
+    timeline.time(timeline.duration());
+    expect(estado.entrada).toBe(1);
+    expect(estado.empurrao).toBe(0);
+  });
+
+  it('nenhum tween de hover, moldura ou digitação sobrevive à desmontagem', () => {
+    const { container, unmount } = render(<PilhaTrabalhos />);
+    const { timeline, estado } = timelineDaEntrada();
+    timeline.pause().time(timeline.duration());
+    fireEvent.mouseEnter(container.querySelector('a.pilha-alvo')!);
+    fireEvent.mouseEnter(container.querySelector('.pilha-miniaturas img')!);
+    const moldura = container.querySelector('.pilha-moldura')!;
+    const info = [...container.querySelectorAll('.pilha-info span')];
+    unmount();
+    expect(gsap.getTweensOf(estado)).toHaveLength(0);
+    expect(gsap.getTweensOf(moldura)).toHaveLength(0);
+    expect(gsap.getTweensOf(info)).toHaveLength(0);
   });
 });
 

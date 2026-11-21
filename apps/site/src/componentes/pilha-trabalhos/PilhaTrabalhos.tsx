@@ -26,6 +26,7 @@ export function PilhaTrabalhos() {
   const [ativo, setAtivo] = useState(0);
   const secao = useRef<HTMLElement>(null);
   const gatilho = useRef<ScrollTrigger | null>(null);
+  const contexto = useRef<gsap.Context | null>(null);
   const estado = useRef<EstadoPilha>({ atual: 0, entrada: 0, empurrao: 0, hover: 0 });
   const sobreMiniatura = useRef(false);
   const primeiraInfo = useRef(true);
@@ -69,9 +70,11 @@ export function PilhaTrabalhos() {
         .from('.pilha-miniaturas', { y: 100, duration: tempo('tempo-hover'), ease: CURVAS['curva-saida'] }, 2.2);
       recalcularGatilhos();
     }, el);
+    contexto.current = ctx;
     return () => {
       clearTimeout(parar);
       ctx.revert();
+      contexto.current = null;
       gatilho.current = null;
     };
   }, [n]);
@@ -93,8 +96,12 @@ export function PilhaTrabalhos() {
     const st = gatilho.current;
     if (st) window.scrollTo(0, st.start + i * window.innerHeight);
   };
-  const moverMoldura = (x: number) => gsap.to('.pilha-moldura', { x, duration: tempo('tempo-curto'), ease: CURVAS['curva-padrao'], overwrite: true });
-  const passar = (dentro: boolean) => gsap.to(estado.current, { hover: dentro ? 1 : 0, duration: tempo('tempo-hover'), ease: CURVAS['curva-padrao'], overwrite: true });
+  // Os tweens dos eventos entram no contexto da seção, que os desfaz ao desmontar. 'auto' só corta o tween da mesma
+  // propriedade: com `true`, o hover cortava também a entrada e a curva, que animam o mesmo objeto (revisão do PR #16).
+  const animar = (alvo: gsap.TweenTarget, vars: gsap.TweenVars) =>
+    contexto.current?.add(() => gsap.to(alvo, { ease: CURVAS['curva-padrao'], overwrite: 'auto', ...vars }));
+  const moverMoldura = (x: number) => animar(secao.current?.querySelector('.pilha-moldura') ?? [], { x, duration: tempo('tempo-curto') });
+  const passar = (dentro: boolean) => animar(estado.current, { hover: dentro ? 1 : 0, duration: tempo('tempo-hover') });
 
   return (
     <section ref={secao} className="pilha-trabalhos" data-fundo="escuro">
@@ -108,7 +115,7 @@ export function PilhaTrabalhos() {
               href={tr.site}
               target="_blank"
               rel="noopener"
-              aria-label={`${nome}, ${linha(i).join(' / ')} ${idioma === 'en' ? '(opens the site in a new tab)' : '(abre o site em nova aba)'}`}
+              aria-label={`${t(trabalhos.ver, idioma)}: ${nome}, ${linha(i).join(' / ')} ${idioma === 'en' ? '(opens the site in a new tab)' : '(abre o site em nova aba)'}`}
               onFocus={() => irPara(i)}
               onMouseEnter={() => passar(true)}
               onMouseLeave={() => passar(false)}
