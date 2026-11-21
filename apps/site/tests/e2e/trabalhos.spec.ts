@@ -88,6 +88,39 @@ for (const [caminho, lang, titulo] of [['/trabalhos', 'pt-BR', 'Trabalhos · Flo
     expect(visitados).toEqual(primeiro);
   });
 
+  // Issue #12: a linha de detalhes só quebra entre segmentos; nenhuma linha renderizada começa ou termina com "/".
+  test(`${caminho} não quebra a linha de detalhes junto a um "/"`, async ({ page }) => {
+    for (const largura of [1920, 1440, 1100, 900, 390]) {
+      await page.setViewportSize({ width: largura, height: 900 });
+      await page.goto(caminho);
+      await page.evaluate(() => document.fonts.ready);
+      const linhas = await page.locator('main .cartao-detalhes').evaluateAll((ps) =>
+        ps.map((p) => {
+          // Agrupa cada caractere pelo topo do retângulo em que foi desenhado.
+          const porTopo = new Map<number, string>();
+          const andador = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+          for (let no = andador.nextNode(); no; no = andador.nextNode()) {
+            const texto = no.textContent ?? '';
+            for (let i = 0; i < texto.length; i++) {
+              const r = document.createRange();
+              r.setStart(no, i);
+              r.setEnd(no, i + 1);
+              const ret = r.getClientRects()[0];
+              if (!ret) continue;
+              const topo = Math.round(ret.top);
+              porTopo.set(topo, (porTopo.get(topo) ?? '') + texto[i]);
+            }
+          }
+          return [...porTopo.entries()].sort((a, b) => a[0] - b[0]).map(([, l]) => l.trim()).filter(Boolean);
+        }),
+      );
+      expect(linhas).toHaveLength(5);
+      for (const cartao of linhas)
+        for (const linha of cartao)
+          expect(linha.startsWith('/') || linha.endsWith('/'), `${largura}px: "${linha}" em ${JSON.stringify(cartao)}`).toBe(false);
+    }
+  });
+
   test(`${caminho} não tem rolagem lateral no desktop, em 1100 px, no celular nem com movimento reduzido`, async ({ page }) => {
     for (const [largura, reduzido] of [[1440, false], [1100, false], [390, false], [1440, true], [390, true]] as const) {
       await page.emulateMedia({ reducedMotion: reduzido ? 'reduce' : 'no-preference' });

@@ -7,3 +7,4 @@
 /* Na página o cartão leva duas linhas: degradê mais escuro para a linha de detalhes não disputar com o texto da capa. */
 .pagina-trabalhos .cartao-info { background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.5) 55%, transparent); }
 .pagina-trabalhos .cartao-detalhes { text-wrap: balance; }
+.pagina-trabalhos .cartao-detalhes span { white-space: nowrap; } /* grupos com separador não quebram (issue #12) */
