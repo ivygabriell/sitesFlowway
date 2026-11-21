@@ -7,12 +7,12 @@ body:has(.pilha-trabalhos) { background: var(--escuro); }
 .pilha-alvo { position: absolute; left: calc(50% - 25vh); top: 13vh; width: 50vh; height: 74vh; display: flex; align-items: center; justify-content: center; color: inherit; text-decoration: none; opacity: 0; pointer-events: none; }
 .pilha-alvo.ativo, .pilha-alvo:focus-visible { opacity: 1; pointer-events: auto; }
 .pilha-alvo:focus-visible { outline: 2px solid var(--claro); outline-offset: 4px; }
-.pilha-rotulo { position: absolute; bottom: calc(50% + 6vw); text-transform: uppercase; opacity: 1; transition: opacity 0.3s 0.1s; }
+/* "Ver trabalho" numa pílula escura: lê-se sobre qualquer capa (decisão da Lead, 2026-11-21, revisão do PR #16). */
+.pilha-rotulo { position: absolute; bottom: calc(50% + 6vw); padding: 6px 10px; background: var(--escuro); color: var(--claro); text-transform: uppercase; opacity: 1; transition: opacity 0.3s 0.1s; }
 .pilha-trabalhos.rolando .pilha-alvo:not(:focus-visible) .pilha-rotulo { opacity: 0; transition: none; }
 /* O nome em 40vw de largura, centrado sobre o plano. A seção presa fica em position: fixed (contexto isolado), então o
-   texto não mistura com o canvas por trás: uma sombra leve segura a leitura sobre as capas claras. */
+   texto não mistura com o canvas por trás: o véu da cena (CenaPilha) escurece a capa atrás dele. */
 .pilha-nome { width: 40vw; text-align: center; font: 400 3.4vw/4vw var(--serif); color: var(--claro); }
-.pilha-nome, .pilha-rotulo { text-shadow: 0 0 18px rgb(0 0 0 / 0.55), 0 0 2px rgb(0 0 0 / 0.35); }
 
 .pilha-info { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); margin: 0; min-height: 51px; text-transform: uppercase; }
 .pilha-info span { display: block; }

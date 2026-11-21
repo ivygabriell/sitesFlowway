@@ -22,16 +22,23 @@ void main() {
 `;
 
 // A capa; no verso, espelhada de volta e escurecida a 50%; o hover aproxima 15% dentro do plano.
+// Véu de legibilidade (decisão da Lead, 2026-11-21): no plano ativo, uma faixa horizontal atrás do nome escurece a capa
+// até 24% no centro e some nas bordas, para o nome claro ter 3:1 também sobre as capas quase brancas.
+// `uFaixa` é meia altura da linha do nome em UV do plano; `uVeu` vai de 0 (longe) a 1 (plano ativo).
 const frag = /* glsl */ `
 uniform sampler2D uImagem;
 uniform float uHover;
+uniform float uVeu;
+uniform float uFaixa;
 varying vec2 vUv;
 void main() {
   vec2 uv = vUv;
   if (!gl_FrontFacing) uv.x = 1.0 - uv.x;
   uv = (uv - 0.5) / (1.0 + 0.15 * uHover) + 0.5;
   vec4 cor = texture2D(uImagem, uv);
-  gl_FragColor = vec4(cor.rgb * (gl_FrontFacing ? 1.0 : 0.5), 1.0);
+  float faixa = 1.0 - smoothstep(uFaixa + 0.02, uFaixa + 0.12, abs(vUv.y - 0.5));
+  float veu = mix(1.0, 0.24, faixa * uVeu);
+  gl_FragColor = vec4(cor.rgb * veu * (gl_FrontFacing ? 1.0 : 0.5), 1.0);
   #include <colorspace_fragment>
 }
 `;
@@ -56,7 +63,7 @@ export function CenaPilha({ total, estado, secao }: { total: number; estado: { c
         vertexShader: vert,
         fragmentShader: frag,
         side: THREE.DoubleSide,
-        uniforms: { uImagem: { value: textura }, uCurva: { value: 0 }, uHover: { value: 0 } },
+        uniforms: { uImagem: { value: textura }, uCurva: { value: 0 }, uHover: { value: 0 }, uVeu: { value: 0 }, uFaixa: { value: 0 } },
       });
     });
   }, [total]);
@@ -96,6 +103,8 @@ export function CenaPilha({ total, estado, secao }: { total: number; estado: { c
       const u = materiais[k].uniforms;
       u.uCurva.value = CURVA_MAXIMA * curvaDaVelocidade(curva.current);
       u.uHover.value = Math.abs(d) < 0.5 ? hover : 0;
+      u.uVeu.value = Math.max(0, 1 - Math.abs(d) * 2);
+      u.uFaixa.value = (0.02 * window.innerWidth) / (0.74 * H); // linha do nome: 4vw, sobre o plano de 74vh
     });
   });
 

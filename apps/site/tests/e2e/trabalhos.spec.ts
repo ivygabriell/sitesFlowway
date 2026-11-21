@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
+import { PNG } from 'pngjs';
 import { corNoPonto, perto } from './util/pixel';
 
 // Texto visível de cada cartão (spec 4.4): nome e a linha setor / mês e ano / oferta · Conceito.
@@ -298,4 +299,63 @@ test.describe('sem WebGL', () => {
     await page.waitForTimeout(500);
     await expect(page.locator('.pilha-trabalhos')).toHaveCount(0);
   });
+});
+
+// Revisão do PR #16: contraste do texto claro (#F7F7F5) com o fundo renderizado logo em volta das letras (capa, hover e
+// sombra), num anel de 3 px fora de cada letra; o fundo é o p95 da luminância do anel (o pior caso, sem pixel solto).
+const linear = (c: number) => (c / 255 <= 0.04045 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4);
+const luminancia = (d: Buffer, i: number) => 0.2126 * linear(d[i]) + 0.7152 * linear(d[i + 1]) + 0.0722 * linear(d[i + 2]);
+const L_CLARO = luminancia(Buffer.from([0xf7, 0xf7, 0xf5]), 0);
+
+async function contrasteDoTexto(page: Page, seletor: string) {
+  const el = page.locator(seletor);
+  const c = (await el.boundingBox())!;
+  const clip = { x: Math.floor(c.x - 6), y: Math.floor(c.y - 6), width: Math.ceil(c.width + 12), height: Math.ceil(c.height + 12) };
+  const com = PNG.sync.read(await page.screenshot({ clip }));
+  // Só as letras somem (a sombra tem cor própria e fica): o resto é o fundo que o texto realmente tem.
+  await el.evaluate((e: HTMLElement) => (e.style.color = 'transparent'));
+  const sem = PNG.sync.read(await page.screenshot({ clip }));
+  await el.evaluate((e: HTMLElement) => (e.style.color = ''));
+  const { width: w, height: h } = com;
+  const letra = (x: number, y: number) => luminancia(com.data, (y * w + x) * 4) - luminancia(sem.data, (y * w + x) * 4) > 0.2;
+  const mascara = Array.from({ length: w * h }, (_, p) => letra(p % w, Math.floor(p / w)));
+  const anel: number[] = [];
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (mascara[y * w + x]) continue;
+      let perto = false;
+      for (let dy = -3; dy <= 3 && !perto; dy++)
+        for (let dx = -3; dx <= 3 && !perto; dx++) perto = x + dx >= 0 && x + dx < w && y + dy >= 0 && y + dy < h && mascara[(y + dy) * w + x + dx];
+      if (perto) anel.push(luminancia(sem.data, (y * w + x) * 4));
+    }
+  expect(anel.length, `letras de ${seletor} encontradas`).toBeGreaterThan(50);
+  anel.sort((a, b) => a - b);
+  return (L_CLARO + 0.05) / (anel[Math.floor(anel.length * 0.95)] + 0.05);
+}
+
+test('contraste nas 5 capas, em repouso e no hover: "Ver trabalho" ≥ 4,5:1 e nome ≥ 3:1', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto('/trabalhos');
+  await page.waitForTimeout(3000);
+  const medidas: { capa: string; hover: boolean; rotulo: number; nome: number }[] = [];
+  for (let i = 0; i < 5; i++) {
+    await page.mouse.move(5, 450);
+    await page.evaluate((y) => window.scrollTo(0, y), i * 900);
+    await expect(page.locator('.pilha-contador')).toHaveText(`(0${i + 1}/05)`);
+    await page.waitForTimeout(1500);
+    for (const hover of [false, true]) {
+      if (hover) {
+        await page.mouse.move(720, 250);
+        await page.waitForTimeout(700);
+      }
+      const rotulo = await contrasteDoTexto(page, 'a.pilha-alvo.ativo .pilha-rotulo');
+      const nome = await contrasteDoTexto(page, 'a.pilha-alvo.ativo .pilha-nome');
+      medidas.push({ capa: SITES[i], hover, rotulo: Math.round(rotulo * 100) / 100, nome: Math.round(nome * 100) / 100 });
+    }
+  }
+  console.log(JSON.stringify(medidas));
+  for (const m of medidas) {
+    expect.soft(m.rotulo, `"Ver trabalho" em ${m.capa}${m.hover ? ' (hover)' : ''}`).toBeGreaterThanOrEqual(4.5);
+    expect.soft(m.nome, `nome em ${m.capa}${m.hover ? ' (hover)' : ''}`).toBeGreaterThanOrEqual(3);
+  }
 });
