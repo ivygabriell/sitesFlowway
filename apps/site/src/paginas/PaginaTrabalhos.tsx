@@ -15,7 +15,7 @@ export function PaginaTrabalhos() {
       <h1 className="pagina-trabalhos-titulo">{t(trabalhos.rotulo, idioma)}</h1>
       <div className="pagina-trabalhos-lista">
         {trabalhosVisiveis().map((trabalho, i) => (
-          <CartaoTrabalho key={trabalho.slug} trabalho={trabalho} idioma={idioma} indice={i} />
+          <CartaoTrabalho key={trabalho.slug} trabalho={trabalho} idioma={idioma} indice={i} detalhes />
         ))}
       </div>
     </main>

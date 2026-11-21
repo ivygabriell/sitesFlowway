@@ -6,6 +6,7 @@
    atrás do DOM, então o degradê escurece também a cena WebGL). O mix-blend difference sumia sobre partes brancas. */
 .cartao-info { position: absolute; inset: auto 0 0; z-index: 2; padding: 56px 16px 18px; color: var(--claro); text-align: center; pointer-events: none; background: linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.25) 55%, transparent); }
 .cartao-titulo { font: 500 19px/22px var(--sans); letter-spacing: -0.02em; margin: 0; text-shadow: 0 1px 10px rgb(0 0 0 / 0.45); }
+.cartao-detalhes { margin: 6px 0 0; font: 400 13px/17px var(--sans); text-shadow: 0 1px 10px rgb(0 0 0 / 0.45); }
 
 /* Sem capa: bloco liso no cinza dos estados apagados, do tamanho da capa. */
 .cartao.sem-capa { width: var(--cartao-largura, 50vh); height: var(--cartao-altura, 74vh); background: var(--c2); }

@@ -67,6 +67,13 @@ describe('Capitulos (trabalhos em destaque)', () => {
       expect(c.getAttribute('aria-label')).toContain(`${t(tr.nome, 'pt')}, ${oferta}, ${data}`);
     });
   });
+
+  // Issue #8: os detalhes visíveis e o h2 são só da página Trabalhos; na Início o cartão segue só com o nome, em h3.
+  it('na Início, o título do cartão é h3 e não há linha de detalhes', () => {
+    const { container } = render(<Capitulos />);
+    expect(container.querySelectorAll('.cartao h3.cartao-titulo')).toHaveLength(5);
+    expect(container.querySelectorAll('.cartao h2, .cartao-detalhes')).toHaveLength(0);
+  });
 });
 
 describe('CartaoTrabalho', () => {
@@ -83,6 +90,16 @@ describe('CartaoTrabalho', () => {
     const img = container.querySelector('.cartao-img img')!;
     expect(img.getAttribute('src')).toBe('/capa-teste.webp');
     expect(container.querySelectorAll('.cartao-img img')).toHaveLength(1);
+  });
+
+  it('com detalhes (página Trabalhos), mostra setor / mês e ano / oferta em h2, e o nome acessível acompanha', () => {
+    const { container } = render(<CartaoTrabalho trabalho={{ ...comCapa, conceito: true }} idioma="pt" indice={0} detalhes />);
+    expect(container.querySelector('h2.cartao-titulo')?.textContent).toBe('Trabalho de teste');
+    expect(container.querySelector('h3')).toBeNull();
+    expect(container.querySelector('.cartao-detalhes')?.textContent).toBe('Setor / Mês / Landing page · Conceito');
+    expect(container.querySelector('a.cartao')?.getAttribute('aria-label')).toBe(
+      'Trabalho de teste, Setor / Mês / Landing page · Conceito (abre o site em nova aba)',
+    );
   });
 
   it('com capa, entrar e sair com o mouse só avisa a cena (zoom da capa no shader)', () => {
