@@ -8,3 +8,6 @@
 .pagina-trabalhos .cartao-info { background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.5) 55%, transparent); }
 .pagina-trabalhos .cartao-detalhes { text-wrap: balance; }
 .pagina-trabalhos .cartao-detalhes span { white-space: nowrap; } /* grupos com separador não quebram (issue #12) */
+/* Com a pilha (desktop com WebGL), a tela é dela: sem margens, sem fundo (o canvas fica por trás) e o título só para leitores. */
+.pagina-trabalhos.com-pilha { min-height: 0; padding: 0; background: none; }
+.com-pilha .pagina-trabalhos-titulo { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
