@@ -38,6 +38,6 @@ O projeto usa o Claude Code e o Codex juntos: cada papel tem a sua ferramenta na
 
 ## Atualização para o método 6.0.0 · 2026-11-21
 
-Aprovada pela pessoa em 2026-11-21. Substitui a regra de um agente principal só (Codex) e a de que "se diz Claude Code, você não deveria estar trabalhando aqui": agora vale a tabela Ferramenta por papel do `processo/DESENVOLVIMENTO.md`. Neste projeto, o merge na `main` continua só com o "pode integrar" da pessoa (ver o `CLAUDE.md`).
+Aprovada pela pessoa em 2026-11-21. Substitui a regra de um agente principal só (Codex) e a de que "se diz Claude Code, você não deveria estar trabalhando aqui": agora vale a tabela Ferramenta por papel do `processo/DESENVOLVIMENTO.md`. A Lead integra sozinha o PR sem gatilho; publicar continua com a pessoa (ver o `CLAUDE.md`).
 
 - **Requisitos e telas antes do código**: toda tarefa atende requisitos de `processo/requisitos.md` (R-xx). Com interface, nenhuma tela é codada sem estar aprovada pela pessoa e registrada em `processo/telas/` (captura, link do frame do Figma e `tokens.json`); o código segue a versão registrada. Mudança de tela começa no Figma, é aprovada e registrada, e só então vai para o código. Requisito ou tela nova passa pela pessoa.

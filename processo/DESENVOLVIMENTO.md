@@ -35,7 +35,7 @@ Cada sessão usa a ferramenta do seu papel; a Builder usa a do papel de quem a a
 
 Uma decisão é da pessoa quando aciona pelo menos um gatilho: muda **o que** será construído; é difícil ou impossível de desfazer; atinge usuários reais; custa dinheiro ou muita cota; aceita um risco de segurança ou de dados pessoais; muda as regras do jogo (harness, método, a Lead, a tabela Ferramenta por papel). Sem gatilho, a Lead decide e registra na issue ou na memória; na dúvida, sobe para a pessoa. Um PR dentro do plano aprovado, com CI verde, validação sem achado crítico nem importante, só nos arquivos permitidos e sem gatilho, a Lead integra sozinha. A Lead escreve um resumo por marco do que aprovou sozinha. A tabela completa está no núcleo 01 do método ("Portões de aprovação"); anote aqui o que a pessoa mudar:
 
-- Neste projeto, o merge na `main` continua só com o "pode integrar" da pessoa (decisão de 2026-11-09: marcas fictícias e INPI), até ela dizer o contrário; vale também para o push.
+- Decisão da pessoa em 2026-11-21: a Lead integra sozinha o PR sem gatilho (critérios desta seção) e só pede aprovação quando há gatilho. Publicar o site continua com a pessoa (marcas fictícias e INPI, decisão de 2026-11-09).
 
 ## Comandos do projeto
 
