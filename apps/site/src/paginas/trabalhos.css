@@ -1,0 +1,9 @@
+/* ---------- página Trabalhos (lista de cartões) ---------- */
+.pagina-trabalhos { min-height: 100vh; padding: 110px 30px 60px; background: var(--escuro); color: var(--claro); }
+.pagina-trabalhos-titulo { margin-bottom: 24px; font: 400 18px var(--sans); letter-spacing: -0.02em; }
+.pagina-trabalhos-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 24px; --cartao-largura: 100%; --cartao-altura: auto; }
+.pagina-trabalhos .cartao-img img { aspect-ratio: 730 / 1080; }
+@media (max-width: 899px) { .pagina-trabalhos { padding: 80px 18px 40px; } }
+/* Na página o cartão leva duas linhas: degradê mais escuro para a linha de detalhes não disputar com o texto da capa. */
+.pagina-trabalhos .cartao-info { background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.5) 55%, transparent); }
+.pagina-trabalhos .cartao-detalhes { text-wrap: balance; }

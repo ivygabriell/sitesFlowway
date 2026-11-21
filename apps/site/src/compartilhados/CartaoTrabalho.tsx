@@ -13,18 +13,22 @@ type Props = {
   idioma: Idioma;
   indice: number;
   aoPassar?: (indice: number, dentro: boolean) => void;
+  detalhes?: boolean; // página Trabalhos (spec 4.4): título em h2 e a linha setor / mês e ano / oferta visível
 };
 
 // Cartão de um trabalho (spec 4.3). Sem capa: bloco liso em #DCDCD8, sem ASCII e sem ação.
 // Com capa: a imagem (que a cena WebGL da seção revela em ASCII e aproxima no hover); com site, o cartão é um link que
 // abre o site do conceito numa aba nova (Rafael, 2026-11-09: "deixa a imagem inicial e quando clica abre o site").
-export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
+export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar, detalhes }: Props) {
   const nome = t(trabalho.nome, idioma);
   const [data, oferta] = linhaDoCartao(trabalho, idioma);
-  // Na face do cartão só o nome, embaixo (2026-11-10); data e oferta seguem no nome acessível do link.
+  const linha = `${t(trabalho.setor, idioma)} / ${data} / ${oferta}`;
+  const Titulo = detalhes ? 'h2' : 'h3';
+  // Na Início, a face do cartão mostra só o nome, embaixo (2026-11-10); data e oferta seguem no nome acessível do link.
   const info = (
     <div className="cartao-info">
-      <h3 className="cartao-titulo">{nome}</h3>
+      <Titulo className="cartao-titulo">{nome}</Titulo>
+      {detalhes && <p className="cartao-detalhes">{linha}</p>}
     </div>
   );
 
@@ -53,7 +57,7 @@ export function CartaoTrabalho({ trabalho, idioma, indice, aoPassar }: Props) {
       href={trabalho.site}
       target="_blank"
       rel="noopener"
-      aria-label={`${nome}, ${oferta}, ${data} ${idioma === 'en' ? '(opens the site in a new tab)' : '(abre o site em nova aba)'}`}
+      aria-label={`${nome}, ${detalhes ? linha : `${oferta}, ${data}`} ${idioma === 'en' ? '(opens the site in a new tab)' : '(abre o site em nova aba)'}`}
       {...passar}
     >
       {conteudo}
