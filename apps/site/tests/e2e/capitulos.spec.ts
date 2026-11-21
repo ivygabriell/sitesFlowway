@@ -187,12 +187,7 @@ test('as capas carregam uma vez cada', async ({ page }) => {
   expect(Object.values(contagem).every((n) => n === 1), JSON.stringify(contagem)).toBe(true);
 });
 
-test('enquanto a página Trabalhos não existe, /trabalhos e /en/work respondem 404', async ({ page }) => {
-  for (const caminho of ['/trabalhos', '/en/work']) {
-    const resposta = await page.goto(caminho);
-    expect(resposta?.status(), caminho).toBe(404);
-  }
-});
+// A página Trabalhos passou a existir (issue #8): ver trabalhos.spec.ts.
 
 test.describe('no celular', () => {
   test.use({ viewport: { width: 390, height: 844 } });
