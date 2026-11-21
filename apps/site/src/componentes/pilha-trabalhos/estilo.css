@@ -8,7 +8,7 @@ body:has(.pilha-trabalhos) { background: var(--escuro); }
 .pilha-alvo.ativo, .pilha-alvo:focus-visible { opacity: 1; pointer-events: auto; }
 .pilha-alvo:focus-visible { outline: 2px solid var(--claro); outline-offset: 4px; }
 /* "Ver trabalho" numa pílula escura: lê-se sobre qualquer capa (decisão da Lead, 2026-11-21, revisão do PR #16). */
-.pilha-rotulo { position: absolute; bottom: calc(50% + 6vw); padding: 6px 10px; background: var(--escuro); color: var(--claro); text-transform: uppercase; opacity: 1; transition: opacity 0.3s 0.1s; }
+.pilha-rotulo { position: absolute; bottom: calc(50% + 6vw); padding: 6px 10px; background: var(--escuro); color: var(--claro); opacity: 1; transition: opacity 0.3s 0.1s; }
 .pilha-trabalhos.rolando .pilha-alvo:not(:focus-visible) .pilha-rotulo { opacity: 0; transition: none; }
 /* O nome em 40vw de largura, centrado sobre o plano. A seção presa fica em position: fixed (contexto isolado), então o
    texto não mistura com o canvas por trás: o véu da cena (CenaPilha) escurece a capa atrás dele. */

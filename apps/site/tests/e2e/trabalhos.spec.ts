@@ -224,6 +224,31 @@ test.describe('pilha no desktop com WebGL', () => {
     await expect(page.locator('.pilha-contador')).toHaveText('(02/05)');
   });
 
+  // Assentar é no mais próximo da parada, não no sentido da rolagem: 300 px (1/3 da tela) voltam ao 1º trabalho.
+  test('uma rodada curta (300 px) assenta de volta no trabalho atual', async ({ page }) => {
+    await page.goto('/trabalhos');
+    await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
+    await page.waitForTimeout(2500);
+    await page.mouse.move(720, 450);
+    for (let i = 0; i < 3; i++) {
+      await page.mouse.wheel(0, 100);
+      await page.waitForTimeout(50);
+    }
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 3000 }).toBeGreaterThan(200);
+    await page.waitForTimeout(2500);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
+  });
+
+  // Protótipo 10: o convite é frase normal, sem caixa-alta (dentro da pílula escura da decisão de contraste).
+  test('"Ver trabalho" aparece como frase, sem caixa-alta, na pílula escura', async ({ page }) => {
+    await page.goto('/trabalhos');
+    const rotulo = page.locator('a.pilha-alvo.ativo .pilha-rotulo');
+    await expect(rotulo).toHaveText('Ver trabalho');
+    await expect(rotulo).toHaveCSS('text-transform', 'none');
+    await expect(rotulo).toHaveCSS('background-color', 'rgb(18, 18, 18)');
+  });
+
   test('o plano do trabalho atual é desenhado no centro, sobre o fundo escuro', async ({ page }) => {
     await page.goto('/trabalhos');
     await page.waitForTimeout(3000);

@@ -47,8 +47,9 @@ export function PilhaTrabalhos() {
         start: 'top top',
         end: () => `+=${(n - 1) * window.innerHeight}`,
         pin: true,
-        // Assenta no trabalho mais próximo quando a rolagem quase para.
-        snap: { snapTo: 1 / (n - 1), delay: INTERVALOS['intervalo-curto'], duration: { min: tempo('tempo-rapido'), max: tempo('tempo-cabecalho') }, ease: CURVAS['curva-suave'] },
+        // Assenta no trabalho mais próximo quando a rolagem quase para. Sem `directional: false`, o snap numérico segue o
+        // sentido do último movimento e, com o fim da rolagem suave, às vezes voltava ao anterior (e2e da roda, 2 em 3).
+        snap: { snapTo: 1 / (n - 1), directional: false, inertia: false, delay: INTERVALOS['intervalo-curto'], duration: { min: tempo('tempo-rapido'), max: tempo('tempo-cabecalho') }, ease: CURVAS['curva-suave'] },
         onUpdate: ({ progress }) => {
           const atual = progress * (n - 1);
           estado.current.atual = atual;
