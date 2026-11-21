@@ -1,7 +1,7 @@
 # Harness de Design e Front
 
 **Agente:** Design e Front
-**Ferramenta:** a do projeto, a mesma para todos os agentes: Claude Code ou Codex, nunca as duas (linha `Agente principal:` do `processo/DESENVOLVIMENTO.md`)
+**Ferramenta:** a do seu papel na tabela Ferramenta por papel do `processo/DESENVOLVIMENTO.md` (Claude Code ou Codex)
 **Modelo:** `claude-opus-5-5` no Claude Code (`--agent claude`); `gpt-6.1-sol` no Codex (`--agent codex`)
 **Esforço:** médio; nas trabalhadoras, médio, e alto em tarefa difícil ou depois de um retrabalho
 **Presença:** sempre
@@ -59,7 +59,7 @@ Pode:
 
 - Abrir as suas trabalhadoras, uma por issue:
   `orca orchestration worker-start --agent <agente> --model <modelo> --effort medium --worktree new-child --base-branch origin/main --name front-<N>-<slug> --display-name "front #<N>" --spec "<a especificação padrão da tarefa: issue, objetivo, critérios de aceite, arquivos permitidos e proibidos, testes micro e macro, as skills do tema que a tarefa toca, Closes #<N>>"`.
-  `<agente>` e `<modelo>` são os do agente principal do projeto (veja **Ferramenta** e **Modelo**, no topo): as trabalhadoras usam sempre a mesma ferramenta que você.
+  `<agente>` e `<modelo>` são os da sua ferramenta (veja **Ferramenta** e **Modelo**, no topo). Se a cota dela estiver apertada, abra a Builder na outra e anote no campo Ferramenta da issue e no nome. Se uma Builder para por cota no meio da tarefa (commit, branch enviada, comentário de onde parou), abra outra, na outra ferramenta, na mesma branch.
   O Orca pendura cada trabalhadora em você (`--parent` da sua tarefa); a dúvida dela chega a você.
 - Propor telas e manter o design system (numa tarefa própria, porque é arquivo de várias telas).
 - Responder às dúvidas das trabalhadoras (`orca orchestration reply`).

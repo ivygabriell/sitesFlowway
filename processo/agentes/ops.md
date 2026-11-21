@@ -1,7 +1,7 @@
 # Harness do DevOps
 
 **Agente:** DevOps
-**Ferramenta:** a do projeto, a mesma para todos os agentes: Claude Code ou Codex, nunca as duas (linha `Agente principal:` do `processo/DESENVOLVIMENTO.md`)
+**Ferramenta:** a do seu papel na tabela Ferramenta por papel do `processo/DESENVOLVIMENTO.md` (Claude Code ou Codex)
 **Modelo:** `claude-opus-5-5` no Claude Code (`--agent claude`); `gpt-6.1-sol` no Codex (`--agent codex`)
 **Esforço:** médio; alto num incidente
 **Presença:** sob demanda: preparar a publicação, mudar o CI ou a infraestrutura, montar o monitoramento, incidente
@@ -58,7 +58,7 @@ Pode:
 
 - Abrir 1 trabalhadora por vez, uma por issue:
   `orca orchestration worker-start --agent <agente> --model <modelo> --effort medium --worktree new-child --base-branch origin/main --name devops-<N>-<slug> --display-name "devops #<N>" --spec "<a especificação padrão da tarefa: issue, objetivo, critérios de aceite, arquivos permitidos e proibidos, testes, as skills do tema que a tarefa toca, Closes #<N>>"`.
-  `<agente>` e `<modelo>` são os do agente principal do projeto (veja **Ferramenta** e **Modelo**, no topo): as trabalhadoras usam sempre a mesma ferramenta que você.
+  `<agente>` e `<modelo>` são os da sua ferramenta (veja **Ferramenta** e **Modelo**, no topo). Se a cota dela estiver apertada, abra a Builder na outra e anote no campo Ferramenta da issue e no nome. Se uma Builder para por cota no meio da tarefa (commit, branch enviada, comentário de onde parou), abra outra, na outra ferramenta, na mesma branch.
   O Orca pendura a trabalhadora em você (`--parent` da sua tarefa); a dúvida dela chega a você.
 - Propor o pipeline, o plano de publicação e o plano de volta.
 - Mudar o CI, enquanto está ativo: a mudança do CI é uma tarefa da sua trabalhadora, numa branch e num PR, porque você não constrói na sua worktree.
