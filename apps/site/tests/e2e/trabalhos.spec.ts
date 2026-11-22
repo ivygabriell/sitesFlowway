@@ -240,13 +240,17 @@ test.describe('pilha no desktop com WebGL', () => {
     await expect(page.locator('.pilha-contador')).toHaveText('(01/05)');
   });
 
-  // Protótipo 10: o convite é frase normal, sem caixa-alta (dentro da pílula escura da decisão de contraste).
-  test('"Ver trabalho" aparece como frase, sem caixa-alta, na pílula escura', async ({ page }) => {
+  // Protótipo 10: o convite é frase normal, sem caixa-alta. Issue #24 (decisão da pessoa, 2026-11-22): sem a pílula,
+  // texto claro direto sobre a capa, 4vw acima do nome.
+  test('"Ver trabalho" aparece como frase, sem caixa-alta e sem fundo, 4vw acima do nome', async ({ page }) => {
     await page.goto('/trabalhos');
     const rotulo = page.locator('a.pilha-alvo.ativo .pilha-rotulo');
     await expect(rotulo).toHaveText('Ver trabalho');
     await expect(rotulo).toHaveCSS('text-transform', 'none');
-    await expect(rotulo).toHaveCSS('background-color', 'rgb(18, 18, 18)');
+    await expect(rotulo).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(rotulo).toHaveCSS('padding', '0px');
+    const [r, n] = [(await rotulo.boundingBox())!, (await page.locator('a.pilha-alvo.ativo .pilha-nome').boundingBox())!];
+    expect(Math.abs(n.y - (r.y + r.height) - 0.04 * 1440)).toBeLessThan(3);
   });
 
   test('o plano do trabalho atual é desenhado no centro, sobre o fundo escuro', async ({ page }) => {
@@ -371,6 +375,7 @@ test.describe('sem WebGL', () => {
 
 // Revisão do PR #16: contraste do texto claro (#F7F7F5) com o fundo renderizado logo em volta das letras (capa, hover e
 // sombra), num anel de 3 px fora de cada letra; o fundo é o p95 da luminância do anel (o pior caso, sem pixel solto).
+// Sem véu (issue #24), sobre capa quase branca as letras quase não se distinguem: aí o fundo é a caixa inteira.
 const linear = (c: number) => (c / 255 <= 0.04045 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4);
 const luminancia = (d: Buffer, i: number) => 0.2126 * linear(d[i]) + 0.7152 * linear(d[i + 1]) + 0.0722 * linear(d[i + 2]);
 const L_CLARO = luminancia(Buffer.from([0xf7, 0xf7, 0xf5]), 0);
@@ -385,7 +390,7 @@ async function contrasteDoTexto(page: Page, seletor: string) {
   const sem = PNG.sync.read(await page.screenshot({ clip }));
   await el.evaluate((e: HTMLElement) => (e.style.color = ''));
   const { width: w, height: h } = com;
-  const letra = (x: number, y: number) => luminancia(com.data, (y * w + x) * 4) - luminancia(sem.data, (y * w + x) * 4) > 0.2;
+  const letra = (x: number, y: number) => Math.abs(luminancia(com.data, (y * w + x) * 4) - luminancia(sem.data, (y * w + x) * 4)) > 0.05;
   const mascara = Array.from({ length: w * h }, (_, p) => letra(p % w, Math.floor(p / w)));
   const anel: number[] = [];
   for (let y = 0; y < h; y++)
@@ -396,34 +401,48 @@ async function contrasteDoTexto(page: Page, seletor: string) {
         for (let dx = -3; dx <= 3 && !perto; dx++) perto = x + dx >= 0 && x + dx < w && y + dy >= 0 && y + dy < h && mascara[(y + dy) * w + x + dx];
       if (perto) anel.push(luminancia(sem.data, (y * w + x) * 4));
     }
-  expect(anel.length, `letras de ${seletor} encontradas`).toBeGreaterThan(50);
+  if (anel.length < 50) for (let p = 0; p < w * h; p++) anel.push(luminancia(sem.data, p * 4));
   anel.sort((a, b) => a - b);
-  return (L_CLARO + 0.05) / (anel[Math.floor(anel.length * 0.95)] + 0.05);
+  const r = (L_CLARO + 0.05) / (anel[Math.floor(anel.length * 0.95)] + 0.05);
+  return Math.max(r, 1 / r); // razão de contraste: a mais clara sobre a mais escura
 }
 
-test('contraste nas 5 capas, em repouso e no hover: "Ver trabalho" ≥ 4,5:1 e nome ≥ 3:1', async ({ page }) => {
+// Issue #24: sem véu. Com as letras escondidas, a faixa atrás do nome no plano assentado tem o brilho da própria capa
+// (desenhada no mesmo tamanho do plano, 50vh × 74vh); o véu antigo a deixava em cerca de metade. O contraste do texto
+// claro sobre cada capa fica registrado no log (a pessoa aceitou contraste menor nas capas claras).
+test('sem véu: atrás do nome, o plano ativo mostra a capa como ela é, nas 5 capas (contraste registrado)', async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto('/trabalhos');
   await page.waitForTimeout(3000);
-  const medidas: { capa: string; hover: boolean; rotulo: number; nome: number }[] = [];
+  const medidas: { capa: string; brilho: number; rotulo: number; nome: number }[] = [];
   for (let i = 0; i < 5; i++) {
     await page.mouse.move(5, 450);
     await page.evaluate((y) => window.scrollTo(0, y), i * 900);
     await expect(page.locator('.pilha-contador')).toHaveText(`(0${i + 1}/05)`);
     await page.waitForTimeout(1500);
-    for (const hover of [false, true]) {
-      if (hover) {
-        await page.mouse.move(720, 250);
-        await page.waitForTimeout(700);
-      }
-      const rotulo = await contrasteDoTexto(page, 'a.pilha-alvo.ativo .pilha-rotulo');
-      const nome = await contrasteDoTexto(page, 'a.pilha-alvo.ativo .pilha-nome');
-      medidas.push({ capa: SITES[i], hover, rotulo: Math.round(rotulo * 100) / 100, nome: Math.round(nome * 100) / 100 });
-    }
+    const rotulo = await contrasteDoTexto(page, 'a.pilha-alvo.ativo .pilha-rotulo');
+    const nome = await contrasteDoTexto(page, 'a.pilha-alvo.ativo .pilha-nome');
+    // Faixa de 40 px na altura do nome, 400 px de largura dentro do plano (450 px), sem as letras.
+    await page.locator('.pilha-alvos').evaluate((e: HTMLElement) => (e.style.visibility = 'hidden'));
+    const tela = PNG.sync.read(await page.screenshot({ clip: { x: 520, y: 430, width: 400, height: 40 } }));
+    await page.locator('.pilha-alvos').evaluate((e: HTMLElement) => (e.style.visibility = ''));
+    const capa = await page.evaluate(async (src) => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      const c = document.createElement('canvas');
+      [c.width, c.height] = [450, 666];
+      const ctx = c.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, 450, 666);
+      return [...ctx.getImageData(25, 313, 400, 40).data];
+    }, (await page.locator('.pilha-miniaturas img').nth(i).getAttribute('src'))!);
+    const media = (d: ArrayLike<number>) => {
+      let soma = 0;
+      for (let k = 0; k < d.length; k += 4) soma += d[k] + d[k + 1] + d[k + 2];
+      return soma / ((d.length / 4) * 3);
+    };
+    medidas.push({ capa: SITES[i], brilho: Math.round((media(tela.data) / media(capa)) * 100) / 100, rotulo: Math.round(rotulo * 100) / 100, nome: Math.round(nome * 100) / 100 });
   }
   console.log(JSON.stringify(medidas));
-  for (const m of medidas) {
-    expect.soft(m.rotulo, `"Ver trabalho" em ${m.capa}${m.hover ? ' (hover)' : ''}`).toBeGreaterThanOrEqual(4.5);
-    expect.soft(m.nome, `nome em ${m.capa}${m.hover ? ' (hover)' : ''}`).toBeGreaterThanOrEqual(3);
-  }
+  for (const m of medidas) expect.soft(m.brilho, `brilho atrás do nome em ${m.capa}, relativo à capa`).toBeGreaterThan(0.85);
 });

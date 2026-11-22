@@ -3,47 +3,41 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { CURVA_MAXIMA, VELOCIDADE_CHEIA, curvaDaVelocidade, posePlano } from './pose';
+import { ALTURA_PLANO, CURVA_MAXIMA, VELOCIDADE_CHEIA, curvaDaVelocidade, posePlano } from './pose';
 
 // `atual`: posição contínua na pilha (0 a n − 1); `entrada` 0→1; `empurrao`: velocidade extra da entrada (10→0);
 // `hover`: 0→1 com o mouse sobre o plano atual.
 export type EstadoPilha = { atual: number; entrada: number; empurrao: number; hover: number };
 
-// O plano se curva como um pedaço de cilindro: as bordas recuam até `uCurva` unidades.
+// O plano se curva como um pedaço de cilindro: a borda recua `uCurva`·(1 − cos 45°) unidades, num perfil de cosseno.
 const vert = /* glsl */ `
 uniform float uCurva;
 varying vec2 vUv;
 void main() {
   vUv = uv;
   vec3 p = position;
-  p.z -= uCurva * 4.0 * p.x * p.x;
+  p.z -= uCurva * (1.0 - cos(p.x * 1.5707963));
   gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
 }
 `;
 
-// A capa; no verso, espelhada de volta e escurecida a 50%; o hover aproxima 15% dentro do plano.
-// Véu de legibilidade (decisão da Lead, 2026-11-21): no plano ativo, uma faixa horizontal atrás do nome escurece a capa
-// até 24% no centro e some nas bordas, para o nome claro ter 3:1 também sobre as capas quase brancas.
-// `uFaixa` é meia altura da linha do nome em UV do plano; `uVeu` vai de 0 (longe) a 1 (plano ativo).
+// A capa; no verso, espelhada de volta e escurecida a 50%; o hover aproxima 15% dentro do plano. Sem véu atrás do nome
+// (decisão da pessoa, 2026-11-22, issue #24).
 const frag = /* glsl */ `
 uniform sampler2D uImagem;
 uniform float uHover;
-uniform float uVeu;
-uniform float uFaixa;
 varying vec2 vUv;
 void main() {
   vec2 uv = vUv;
   if (!gl_FrontFacing) uv.x = 1.0 - uv.x;
   uv = (uv - 0.5) / (1.0 + 0.15 * uHover) + 0.5;
   vec4 cor = texture2D(uImagem, uv);
-  float faixa = 1.0 - smoothstep(uFaixa + 0.02, uFaixa + 0.12, abs(vUv.y - 0.5));
-  float veu = mix(1.0, 0.24, faixa * uVeu);
-  gl_FragColor = vec4(cor.rgb * veu * (gl_FrontFacing ? 1.0 : 0.5), 1.0);
+  gl_FragColor = vec4(cor.rgb * (gl_FrontFacing ? 1.0 : 0.5), 1.0);
   #include <colorspace_fragment>
 }
 `;
 
-// Um plano por trabalho (50vh × 74vh), empilhados no centro da seção presa. A textura é o próprio <img> da miniatura
+// Um plano por trabalho (50vh × 74vh), em órbita atrás do centro da seção presa. A textura é o próprio <img> da miniatura
 // (a mesma capa), que carrega uma vez só.
 export function CenaPilha({ total, estado, secao }: { total: number; estado: { current: EstadoPilha }; secao: { current: HTMLElement | null } }) {
   const { size } = useThree();
@@ -63,7 +57,7 @@ export function CenaPilha({ total, estado, secao }: { total: number; estado: { c
         vertexShader: vert,
         fragmentShader: frag,
         side: THREE.DoubleSide,
-        uniforms: { uImagem: { value: textura }, uCurva: { value: 0 }, uHover: { value: 0 }, uVeu: { value: 0 }, uFaixa: { value: 0 } },
+        uniforms: { uImagem: { value: textura }, uCurva: { value: 0 }, uHover: { value: 0 } },
       });
     });
   }, [total]);
@@ -85,11 +79,11 @@ export function CenaPilha({ total, estado, secao }: { total: number; estado: { c
     const H = size.height;
     const topo = el.getBoundingClientRect().top;
     const visivel = topo < H && topo > -H;
-    // Velocidade em px por quadro, suavizada; a curva soma o empurrão da entrada.
+    // Velocidade em px por quadro, suavizada; a curva soma o empurrão da entrada, que conta em dobro.
     const y = window.scrollY;
     const v = ultimoY.current === null ? 0 : y - ultimoY.current;
     ultimoY.current = y;
-    curva.current += (Math.min(VELOCIDADE_CHEIA, Math.abs(v) + estado.current.empurrao) - curva.current) * 0.2;
+    curva.current += (Math.min(VELOCIDADE_CHEIA, Math.abs(v) + 2 * estado.current.empurrao) - curva.current) * 0.2;
     const { atual, entrada, hover } = estado.current;
     planos.current.forEach((plano, k) => {
       if (!plano) return;
@@ -97,14 +91,12 @@ export function CenaPilha({ total, estado, secao }: { total: number; estado: { c
       if (!visivel) return;
       const d = k - atual;
       const pose = posePlano(d, entrada, H);
-      plano.position.set(0, pose.y - topo, pose.z);
+      plano.position.set(pose.x, pose.y - topo, pose.z);
       plano.rotation.y = pose.giro;
-      plano.scale.set(H * 0.5, H * 0.74, 1);
+      plano.scale.set(H * 0.5, H * ALTURA_PLANO, 1);
       const u = materiais[k].uniforms;
       u.uCurva.value = CURVA_MAXIMA * curvaDaVelocidade(curva.current);
       u.uHover.value = Math.abs(d) < 0.5 ? hover : 0;
-      u.uVeu.value = Math.max(0, 1 - Math.abs(d) * 2);
-      u.uFaixa.value = (0.02 * window.innerWidth) / (0.74 * H); // linha do nome: 4vw, sobre o plano de 74vh
     });
   });
 

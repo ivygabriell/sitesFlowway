@@ -17,26 +17,48 @@ describe('pose dos planos da pilha', () => {
     expect(contador(4, 5)).toBe('(05/05)');
   });
 
-  it('assentado, o trabalho atual fica de frente no centro, e o seguinte meia volta adiante, abaixo e ao fundo', () => {
+  it('assentado, o trabalho atual fica de frente no centro, e o seguinte meia volta adiante, 87vh abaixo e ao fundo da órbita', () => {
     const atual = posePlano(0, 1, 900);
+    expect(atual.x).toBeCloseTo(0);
     expect(atual.y).toBeCloseTo(0);
     expect(atual.z).toBeCloseTo(0);
     expect(atual.giro).toBeCloseTo(0);
     const seguinte = posePlano(1, 1, 900);
-    expect(seguinte.y).toBeCloseTo(-117); // 13vh abaixo
-    expect(seguinte.z).toBeCloseTo(-800);
-    expect(seguinte.giro).toBeCloseTo(Math.PI);
-    expect(posePlano(-1, 1, 900).z).toBeCloseTo(-800);
+    expect(seguinte.x).toBeCloseTo(0);
+    expect(seguinte.y).toBeCloseTo(-783); // 74vh do plano + 13vh de vão
+    expect(seguinte.z).toBeCloseTo(-1600); // do outro lado da órbita de raio 800
+    expect(Math.cos(seguinte.giro)).toBeCloseTo(-1); // de costas
+    expect(posePlano(-1, 1, 900).z).toBeCloseTo(-1600);
   });
 
-  it('na entrada, o plano começa 8 telas acima, com 7,2π de giro a mais', () => {
+  // Issue #24: a pilha orbita em volta de um eixo 800 unidades atrás do plano assentado; não gira cada plano no lugar.
+  it('no meio da troca, o plano que sai vai para a direita e para cima, e o que entra vem da esquerda, mais baixo', () => {
+    const sai = posePlano(-0.5, 1, 900);
+    expect(sai.x).toBeCloseTo(800);
+    expect(sai.y).toBeCloseTo(391.5);
+    expect(sai.z).toBeCloseTo(-800);
+    const entra = posePlano(0.5, 1, 900);
+    expect(entra.x).toBeCloseTo(-800);
+    expect(entra.y).toBeCloseTo(-391.5);
+    expect(entra.z).toBeCloseTo(-800);
+  });
+
+  it('na entrada, o plano começa 8 telas acima, com 7,2π de giro a mais (π por 1000 px de queda), no sentido da rolagem', () => {
     const inicio = posePlano(0, 0, 900);
     expect(inicio.y).toBeCloseTo(7200);
-    expect(inicio.giro).toBeCloseTo(7.2 * Math.PI);
+    expect(inicio.giro).toBeCloseTo(-7.2 * Math.PI);
   });
 
-  it('a curva cresce com a velocidade de 0 a 25 e para em 1', () => {
+  it('na entrada, os planos descem espalhados pela largura: vizinhos em lados opostos, longe do centro', () => {
+    const [a, b] = [posePlano(0, 0.5, 900), posePlano(1, 0.5, 900)];
+    expect(Math.sign(a.x)).toBe(-Math.sign(b.x));
+    expect(Math.abs(a.x)).toBeGreaterThan(400);
+    expect(Math.abs(b.x)).toBeGreaterThan(400);
+  });
+
+  it('a curva cresce suave com a velocidade (smoothstep de 0 a 25) e para em 1', () => {
     expect(curvaDaVelocidade(0)).toBe(0);
+    expect(curvaDaVelocidade(5)).toBeCloseTo(0.104);
     expect(curvaDaVelocidade(-12.5)).toBeCloseTo(0.5);
     expect(curvaDaVelocidade(25)).toBe(1);
     expect(curvaDaVelocidade(80)).toBe(1);
@@ -93,6 +115,21 @@ const timelineDaEntrada = () => {
 };
 
 describe('PilhaTrabalhos: interações', () => {
+  // Issue #24: a timeline inteira espera 0,5 s; o nome aparece quando os planos assentam.
+  it('na entrada, o empurrão começa em 2,2 s, o nome em 2,5 s (quando os planos assentam) e as informações em 2,7 s', () => {
+    const { container } = render(<PilhaTrabalhos />);
+    const { tween, timeline } = timelineDaEntrada();
+    expect(tween.startTime()).toBe(0.5);
+    expect(tween.endTime()).toBe(2.5);
+    const inicio = (achar: (tw: gsap.core.Animation) => boolean) => timeline.getChildren(false, true, false).find(achar)!.startTime();
+    expect(inicio((tw) => (tw as gsap.core.Tween).vars.empurrao === 0)).toBe(2.2);
+    expect(inicio((tw) => (tw as gsap.core.Tween).targets()[0] === container.querySelector('.pilha-alvos'))).toBe(2.5);
+    expect(inicio((tw) => (tw as gsap.core.Tween).targets()[0] === container.querySelector('.pilha-info'))).toBe(2.7);
+    expect(inicio((tw) => (tw as gsap.core.Tween).targets()[0] === container.querySelector('.pilha-miniaturas'))).toBe(2.7);
+    const digitar = gsap.getTweensOf(container.querySelector('.pilha-info span'));
+    expect(digitar[0].vars.delay).toBe(2.7);
+  });
+
   it('o hover antes do fim da entrada não cancela a descida nem a curva dos planos', () => {
     const { container } = render(<PilhaTrabalhos />);
     const { timeline, estado } = timelineDaEntrada();
