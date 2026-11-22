@@ -265,9 +265,32 @@ test.describe('pilha no desktop com WebGL', () => {
     expect(perto(await corNoPonto(page, 200, 450 - 300), '#121212', 10)).toBe(true);
   });
 
+  // Revisão do PR #26: o alvo do trabalho atual fica invisível até 2,5 s da entrada; até lá, nem clique nem foco.
+  test('durante a entrada, o alvo ainda invisível não abre o site no clique nem recebe foco', async ({ page, context }) => {
+    let abriu = false;
+    context.on('page', () => (abriu = true));
+    await page.goto('/trabalhos');
+    await expect(page.locator('a.pilha-alvo.ativo')).toHaveCount(1);
+    expect(await page.locator('.pilha-alvos').evaluate((e) => parseFloat(getComputedStyle(e).opacity))).toBe(0);
+    const focar = () => page.evaluate(() => {
+      const a = document.querySelector<HTMLElement>('a.pilha-alvo.ativo')!;
+      a.focus();
+      const focou = document.activeElement === a;
+      a.blur();
+      return focou;
+    });
+    await page.mouse.click(720, 450);
+    expect(await focar()).toBe(false);
+    await page.waitForTimeout(500);
+    expect(abriu).toBe(false);
+    // Quando o nome aparece, volta a receber foco.
+    await expect(page.locator('.pilha-alvos')).toHaveCSS('opacity', '1', { timeout: 8000 });
+    expect(await focar()).toBe(true);
+  });
+
   test('teclado: o Tab percorre os 5 "Ver trabalho", com foco visível, e o Enter abre o site em outra aba', async ({ page, context }) => {
     await page.goto('/trabalhos');
-    await page.waitForTimeout(2500);
+    await expect(page.locator('.pilha-alvos')).toHaveCSS('opacity', '1', { timeout: 8000 });
     let classe = '';
     for (let n = 0; n < 40 && !classe.includes('pilha-alvo'); n++) {
       await page.keyboard.press('Tab');

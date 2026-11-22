@@ -24,6 +24,7 @@ export function PilhaTrabalhos() {
   const lista = trabalhosVisiveis();
   const n = lista.length;
   const [ativo, setAtivo] = useState(0);
+  const [apareceu, setApareceu] = useState(false); // até o nome aparecer, os alvos invisíveis ficam inertes
   const secao = useRef<HTMLElement>(null);
   const gatilho = useRef<ScrollTrigger | null>(null);
   const contexto = useRef<gsap.Context | null>(null);
@@ -61,13 +62,15 @@ export function PilhaTrabalhos() {
           parar = setTimeout(() => el.classList.remove('rolando'), 150);
         },
       });
-      // Entrada: os planos descem girando em 2 s (de 0,5 s a 2,5 s) e chegam curvados (empurrão de 2,2 s a 3 s); o nome
-      // aparece quando assentam (2,5 s) e, 0,2 s depois, informações, contador e miniaturas (issue #24).
+      // Entrada: os planos descem girando em 2 s (de 0,5 s a 2,5 s), curvados pelo empurrão de 10 desde o início (o
+      // fromTo aplica o 10 na criação), que cai a 0 de 2,2 s a 3 s; o nome aparece quando assentam (2,5 s), e só então os
+      // alvos recebem clique e foco; 0,2 s depois, informações, contador e miniaturas (issue #24, revisão do PR #26).
       gsap
         .timeline()
         .to(estado.current, { entrada: 1, duration: tempo('tempo-planos'), ease: CURVAS['curva-padrao'] }, 0.5)
         .fromTo(estado.current, { empurrao: 10 }, { empurrao: 0, duration: tempo('tempo-curvar'), ease: CURVAS['curva-linear'] }, 2.2)
         .from('.pilha-alvos', { opacity: 0, duration: tempo('tempo-curto') }, 2.5)
+        .call(() => setApareceu(true), undefined, 2.5)
         .from('.pilha-info, .pilha-contador', { opacity: 0, duration: tempo('tempo-curto') }, 2.7)
         .from('.pilha-miniaturas', { y: 100, duration: tempo('tempo-hover'), ease: CURVAS['curva-saida'] }, 2.7);
       recalcularGatilhos();
@@ -107,7 +110,7 @@ export function PilhaTrabalhos() {
 
   return (
     <section ref={secao} className="pilha-trabalhos" data-fundo="escuro">
-      <div className="pilha-alvos">
+      <div className="pilha-alvos" inert={!apareceu}>
         {lista.map((tr, i) => {
           const nome = t(tr.nome, idioma);
           return (

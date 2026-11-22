@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { PilhaTrabalhos } from '@/componentes/pilha-trabalhos/PilhaTrabalhos';
 import { contador, curvaDaVelocidade, posePlano } from '@/componentes/pilha-trabalhos/pose';
@@ -116,7 +116,7 @@ const timelineDaEntrada = () => {
 
 describe('PilhaTrabalhos: interações', () => {
   // Issue #24: a timeline inteira espera 0,5 s; o nome aparece quando os planos assentam.
-  it('na entrada, o empurrão começa em 2,2 s, o nome em 2,5 s (quando os planos assentam) e as informações em 2,7 s', () => {
+  it('na entrada, o empurrão começa a cair em 2,2 s, o nome aparece em 2,5 s (quando os planos assentam) e as informações em 2,7 s', () => {
     const { container } = render(<PilhaTrabalhos />);
     const { tween, timeline } = timelineDaEntrada();
     expect(tween.startTime()).toBe(0.5);
@@ -128,6 +128,36 @@ describe('PilhaTrabalhos: interações', () => {
     expect(inicio((tw) => (tw as gsap.core.Tween).targets()[0] === container.querySelector('.pilha-miniaturas'))).toBe(2.7);
     const digitar = gsap.getTweensOf(container.querySelector('.pilha-info span'));
     expect(digitar[0].vars.delay).toBe(2.7);
+  });
+
+  // Revisão do PR #26: a referência curva os planos durante toda a descida (flecha das bordas de 5 a 9 px, mediana, de
+  // 0 a 1,7 s; 0 px depois que o empurrão acaba). O empurrão vale 10 desde o início e só cai de 2,2 s a 3 s.
+  it('na descida, antes de 2,2 s, o empurrão já está em 10, e cai a 0 de 2,2 s a 3 s', () => {
+    render(<PilhaTrabalhos />);
+    const { timeline, estado } = timelineDaEntrada();
+    timeline.pause();
+    for (const t of [0, 0.6, 1.5, 2.19]) {
+      timeline.time(t);
+      expect(estado.empurrao, `empurrão em ${t} s`).toBe(10);
+    }
+    timeline.time(2.6);
+    expect(estado.empurrao).toBeCloseTo(5);
+    timeline.time(3);
+    expect(estado.empurrao).toBe(0);
+  });
+
+  // Revisão do PR #26: enquanto o nome não aparece (até 2,5 s), o alvo invisível não recebe clique nem foco.
+  it('durante a entrada, os alvos ficam inertes até o nome aparecer, em 2,5 s', () => {
+    const { container } = render(<PilhaTrabalhos />);
+    const { timeline } = timelineDaEntrada();
+    const alvos = container.querySelector('.pilha-alvos')!;
+    timeline.pause();
+    act(() => void timeline.time(1));
+    expect(alvos.hasAttribute('inert')).toBe(true);
+    act(() => void timeline.time(2.49));
+    expect(alvos.hasAttribute('inert')).toBe(true);
+    act(() => void timeline.time(2.5));
+    expect(alvos.hasAttribute('inert')).toBe(false);
   });
 
   it('o hover antes do fim da entrada não cancela a descida nem a curva dos planos', () => {
