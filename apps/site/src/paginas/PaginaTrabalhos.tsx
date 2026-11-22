@@ -21,9 +21,14 @@ export function PaginaTrabalhos() {
   const [desktop, setDesktop] = useState<boolean | null>(null);
   const lista = trabalhosVisiveis();
 
+  // A pilha só é decidida quando o canvas já está pronto: se até lá o CSS já devolveu a lista (hidratação depois de 4 s,
+  // rede lenta), a lista fica nesta carga, sem tela dupla.
   useEffect(() => {
-    setDesktop(modoDeExibicao(window.innerWidth, prefereMenosMovimento(), temWebgl()) === 'desktop');
-  }, []);
+    if (modoDeExibicao(window.innerWidth, prefereMenosMovimento(), temWebgl()) !== 'desktop') return setDesktop(false);
+    if (!isCanvasAvailable) return;
+    const listaDesenhada = document.querySelector('.pagina-trabalhos-lista')?.checkVisibility?.({ visibilityProperty: true });
+    setDesktop(!listaDesenhada);
+  }, [isCanvasAvailable]);
 
   const podePilha = lista.length > 1 && lista.every((tr) => tr.capa && tr.site);
   const pilha = desktop === true && isCanvasAvailable && podePilha;
