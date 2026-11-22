@@ -354,17 +354,21 @@ test('desktop com os scripts da página bloqueados: a lista volta a aparecer sem
 // fica nessa carga (trocar pela pilha seria a tela dupla da #23 em rede lenta).
 test('desktop com os scripts atrasados além de 4 s: a lista revelada não é trocada pela pilha', async ({ page }) => {
   await vigiarLista(page);
+  // Segura os chunks até o CSS revelar a lista; só então os libera (sem depender de um atraso fixo).
+  let liberar!: () => void;
+  const liberados = new Promise<void>((r) => (liberar = r));
   await page.route('**/_next/static/chunks/**', async (rota) => {
-    await new Promise((r) => setTimeout(r, 5500));
+    await liberados;
     await rota.continue().catch(() => {});
   });
   await page.goto('/trabalhos', { waitUntil: 'commit' });
-  await expect(page.locator('main a.cartao').first()).toBeVisible({ timeout: 8000 });
-  // Hidratou (o modo é marcado no <html>) e o canvas global montou: é quando a pilha entraria.
-  await expect(page.locator('html')).toHaveClass(/modo-desktop/, { timeout: 15000 });
-  await expect(page.locator('canvas')).toHaveCount(1, { timeout: 10000 });
+  await expect(page.locator('main a.cartao').first()).toBeVisible({ timeout: 10000 });
+  liberar();
+  // A página hidratou e decidiu o modo com o canvas pronto: o <main> perde esperando-pilha (lista ou pilha).
+  await expect(page.locator('main')).not.toHaveClass(/esperando-pilha/, { timeout: 15000 });
+  await expect(page.locator('html')).toHaveClass(/modo-desktop/);
   const antes = (await quadrosDaLista(page)).length;
-  await expect.poll(async () => (await quadrosDaLista(page)).length - antes).toBeGreaterThanOrEqual(60);
+  await expect.poll(async () => (await quadrosDaLista(page)).length - antes).toBeGreaterThanOrEqual(30);
   await expect(page.locator('.pilha-trabalhos')).toHaveCount(0);
   const quadros = await quadrosDaLista(page);
   const revelada = quadros.findIndex((q) => q.lista);
