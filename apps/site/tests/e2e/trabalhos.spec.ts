@@ -331,12 +331,23 @@ test.describe('tela única: a lista não aparece antes da pilha (issue #23)', ()
       await vigiarLista(page);
       await page.goto('/trabalhos', { waitUntil: 'commit' });
       await expect(page.locator('main a.cartao').first()).toBeVisible();
-      await page.waitForTimeout(500);
+      // Coleta até passar a hidratação: 60 quadros com <main> (~1 s a 60 Hz).
+      await expect.poll(async () => (await quadrosDaLista(page)).filter((q) => q.main).length).toBeGreaterThanOrEqual(60);
       const quadros = (await quadrosDaLista(page)).filter((q) => q.main);
-      expect(quadros.length).toBeGreaterThan(0);
       expect(quadros.every((q) => q.lista), 'lista visível em todo quadro com <main>').toBe(true);
     });
   }
+});
+
+// Revisão do PR #25: se o JS da página não roda (chunk bloqueado, erro de hidratação), a lista não pode ficar escondida
+// para sempre no desktop; o CSS a devolve sozinho depois de um tempo.
+test('desktop com os scripts da página bloqueados: a lista volta a aparecer sem hidratação', async ({ page }) => {
+  await page.route('**/_next/static/chunks/**', (rota) => rota.abort());
+  await page.goto('/trabalhos');
+  await expect(page.locator('main a.cartao')).toHaveCount(5);
+  await expect(page.locator('.pagina-trabalhos-titulo')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('main a.cartao').first()).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Ferramenta criativa/ })).toBeVisible();
 });
 
 test.describe('sem a pilha: celular e movimento reduzido ficam com a lista', () => {
