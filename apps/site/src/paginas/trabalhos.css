@@ -14,5 +14,8 @@
 /* Issue #23: no desktop com JS, até o modo ser decidido, nada da lista é desenhado (a tela fica escura até a pilha).
    Celular, movimento reduzido e sem JS não casam com a consulta; sem WebGL, o modo decide a lista logo na montagem. */
 @media (scripting: enabled) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  html:not(.js-global-canvas-error) .esperando-pilha > * { visibility: hidden; }
+  /* Sem hidratação (chunk bloqueado, erro), nada tira a classe: a animação devolve a lista depois de 4 s, só com CSS.
+     Quando a pilha entra, a classe sai e a animação deixa de valer. */
+  html:not(.js-global-canvas-error) .esperando-pilha > * { visibility: hidden; animation: trabalhos-liberar 0s 4s forwards; }
 }
+@keyframes trabalhos-liberar { to { visibility: visible; } }
