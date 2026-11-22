@@ -159,7 +159,9 @@ export function CenaHero() {
           onEnterBack: () => mostrar(true),
         },
       });
-      saida.to(['.secao-hero .role-para-baixo', '.secao-hero .faixas'], { opacity: 0, duration: T['tempo-rapido'] }, 0);
+      // Parte de 1, não do valor atual: rolando antes de a entrada acabar, a saída gravava a opacidade do meio dela
+      // e, de volta ao topo, as faixas ficavam apagadas (issue #17).
+      saida.fromTo(['.secao-hero .role-para-baixo', '.secao-hero .faixas'], { opacity: 1 }, { opacity: 0, duration: T['tempo-rapido'], immediateRender: false }, 0);
       const { crescimento, giro } = alvoDeSaida();
       const escala = (celular ? ESCALA.principalCelular : ESCALA.principal) * crescimento * un;
       const [rx, ry, rz] = ROTACAO;
