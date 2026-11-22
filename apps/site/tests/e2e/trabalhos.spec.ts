@@ -296,6 +296,49 @@ test.describe('pilha no desktop com WebGL', () => {
   });
 });
 
+// Issue #23: a cada quadro desde a navegação (antes do primeiro desenho), anota se havia <main> e se um cartão da lista
+// estava visível. rAF roda antes de cada desenho, então cobre todo quadro que chega à tela.
+async function vigiarLista(page: Page) {
+  await page.addInitScript(() => {
+    const quadros: { main: boolean; lista: boolean }[] = [];
+    (window as unknown as { quadrosDaLista: typeof quadros }).quadrosDaLista = quadros;
+    const olhar = () => {
+      const cartao = document.querySelector('main a.cartao');
+      quadros.push({ main: !!document.querySelector('main'), lista: !!cartao && cartao.checkVisibility({ visibilityProperty: true, opacityProperty: true }) });
+      if (quadros.length < 2000) requestAnimationFrame(olhar);
+    };
+    requestAnimationFrame(olhar);
+  });
+}
+const quadrosDaLista = (page: Page) => page.evaluate(() => (window as unknown as { quadrosDaLista: { main: boolean; lista: boolean }[] }).quadrosDaLista);
+
+test.describe('tela única: a lista não aparece antes da pilha (issue #23)', () => {
+  for (const [caminho] of PAGINAS) {
+    test(`${caminho} no desktop com WebGL: nenhum quadro com a lista, desde o primeiro`, async ({ page }) => {
+      await vigiarLista(page);
+      await page.goto(caminho, { waitUntil: 'commit' });
+      await expect(page.locator('.pilha-trabalhos')).toBeVisible();
+      const quadros = await quadrosDaLista(page);
+      expect(quadros.some((q) => q.main), 'algum quadro com <main>').toBe(true);
+      expect(quadros.filter((q) => q.lista).length, 'quadros com a lista visível').toBe(0);
+    });
+  }
+
+  for (const [largura, reduzido] of [[390, false], [1440, true]] as const) {
+    test(`${largura} px${reduzido ? ' com movimento reduzido' : ''}: a lista aparece já no primeiro quadro com <main>`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: reduzido ? 'reduce' : 'no-preference' });
+      await page.setViewportSize({ width: largura, height: 844 });
+      await vigiarLista(page);
+      await page.goto('/trabalhos', { waitUntil: 'commit' });
+      await expect(page.locator('main a.cartao').first()).toBeVisible();
+      await page.waitForTimeout(500);
+      const quadros = (await quadrosDaLista(page)).filter((q) => q.main);
+      expect(quadros.length).toBeGreaterThan(0);
+      expect(quadros.every((q) => q.lista), 'lista visível em todo quadro com <main>').toBe(true);
+    });
+  }
+});
+
 test.describe('sem a pilha: celular e movimento reduzido ficam com a lista', () => {
   for (const [largura, reduzido] of [[390, false], [1440, true]] as const) {
     test(`${largura} px${reduzido ? ' com movimento reduzido' : ''}: lista de 5 cartões, sem pilha`, async ({ page }) => {

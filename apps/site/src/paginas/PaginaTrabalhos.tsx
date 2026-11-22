@@ -17,17 +17,21 @@ import './trabalhos.css';
 export function PaginaTrabalhos() {
   const idioma = useIdioma();
   const { isCanvasAvailable } = useScrollRig();
-  const [desktop, setDesktop] = useState(false);
+  // null até o modo ser decidido no cliente (o servidor não sabe largura nem WebGL).
+  const [desktop, setDesktop] = useState<boolean | null>(null);
   const lista = trabalhosVisiveis();
 
   useEffect(() => {
     setDesktop(modoDeExibicao(window.innerWidth, prefereMenosMovimento(), temWebgl()) === 'desktop');
   }, []);
 
-  const pilha = desktop && isCanvasAvailable && lista.length > 1 && lista.every((tr) => tr.capa && tr.site);
+  const podePilha = lista.length > 1 && lista.every((tr) => tr.capa && tr.site);
+  const pilha = desktop === true && isCanvasAvailable && podePilha;
+  // Issue #23: enquanto a pilha pode vir, a lista fica no HTML (sem JS, leitores) mas o CSS não a desenha no desktop.
+  const esperando = desktop !== false && podePilha && !pilha;
 
   return (
-    <main className={`pagina-trabalhos${pilha ? ' com-pilha' : ''}`} data-fundo="escuro" id="topo">
+    <main className={`pagina-trabalhos${pilha ? ' com-pilha' : ''}${esperando ? ' esperando-pilha' : ''}`} data-fundo="escuro" id="topo">
       <h1 className="pagina-trabalhos-titulo">{t(trabalhos.rotulo, idioma)}</h1>
       {pilha ? (
         <PilhaTrabalhos />
