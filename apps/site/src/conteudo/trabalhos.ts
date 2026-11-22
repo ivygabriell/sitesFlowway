@@ -51,6 +51,7 @@ const trabalhos = {
   rotulo: { pt: '(Trabalhos)', en: '(Work)' },
   ofertas: NOMES_OFERTA,
   conceito: { pt: 'Conceito', en: 'Concept' },
+  ver: { pt: 'Ver trabalho', en: 'View work' }, // rótulo da pilha da página Trabalhos (spec 4.4)
   lista: listaDeTrabalhos.map(({ nome, setor, mesAno }) => ({ nome, setor, mesAno })),
 } as const satisfies Textos;
 
