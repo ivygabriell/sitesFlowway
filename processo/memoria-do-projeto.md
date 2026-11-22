@@ -202,3 +202,11 @@ Mantenha **uma linha por memória** no índice (`MEMORY.md`), com um gancho que 
   6. O `next/font` falhou de novo no CI de forma passageira (compilação de `src/fontes.ts`); rodar de novo o job resolveu.
 - **Desvios desta rodada:** revisores Codex abertos sem `--effort` no começo (corrigido para alto); uma Builder usou a porta 3170 fora da regra; a Lead abriu sessões Codex demais quando ele travava (a pessoa apontou); a Lead rodou parte da sessão em Sonnet 5.5 antes de a pessoa trocar para Opus 5.5.
 - **Pendências da pessoa:** o método instalado está na 7.0.0 e o projeto na 6.0.0 (rodar `/metodo:atualizar-projeto`); e-mail pessoal nos commits; foto de pessoa na capa da Companhia aérea; requisitos e telas adiados; continuação automática do Orca depois do limite de uso está desligada.
+
+## Página Trabalhos contra a referência · 2026-11-22 (Lead Claude Code)
+
+- **Relato da pessoa:** ao abrir `/trabalhos` aparece uma tela e depois outra; e a página está "bem diferente" da referência. A revalidação registrada acima ("disposição, plano, pilha, curvatura e convite batem") olhou só o estado parado e **está errada para o movimento**. Lição: comparar com a referência em capturas lado a lado nos mesmos instantes (entrada e meio da troca), não só com a rolagem parada.
+- **Achados (capturas headless 1440×900, `main@cadab8b`):** #23, a lista do celular aparece ~150 ms antes da pilha (o modo é decidido num `useEffect` depois da hidratação); #24, na referência os planos descem espalhados pela largura e, na troca, o atual sai em órbita para a direita e o seguinte entra pela esquerda; aqui cada plano gira no lugar, no centro (hipótese: giro em volta do centro do plano, não da pilha; a Builder confirma).
+- **Decisão da pessoa (2026-11-22):** "pode tirar e seguir o RayRay à risca": saem o véu escuro atrás do nome e a pílula de "Ver trabalho"; a decisão da Lead de 2026-11-21 (opção A de contraste) fica substituída, e a pessoa aceita o contraste menor nas capas claras. Entra na #24.
+- **Andamento:** Frontend aberto no Orca (Run `run_cf6cc9a80e21`, Claude), com as Builders das #23 e #24 em sequência (as duas tocam `trabalhos.spec.ts`).
+- **Lição:** captura com navegador visível (`headless: false`) abre janela na tela da pessoa e pode receber a roda do mouse dela; a primeira captura "rolou sozinha" por isso. Capturas sempre headless.
