@@ -6,7 +6,6 @@ import { CartaoTrabalho } from '@/compartilhados/CartaoTrabalho';
 import { PilhaTrabalhos } from '@/componentes/pilha-trabalhos/PilhaTrabalhos';
 import { t } from '@/conteudo/textos';
 import { trabalhos, trabalhosVisiveis } from '@/conteudo/trabalhos';
-import { useAbertura } from '@/estado/abertura';
 import { prefereMenosMovimento } from '@/lib/ambiente';
 import { useIdioma } from '@/lib/useIdioma';
 import { temWebgl } from '@/lib/webgl';
@@ -20,13 +19,9 @@ export function PaginaTrabalhos() {
   const { isCanvasAvailable } = useScrollRig();
   const [desktop, setDesktop] = useState(false);
   const lista = trabalhosVisiveis();
-  const { terminar } = useAbertura();
 
   useEffect(() => {
-    // shortcut: contorno do bug #15 (Lenis travado fora da Início), remover quando a #15 corrigir na raiz.
-    terminar();
     setDesktop(modoDeExibicao(window.innerWidth, prefereMenosMovimento(), temWebgl()) === 'desktop');
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- uma vez, na montagem
   }, []);
 
   const pilha = desktop && isCanvasAvailable && lista.length > 1 && lista.every((tr) => tr.capa && tr.site);
