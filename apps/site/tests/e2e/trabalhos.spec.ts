@@ -296,6 +296,86 @@ test.describe('pilha no desktop com WebGL', () => {
   });
 });
 
+// Issue #23: a cada quadro desde a navegação (antes do primeiro desenho), anota se havia <main> e se um cartão da lista
+// estava visível. rAF roda antes de cada desenho, então cobre todo quadro que chega à tela.
+async function vigiarLista(page: Page) {
+  await page.addInitScript(() => {
+    const quadros: { main: boolean; lista: boolean }[] = [];
+    (window as unknown as { quadrosDaLista: typeof quadros }).quadrosDaLista = quadros;
+    const olhar = () => {
+      const cartao = document.querySelector('main a.cartao');
+      quadros.push({ main: !!document.querySelector('main'), lista: !!cartao && cartao.checkVisibility({ visibilityProperty: true, opacityProperty: true }) });
+      if (quadros.length < 2000) requestAnimationFrame(olhar);
+    };
+    requestAnimationFrame(olhar);
+  });
+}
+const quadrosDaLista = (page: Page) => page.evaluate(() => (window as unknown as { quadrosDaLista: { main: boolean; lista: boolean }[] }).quadrosDaLista);
+
+test.describe('tela única: a lista não aparece antes da pilha (issue #23)', () => {
+  for (const [caminho] of PAGINAS) {
+    test(`${caminho} no desktop com WebGL: nenhum quadro com a lista, desde o primeiro`, async ({ page }) => {
+      await vigiarLista(page);
+      await page.goto(caminho, { waitUntil: 'commit' });
+      await expect(page.locator('.pilha-trabalhos')).toBeVisible();
+      const quadros = await quadrosDaLista(page);
+      expect(quadros.some((q) => q.main), 'algum quadro com <main>').toBe(true);
+      expect(quadros.filter((q) => q.lista).length, 'quadros com a lista visível').toBe(0);
+    });
+  }
+
+  for (const [largura, reduzido] of [[390, false], [1440, true]] as const) {
+    test(`${largura} px${reduzido ? ' com movimento reduzido' : ''}: a lista aparece já no primeiro quadro com <main>`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: reduzido ? 'reduce' : 'no-preference' });
+      await page.setViewportSize({ width: largura, height: 844 });
+      await vigiarLista(page);
+      await page.goto('/trabalhos', { waitUntil: 'commit' });
+      await expect(page.locator('main a.cartao').first()).toBeVisible();
+      // Coleta até passar a hidratação: 60 quadros com <main> (~1 s a 60 Hz).
+      await expect.poll(async () => (await quadrosDaLista(page)).filter((q) => q.main).length).toBeGreaterThanOrEqual(60);
+      const quadros = (await quadrosDaLista(page)).filter((q) => q.main);
+      expect(quadros.every((q) => q.lista), 'lista visível em todo quadro com <main>').toBe(true);
+    });
+  }
+});
+
+// Revisão do PR #25: se o JS da página não roda (chunk bloqueado, erro de hidratação), a lista não pode ficar escondida
+// para sempre no desktop; o CSS a devolve sozinho depois de um tempo.
+test('desktop com os scripts da página bloqueados: a lista volta a aparecer sem hidratação', async ({ page }) => {
+  await page.route('**/_next/static/chunks/**', (rota) => rota.abort());
+  await page.goto('/trabalhos');
+  await expect(page.locator('main a.cartao')).toHaveCount(5);
+  await expect(page.locator('.pagina-trabalhos-titulo')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('main a.cartao').first()).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Ferramenta criativa/ })).toBeVisible();
+});
+
+// Revisão do delta c9be30a: com os chunks atrasados além dos 4 s, o CSS revela a lista; quando a hidratação chega, a lista
+// fica nessa carga (trocar pela pilha seria a tela dupla da #23 em rede lenta).
+test('desktop com os scripts atrasados além de 4 s: a lista revelada não é trocada pela pilha', async ({ page }) => {
+  await vigiarLista(page);
+  // Segura os chunks até o CSS revelar a lista; só então os libera (sem depender de um atraso fixo).
+  let liberar!: () => void;
+  const liberados = new Promise<void>((r) => (liberar = r));
+  await page.route('**/_next/static/chunks/**', async (rota) => {
+    await liberados;
+    await rota.continue().catch(() => {});
+  });
+  await page.goto('/trabalhos', { waitUntil: 'commit' });
+  await expect(page.locator('main a.cartao').first()).toBeVisible({ timeout: 10000 });
+  liberar();
+  // A página hidratou e decidiu o modo com o canvas pronto: o <main> perde esperando-pilha (lista ou pilha).
+  await expect(page.locator('main')).not.toHaveClass(/esperando-pilha/, { timeout: 15000 });
+  await expect(page.locator('html')).toHaveClass(/modo-desktop/);
+  const antes = (await quadrosDaLista(page)).length;
+  await expect.poll(async () => (await quadrosDaLista(page)).length - antes).toBeGreaterThanOrEqual(30);
+  await expect(page.locator('.pilha-trabalhos')).toHaveCount(0);
+  const quadros = await quadrosDaLista(page);
+  const revelada = quadros.findIndex((q) => q.lista);
+  expect(revelada).toBeGreaterThanOrEqual(0);
+  expect(quadros.slice(revelada).every((q) => q.lista), 'a lista some depois de revelada').toBe(true);
+});
+
 test.describe('sem a pilha: celular e movimento reduzido ficam com a lista', () => {
   for (const [largura, reduzido] of [[390, false], [1440, true]] as const) {
     test(`${largura} px${reduzido ? ' com movimento reduzido' : ''}: lista de 5 cartões, sem pilha`, async ({ page }) => {
