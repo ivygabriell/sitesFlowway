@@ -33,7 +33,7 @@ describe('ChatContato', () => {
   it('revela a resposta palavra por palavra com cursor, e só a mensagem terminada entra na região viva', () => {
     render(<Teste inicial={[{ de: 'voce', texto: 'Quero um site' }]} />);
     chegar();
-    const lista = screen.getByRole('log');
+    const lista = screen.getAllByRole('log')[0];
     expect(lista.getAttribute('aria-live')).toBe('polite');
     expect(visivel()).toBe('');
     expect(document.querySelector('.chat-revelando')?.getAttribute('aria-hidden')).toBe('true');
@@ -48,6 +48,43 @@ describe('ChatContato', () => {
     expect(document.querySelector('.chat-revelando')).toBeNull();
     expect(document.querySelector('.chat-cursor')).toBeNull();
     expect(screen.getByText(RESPOSTA).closest('[aria-hidden]')).toBeNull();
+    expect(screen.getByText(RESPOSTA).closest('[role="log"]')).not.toBeNull();
+  });
+
+  it('a região viva anuncia só a mensagem terminada: pílulas, links e cartão ficam fora dela (sem anúncio duplo)', () => {
+    render(<Teste inicial={[{ de: 'voce', texto: 'Quero um site' }]} />);
+    chegar();
+    passar(5000);
+    const vivas = '[aria-live]:not([aria-live="off"]), [role="log"], [role="status"], [role="alert"]';
+    expect(screen.getByRole('button', { name: 'Urgente' }).closest(vivas)).toBeNull();
+    cleanup();
+    reduzir(true);
+    render(<ChatContato mensagens={[{ de: 'ia', texto: 'Confira:' }, { de: 'cartao' }, { de: 'ia', texto: 'Obrigado!' }]} cartao={<p>cartão</p>} extra={<a href="#ver">Ver trabalhos</a>} pensando={false} entrada="" aoMudar={vi.fn()} aoEnviar={vi.fn()} placeholder="" />);
+    expect(screen.getByText('cartão').closest(vivas)).toBeNull();
+    expect(screen.getByRole('link', { name: 'Ver trabalhos' }).closest(vivas)).toBeNull();
+    // A ordem visual continua: confira, cartão, agradecimento.
+    const ordem = [...document.querySelectorAll('.chat-ia p, .chat-cartao p')].map(p => p.textContent);
+    expect(ordem).toEqual(['Confira:', 'cartão', 'Obrigado!']);
+    expect(screen.getByText('Obrigado!').closest('[role="log"]')).not.toBeNull();
+  });
+
+  it('enquanto o erro é revelado, o campo não aponta para um id que ainda não existe', () => {
+    function ComErro() {
+      const [mensagens, setMensagens] = useState<MensagemChat[]>([{ de: 'voce', texto: '123' }]);
+      return <>
+        <button type="button" onClick={() => setMensagens(m => [...m, { de: 'ia', texto: 'Informe um WhatsApp com DDD, só números.', erro: true }])}>erra</button>
+        <ChatContato mensagens={mensagens} pensando={false} entrada="123" aoMudar={vi.fn()} aoEnviar={vi.fn()} placeholder="" invalido={mensagens.length > 1} />
+      </>;
+    }
+    render(<ComErro />);
+    fireEvent.click(screen.getByRole('button', { name: 'erra' }));
+    passar(60);
+    expect(document.querySelector('.chat-revelando')).not.toBeNull();
+    const campo = screen.getByRole('textbox', { name: 'Sua mensagem' });
+    const descrito = campo.getAttribute('aria-describedby');
+    if (descrito) expect(document.getElementById(descrito)).not.toBeNull();
+    passar(5000);
+    expect(document.getElementById(campo.getAttribute('aria-describedby')!)?.textContent).toMatch(/WhatsApp com DDD/);
   });
 
   it('enquanto revela, o botão vira "Parar": parar mostra a mensagem inteira e devolve o foco ao campo', () => {

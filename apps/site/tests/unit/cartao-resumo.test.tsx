@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CartaoResumo, type Campos } from '@/componentes/contato/CartaoResumo';
+import { contato } from '@/conteudo/contato';
 import type { ContatoServidorDTO } from '@/lib/contato/servidor';
 
 // Cartão de resumo (frames 05 a 07): nada sai antes de "Confirmar e enviar"; o envio é o do Formulario (/api/contato).
@@ -17,6 +18,12 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 const cartao = () => screen.getByRole('region', { name: 'Resumo do pedido' });
 
 describe('CartaoResumo', () => {
+  it('o agradecimento não promete mais que o aceite do provedor: "foi enviado à equipe"', () => {
+    expect(contato.chat.obrigado.pt).toMatch(/foi enviado à equipe/);
+    expect(contato.chat.obrigado.en).toMatch(/was sent to the Floway team/);
+    expect(`${contato.chat.obrigado.pt} ${contato.chat.obrigado.en}`).not.toMatch(/chegou|reached/);
+  });
+
   it('mostra as linhas do resumo e nada é enviado antes de confirmar', () => {
     const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
     render(<Teste />);
@@ -50,6 +57,22 @@ describe('CartaoResumo', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Revisar pedido' }));
     expect(aoMudar).toHaveBeenCalledWith({ ...CAMPOS, whatsapp: '(21) 99876-5432' });
     within(cartao()).getByText('(21) 99876-5432 · ana@estudionorte.com');
+    // Depois de "Revisar pedido", o foco vai ao cartão, não ao body.
+    expect(document.activeElement).toBe(within(cartao()).getByRole('heading', { name: 'Resumo do pedido' }));
+  });
+
+  it('"Ajustar algo" depois de uma falha tira o globo de "não foi desta vez"', async () => {
+    const aoStatus = vi.fn();
+    function Indisponivel() {
+      const [campos, setCampos] = useState(CAMPOS);
+      return <CartaoResumo campos={campos} aoMudar={setCampos} servidor={{ ...servidor, envioDisponivel: false }} aoStatus={aoStatus} />;
+    }
+    vi.stubGlobal('fetch', vi.fn());
+    render(<Indisponivel />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' })); });
+    expect(aoStatus).toHaveBeenLastCalledWith('falha');
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar algo' }));
+    expect(aoStatus).toHaveBeenLastCalledWith(null);
   });
 
   it('duplo clique em confirmar envia uma vez; o sucesso real vira "Pedido enviado"', async () => {
@@ -98,6 +121,8 @@ describe('CartaoResumo', () => {
     cleanup();
     render(<CartaoResumo campos={{ ...CAMPOS, email: `${'a'.repeat(110)}@x.dev`, whatsapp: `(11) 98765-4321${' '.repeat(70)}` }} aoMudar={vi.fn()} servidor={servidor} />);
     expect(screen.queryByRole('button', { name: 'Confirmar e enviar' })).toBeNull();
+    // O limite de 200 é do contato inteiro (WhatsApp + e-mail), não só do WhatsApp.
+    within(cartao()).getByText(/WhatsApp e e-mail/);
     expect(fetch).not.toHaveBeenCalled();
   });
 });

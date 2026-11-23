@@ -34,6 +34,8 @@ const contato = {
       mensagem: { pt: 'Digite sua mensagem', en: 'Enter your message' },
     },
     limiteCampo: { pt: 'Use até 200 caracteres', en: 'Use up to 200 characters' },
+    // O campo "contato" do envio junta WhatsApp e e-mail; o limite de 200 vale para os dois juntos.
+    limiteContato: { pt: 'WhatsApp e e-mail juntos passam de 200 caracteres. Encurte um deles.', en: 'WhatsApp and e-mail together exceed 200 characters. Shorten one of them.' },
     limiteMensagem: { pt: 'Use até 5000 caracteres', en: 'Use up to 5000 characters' },
     tentar: { pt: 'Tentar de novo', en: 'Try again' },
     falha: { pt: 'Não conseguimos responder agora.', en: 'We can\'t respond right now.' },
@@ -148,7 +150,7 @@ const contato = {
     pedirNome: { pt: 'Para eu montar o pedido certinho, qual é o seu nome?', en: 'So I can put the request together, what is your name?' },
     confira: { pt: 'Perfeito, {nome}. Organizei tudo. Confere se está certo antes de eu enviar para a equipe:', en: 'Perfect, {nome}. I organized everything. Check it is right before I send it to the team:' },
     anotado: { pt: 'Anotei no resumo. Confira o cartão acima.', en: 'Added to the summary. Check the card above.' },
-    obrigado: { pt: 'Pronto! Seu pedido chegou na equipe da Floway. Vamos responder pelo WhatsApp em até 1 dia útil. Enquanto isso, que tal ver alguns trabalhos?', en: 'Done! Your request reached the Floway team. We will reply on WhatsApp within 1 business day. Meanwhile, how about seeing some work?' },
+    obrigado: { pt: 'Pronto! Seu pedido foi enviado à equipe da Floway. Vamos responder pelo WhatsApp em até 1 dia útil. Enquanto isso, que tal ver alguns trabalhos?', en: 'Done! Your request was sent to the Floway team. We will reply on WhatsApp within 1 business day. Meanwhile, how about seeing some work?' },
     verTrabalhos: { pt: 'Ver trabalhos', en: 'See work' },
     voltarInicio: { pt: 'Voltar ao início', en: 'Back to home' },
     cartao: {

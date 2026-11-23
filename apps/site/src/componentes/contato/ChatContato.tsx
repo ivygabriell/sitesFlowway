@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type Dispatch, type FormEvent, type ReactNode, type SetStateAction, type TextareaHTMLAttributes } from 'react';
+import { Fragment, useEffect, useRef, useState, type Dispatch, type FormEvent, type ReactNode, type SetStateAction, type TextareaHTMLAttributes } from 'react';
 import { contato } from '@/conteudo/contato';
 import { t } from '@/conteudo/textos';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
@@ -23,7 +23,7 @@ export function useFimDoChat<M extends MensagemChat>(setMensagens: Dispatch<SetS
   const [travado, setTravado] = useState(false);
   const status: StatusDoGlobo = cartao === 'enviado' ? 'enviado' : ocupado || cartao === 'enviando' ? 'pensando' : cartao === 'falha' ? 'falha' : temCartao ? 'resumo' : 'online';
   useEffect(() => { aoStatus?.(status); }, [status, aoStatus]);
-  function aoStatusDoCartao(s: StatusDoCartao) {
+  function aoStatusDoCartao(s: StatusDoCartao | null) {
     setCartao(s);
     if (s === 'enviando') setTravado(true);
     if (s === 'enviado') setMensagens(m => [...m, { de: 'ia', texto: t(c.obrigado, idioma) } as M]);
@@ -91,6 +91,8 @@ export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, a
   while (k < mensagens.length && (mensagens[k].de !== 'ia' || reduzido)) k++;
   const revelando = k < mensagens.length ? k : -1;
   const ocupado = pensando || revelando >= 0;
+  const trechos: [Exclude<MensagemChat, { de: 'cartao' }>, number][][] = [[]];
+  mensagens.slice(0, revelando >= 0 ? revelando : mensagens.length).forEach((m, i) => { if (m.de === 'cartao') trechos.push([]); else trechos[trechos.length - 1].push([m, i]); });
   const vazio = mensagens.length === 0 && !pensando;
   // Espera que varia (a IA leva de 1 a 25 s): passados 10 s, avisa que está demorando (o "Parar" já está à mão).
   const [demorado, setDemorado] = useState(false);
@@ -148,12 +150,17 @@ export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, a
     <section className={`chat${vazio ? ' chat-vazio' : ''}`} aria-label={t(contato.guiada.titulo, idioma)}>
       {vazio && <div className="chat-abertura"><h2>{t(c.titulo, idioma)}</h2><p>{t(c.subtitulo, idioma)}</p></div>}
       {!vazio && (
-        <div className="chat-lista" ref={lista} role="log" aria-live="polite" aria-label={t(contato.conversa.historico, idioma)} data-lenis-prevent="">
+        <div className="chat-lista" ref={lista} data-lenis-prevent="">
           <div className="chat-coluna">
-            {mensagens.slice(0, revelando >= 0 ? revelando : mensagens.length).map((m, i) =>
-              m.de === 'cartao' ? <div key={i} className="chat-cartao">{cartao}</div>
-                : m.de === 'voce' ? <div key={i} className="chat-voce"><p>{m.texto}</p></div>
+            {/* Só as mensagens terminadas ficam na região viva (role=log); o cartão a divide em dois trechos e fica fora,
+                como as pílulas e os links: nada além da mensagem nova é anunciado. */}
+            {trechos.map((trecho, n) => <Fragment key={n}>
+              {n > 0 && <div className="chat-cartao">{cartao}</div>}
+              <div className="chat-trecho" role="log" aria-live="polite" aria-label={n === 0 ? t(contato.conversa.historico, idioma) : undefined}>
+                {trecho.map(([m, i]) => m.de === 'voce' ? <div key={i} className="chat-voce"><p>{m.texto}</p></div>
                   : <div key={i} className={`chat-ia${m.erro ? ' chat-erro' : ''}`}>{rotulo}<p id={m.erro && i === mensagens.length - 1 ? 'chat-erro' : undefined}>{m.texto}</p></div>)}
+              </div>
+            </Fragment>)}
             {/* Enquanto revela, a mensagem fica fora da leitura; ela entra inteira na região viva quando termina. */}
             {revelando >= 0 && (() => { const m = mensagens[revelando] as { texto: string; erro?: boolean }; return (
               <div key={`r${revelando}`} className={`chat-ia chat-revelando${m.erro ? ' chat-erro' : ''}`} aria-hidden="true">
@@ -169,7 +176,7 @@ export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, a
       )}
       <form className="chat-composer" onSubmit={enviar} noValidate>
         <label className="resposta-acessivel" htmlFor="chat-campo">{t(c.campo, idioma)}</label>
-        <textarea id="chat-campo" ref={campo} rows={1} value={entrada} readOnly={ocupado} disabled={travado} aria-invalid={invalido || undefined} aria-describedby={invalido ? 'chat-erro' : undefined}
+        <textarea id="chat-campo" ref={campo} rows={1} value={entrada} readOnly={ocupado} disabled={travado} aria-invalid={invalido || undefined} aria-describedby={invalido && revelando < 0 ? 'chat-erro' : undefined}
           placeholder={ocupado ? t(c.respondendo, idioma) : placeholder} {...atributos}
           onChange={e => aoMudar(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); } }} data-lenis-prevent="" />

@@ -109,4 +109,20 @@ describe('ConversaIA', () => {
     expect(aoStatus).toHaveBeenCalledWith('pensando');
     expect(aoStatus).toHaveBeenLastCalledWith('resumo');
   });
+
+  it('depois do CONFIRMAR, o campo trava e um acréscimo não muda o corpo reenviado (fluxo com IA)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (u: string, op: RequestInit) => u === '/api/contato/conversa'
+      ? Response.json({ turnoId: JSON.parse(String(op.body)).turnoId, resposta: 'Montei um resumo.', mensagemSugerida: 'Projeto: Site', opcoes: [] })
+      : Response.json({ ok: false, estado: 'falha', codigo: 'LIMITE_ATINGIDO', repetivel: false }, { status: 503 })));
+    render(<ConversaIA servidor={{ versao: 'contato-b.1', intencao: 'token-apenas-teste', chave: 'contato/00000000-0000-4000-8000-000000000001', repetirAte: new Date(Date.now() + 3600000).toISOString(), conversaDisponivel: true, envioDisponivel: true }} />);
+    const cartao = await ateOCartao();
+    await act(async () => { fireEvent.click(within(cartao).getByRole('button', { name: 'Confirmar e enviar' })); });
+    await screen.findByRole('button', { name: 'Tentar de novo' });
+    const antes = cartao.textContent;
+    expect(campo().disabled).toBe(true);
+    fireEvent.change(campo(), { target: { value: 'Mais uma coisa' } });
+    fireEvent.keyDown(campo(), { key: 'Enter' });
+    expect(cartao.textContent).toBe(antes);
+    expect(screen.queryByText('Anotei no resumo. Confira o cartão acima.')).toBeNull();
+  });
 });
