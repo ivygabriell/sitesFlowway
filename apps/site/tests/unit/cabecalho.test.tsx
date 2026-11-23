@@ -43,9 +43,29 @@ describe('Cabecalho', () => {
     expect(container.querySelector('a.idioma')?.getAttribute('href')).toBe('/en/work');
   });
 
-  it('na página de contato fica só o voltar ao início', () => {
+  it('na página de contato tem o menu do registro (frame 02): REC e relógio, ©FLOWAY, PT, Trabalhos e Contato', () => {
     const { container } = render(<Cabecalho visivel idioma="pt" pagina="contato" />);
-    expect([...container.querySelectorAll('header a')].map((a) => a.className)).toEqual(['voltar']);
+    expect(screen.getByText('REC ter13:07:05')).toBeTruthy();
+    expect(document.querySelector('.ponto-relogio')).toBeTruthy();
+    expect(container.querySelector('a.voltar')).toBeNull();
+    expect(container.querySelector('.nome')?.getAttribute('href')).toBe('/');
+    expect(container.querySelector('a.idioma')?.getAttribute('href')).toBe('/en/contact');
+    const [trabalhos, contato] = [...container.querySelectorAll('nav a')];
+    expect(trabalhos.getAttribute('href')).toBe('/trabalhos');
+    expect(contato.getAttribute('aria-current')).toBe('page');
+  });
+
+  it('no contato, trocar a língua recarrega a página (a intenção do envio é emitida por língua)', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
+    const { container } = render(<Cabecalho visivel idioma="pt" pagina="contato" />);
+    const href = Object.getOwnPropertyDescriptor(window, 'location');
+    const destino = { href: '' };
+    Object.defineProperty(window, 'location', { value: destino, configurable: true });
+    act(() => { fireEvent.click(container.querySelector('a.idioma')!); });
+    expect(destino.href).toBe('/en/contact');
+    expect(document.documentElement.classList.contains('trocando-idioma')).toBe(false);
+    Object.defineProperty(window, 'location', href!);
+    vi.unstubAllGlobals();
   });
 
   it('o item da página atual tem aria-current e o clique nele não navega', () => {

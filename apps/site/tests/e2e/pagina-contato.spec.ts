@@ -95,7 +95,7 @@ for (const [largura, altura] of [[1440, 900], [1100, 900], [1883, 703], [768, 10
       const chat = (await page.locator('.chat').boundingBox())!;
       const globo = (await page.locator('.contato-globo .esfera').boundingBox())!;
       expect(chat.x + chat.width).toBeLessThan(globo.x + 41);
-    } else expect((await page.locator('.cabecalho .voltar').boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    } else for (const seletor of ['.cabecalho .idioma', '.cabecalho nav a >> nth=0', '.cabecalho nav a >> nth=1']) expect((await page.locator(seletor).boundingBox())!.height, seletor).toBeGreaterThanOrEqual(44);
   });
 }
 
