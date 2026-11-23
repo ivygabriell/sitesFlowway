@@ -92,3 +92,15 @@ Os riscos acima são inferências sobre mudanças futuras a partir dos pontos de
 **Conclusão limitada da pesquisa:** existe caminho documentado para repetição limitada no candidato Resend, mas não há fornecedor aprovado nem validação de conta, domínio, duração de funções, entrega, quota ou privacidade em ambiente real. A proposta acrescenta apenas conversa e evolui o POST existente com versão explícita, corpo confirmado pelo visitante e intenção assinada no corpo, sem guardar pedidos no site; não renova o contrato atual, a aceitação de dependências da decisão 006 ou o mapa de Segurança. Tamanhos, prazo de 23 h, sucesso na aceitação do provedor, ausência de persistência e limites de retomada são escolhas da proposta para o portão.
 
 **Verificação documental:** fontes e links locais conferidos; exemplos HTTP/JSON confrontados com métodos, tipos, estados e expiração; exemplos JSON submetidos a parsing; `git diff --check`. Não foram feitos testes de busca de texto, build, suíte, navegador, auditoria completa ou chamadas reais de IA/e-mail. A integradora revisa a proposta e encaminha decisões antes de despacho de construção; não houve push, PR, comentário externo, merge ou deploy.
+
+## 2026-11-23 · Intenção do chat emitida por Server Action na Início (issue #32)
+
+A escolha (opção B) foi da pessoa; a consulta serviu para fixar as garantias de cache, origem e abuso. Nenhum blog de engenharia do harness foi lido: a decisão depende do comportamento do framework, e o que vale das referências de confiabilidade já estava guardado acima (Azure, Stripe).
+
+| Fonte | O que foi conferido | Usado em |
+|---|---|---|
+| [Next.js: segurança de dados (Server Actions)](https://nextjs.org/docs/app/guides/data-security), lida em 2026-11-23 | Só POST; `Origin` comparado com `Host`/`X-Forwarded-Host`; `allowedOrigins` para proxies; IDs cifrados, não determinísticos, recalculados entre builds e removidos do bundle se não usados; tratar a action como alcançável por POST direto e validar a entrada | 008: o que o Next garante e o que a action precisa fazer (validar `idioma`, exigir `Origin` igual à origem fixa); falha por ID de outro build |
+| Código instalado do `next@15.5.28` (`dist/server/app-render/action-handler.js`) | Grava `Cache-Control: no-cache, no-store, max-age=0, must-revalidate` antes de executar a action; sem `Origin`, só registra um aviso e segue; teto padrão de 1 MB no corpo | 008: garantia de `no-store` e a lacuna de origem que a action cobre |
+| [Azure: análise de modos de falha](https://learn.microsoft.com/en-us/azure/well-architected/reliability/failure-mode-analysis) (já guardada em 2026-11-04) | Dependência forte com alternativa, prazo e detecção | Linha nova do quadro de falhas: emissão com prazo de 10 s e alternativa pelo `/contato` |
+
+**Não aproveitado:** proteção contra versões misturadas na hospedagem (decisão do Ops, fora desta emenda) e `serverActions.bodySizeLimit` menor (proporção: o corpo é um idioma; fica para o Security pedir, se achar necessário).
