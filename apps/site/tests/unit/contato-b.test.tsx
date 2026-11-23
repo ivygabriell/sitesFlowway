@@ -29,7 +29,7 @@ it('revisa quatro campos, ajusta sem perder texto e só confirmação explícita
 it.each([{ ok: true }, { ok: true, estado: 'recebido' }, { ok: true, estado: 'aceito', requestId: 'nao-uuid', repetirAte: servidor.repetirAte }, null])('não autoriza F com resposta sem prova: %j', async dados => {
   vi.stubGlobal('fetch', vi.fn(async () => Response.json(dados))); montar(); await revisar();
   fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' }));
-  await screen.findByText(/Resultado pendente/);
+  await screen.findByText(/Não consegui confirmar o envio/);
   expect(screen.queryByRole('button', { name: 'Ajustar' })).toBeNull();
 });
 it.each([429, 503, 409, 410])('202 seguido de %s mantém cópia fixa, sem edição/nova intenção nem F', async status => {
@@ -46,7 +46,7 @@ it.each([429, 503, 409, 410])('202 seguido de %s mantém cópia fixa, sem ediç�
   expect(screen.queryByRole('button', { name: 'Ajustar' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Usar formulário simples' })).toBeNull();
   expect(screen.queryByRole('textbox', { name: 'Mensagem' })).toBeNull();
-  if (status === 410) { screen.getByText(/Prazo de repetição encerrado/); expect(screen.queryByRole('button', { name: 'Repetir o mesmo envio' })).toBeNull(); }
+  if (status === 410) { screen.getByText(/Prazo de repetição encerrado/); expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull(); }
 });
 it('timeout de envio preserva confirmação e duas retentativas, respeitando Retry-After e corte 30s', async () => {
   vi.useFakeTimers();
@@ -68,7 +68,7 @@ it('rede perdida permite no máximo duas repetições automáticas com o mesmo c
   expect(fetch).toHaveBeenCalledTimes(3);
   for (const chamada of fetch.mock.calls) { expect(chamada[1].body).toBe(fetch.mock.calls[0][1].body); expect(chamada[1].headers['Idempotency-Key']).toBe(servidor.chave); }
   await act(async () => { await vi.advanceTimersByTimeAsync(20000); }); expect(fetch).toHaveBeenCalledTimes(3);
-  expect((screen.getByRole('button', { name: 'Repetir o mesmo envio' }) as HTMLButtonElement).disabled).toBe(false);
+  expect((screen.getByRole('button', { name: 'Tentar de novo' }) as HTMLButtonElement).disabled).toBe(false);
   vi.restoreAllMocks();
 });
 it('Retry-After de 8s impede as duas repetições antes do prazo, sem renovar intenção', async () => {
@@ -87,13 +87,13 @@ it('após duas retentativas automáticas, repetir explicitamente faz só uma ten
   vi.useFakeTimers(); const fetch = vi.fn().mockRejectedValue(new TypeError('rede')); vi.stubGlobal('fetch', fetch);
   montar(); preencher(); fireEvent.click(screen.getByRole('button', { name: 'Revisar pedido' })); fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' }));
   await act(async () => { await vi.advanceTimersByTimeAsync(12000); }); expect(fetch).toHaveBeenCalledTimes(3);
-  fireEvent.click(screen.getByRole('button', { name: 'Repetir o mesmo envio' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }));
   await act(async () => { await vi.advanceTimersByTimeAsync(12000); }); expect(fetch).toHaveBeenCalledTimes(4);
 });
 it('conserva isca inclusive espaços no corpo confirmado e recebido202 nunca autoriza F', async () => {
   const fetch = vi.fn(async () => Response.json({ ok: true, estado: 'recebido', requestId: '10000000-0000-4000-8000-000000000001' }, { status: 202 })); vi.stubGlobal('fetch', fetch);
   const { container } = montar(); preencher(); fireEvent.change(container.querySelector('[name=site]')!, { target: { value: '  ' } });
   fireEvent.click(screen.getByRole('button', { name: 'Revisar pedido' })); fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' }));
-  await screen.findByText(/Resultado pendente/);
+  await screen.findByText(/Não consegui confirmar o envio/);
   expect(((fetch.mock.calls[0] as unknown as [string, RequestInit])[1].body as FormData).get('site')).toBe('  ');
 });

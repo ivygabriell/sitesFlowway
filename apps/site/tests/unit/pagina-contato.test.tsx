@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Formulario } from '@/componentes/contato/Formulario';
 import { PaginaContato } from '@/paginas/PaginaContato';
@@ -54,8 +54,47 @@ it('rodapé da página não oferece CTA para a própria página', () => {
   const { container } = render(<ProvedorIdioma idioma="pt"><Rodape naPaginaDeContato /></ProvedorIdioma>);
   expect(container.querySelector('.rodape-cta')).toBeNull(); expect(container.querySelector('.rodape.visivel')).not.toBeNull();
 });
-it('URL enviada não comprova entrega; a página abre a conversa guiada, sem esfera nem círculo animado', () => {
-  const { container } = render(<PaginaContato estado="enviado" />);
-  expect(screen.queryByText(/Envio aceito/)).toBeNull(); screen.getByRole('region', { name: 'Conversa com a Floway' });
-  expect(esfera).not.toHaveBeenCalled(); expect(container.querySelector('.circulo-escuro')).toBeNull();
+const servidor = { versao: 'contato-b.1', intencao: 'token-apenas-teste', chave: 'contato/00000000-0000-4000-8000-000000000001', repetirAte: new Date(Date.now() + 3600000).toISOString(), conversaDisponivel: false, envioDisponivel: true } as const;
+const ultimaEsfera = () => esfera.mock.calls[esfera.mock.calls.length - 1][0] as { respondendo?: boolean; formarAlvo?: boolean; className?: string };
+async function ateOCartao() {
+  vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
+  const { container } = render(<PaginaContato servidor={servidor} />);
+  for (const texto of ['Um site', 'Ana', 'Floway']) { fireEvent.change(screen.getByRole('textbox', { name: 'Sua mensagem' }), { target: { value: texto } }); fireEvent.click(screen.getByRole('button', { name: 'Enviar mensagem' })); }
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Site' })); fireEvent.click(screen.getByRole('button', { name: /Continuar/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' }));
+  for (const texto of ['(11) 98765-4321', 'ana@x.dev']) { fireEvent.change(screen.getByRole('textbox', { name: 'Sua mensagem' }), { target: { value: texto } }); fireEvent.click(screen.getByRole('button', { name: 'Enviar mensagem' })); }
+  return container;
+}
+describe('PaginaContato no chat', () => {
+  it('abre no estado 02: chat vazio e o globo no canto com "Floway IA · online", sem o F', () => {
+    const { container } = render(<PaginaContato servidor={servidor} />);
+    screen.getByRole('heading', { name: 'Como podemos ajudar?' });
+    expect(container.querySelector('.contato-globo .esfera, .contato-globo')).not.toBeNull();
+    expect(container.querySelector('.contato-globo-status')?.textContent).toMatch(/Floway IA.*online/);
+    expect(ultimaEsfera()).toMatchObject({ respondendo: false, formarAlvo: false });
+    expect(container.querySelector('.circulo-escuro')).toBeNull();
+  });
+  it('o F só se forma depois do sucesso real do envio', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ ok: true, estado: 'aceito', requestId: '00000000-0000-4000-8000-000000000001', repetirAte: servidor.repetirAte })));
+    const container = await ateOCartao();
+    expect(container.querySelector('.contato-globo-status')?.textContent).toMatch(/resumo pronto/);
+    expect(ultimaEsfera().formarAlvo).toBe(false);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' })); });
+    await screen.findByRole('heading', { name: /Pedido enviado/ });
+    expect(ultimaEsfera().formarAlvo).toBe(true);
+    expect(container.querySelector('.contato-globo-status')?.textContent).toMatch(/pedido recebido/);
+    screen.getByRole('link', { name: 'Ver trabalhos' });
+  });
+  it('resultado sem prova de aceite não forma o F: status de falha e "Tentar de novo"', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ ok: true, estado: 'recebido' })));
+    const container = await ateOCartao();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' })); });
+    await screen.findByRole('button', { name: 'Tentar de novo' });
+    expect(ultimaEsfera().formarAlvo).toBe(false);
+    expect(container.querySelector('.contato-globo-status')?.textContent).toMatch(/não foi desta vez/);
+  });
+});
+it('URL enviada não comprova entrega', () => {
+  render(<PaginaContato estado="enviado" />);
+  expect(screen.queryByText(/Envio aceito/)).toBeNull(); screen.getByRole('heading', { name: 'Como podemos ajudar?' });
 });

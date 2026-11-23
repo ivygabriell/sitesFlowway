@@ -26,7 +26,7 @@ test('voltar do contato devolve ao fundo da Início', async ({ page }) => {
   const antes = await page.evaluate(() => scrollY);
   await page.locator('.rodape-cta').click();
   await page.waitForURL('**/contato');
-  await page.locator('.guiada').waitFor();
+  await page.locator('.chat').waitFor();
   await page.waitForTimeout(500);
   await page.goBack();
   await page.waitForURL((u) => u.pathname === '/');
@@ -67,7 +67,7 @@ for (const [nome, opcoes] of [
     const antes = await page.evaluate(() => scrollY);
     await page.locator('.rodape-cta').click();
     await page.waitForURL('**/contato');
-    await page.locator('.guiada').waitFor();
+    await page.locator('.chat').waitFor();
     await page.waitForTimeout(500);
     await page.goBack();
     await page.waitForURL((u) => u.pathname === '/');

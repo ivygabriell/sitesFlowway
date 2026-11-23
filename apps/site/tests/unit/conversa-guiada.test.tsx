@@ -1,22 +1,22 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ConversaGuiada, emailValido, montarPedido, whatsappValido } from '@/componentes/contato/ConversaGuiada';
+import { ConversaGuiada, emailValido, projetoDe, whatsappValido } from '@/componentes/contato/ConversaGuiada';
 
-beforeEach(() => vi.useFakeTimers());
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+// Roteiro fixo (sem Gemini) no visual do chat: o vazio (frame 02) recebe o projeto; depois, uma pergunta por vez.
+beforeEach(() => vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })));
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
-const passar = () => act(() => { vi.runAllTimers(); });
+const campo = () => screen.getByRole('textbox', { name: 'Sua mensagem' }) as HTMLTextAreaElement;
 const responder = (texto: string) => {
-  fireEvent.change(screen.getByLabelText('Sua resposta'), { target: { value: texto } });
-  fireEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
-  passar();
+  fireEvent.change(campo(), { target: { value: texto } });
+  fireEvent.click(screen.getByRole('button', { name: 'Enviar mensagem' }));
 };
 const respostas = { nome: 'Ana', empresa: 'Floway', necessidades: ['Site', 'Outro: Loja virtual'], prazo: 'Sem pressa', whatsapp: '(11) 98765-4321', email: 'ana@x.dev', descricao: 'Quero vender online' };
 
-let tela: ReturnType<typeof render>;
-function ateOFim(aoConcluir = vi.fn()) {
-  tela = render(<ConversaGuiada aoConcluir={aoConcluir} />);
-  passar();
+function ateOFim(aoStatus = vi.fn()) {
+  render(<ConversaGuiada aoStatus={aoStatus} />);
+  responder('Quero vender online');
+  screen.getByText(/qual é o seu nome/i);
   responder('Ana');
   responder('Floway');
   fireEvent.click(screen.getByRole('checkbox', { name: 'Site' }));
@@ -24,75 +24,83 @@ function ateOFim(aoConcluir = vi.fn()) {
   const continuar = screen.getByRole('button', { name: /Continuar/ }) as HTMLButtonElement;
   expect(continuar.disabled).toBe(true); // "Outro" marcado pede o texto
   fireEvent.change(screen.getByRole('textbox', { name: 'Qual?' }), { target: { value: 'Loja virtual' } });
-  fireEvent.click(continuar); passar();
-  fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' })); passar();
+  fireEvent.click(continuar);
+  fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' }));
   responder('(11) 98765-4321');
   responder('ana@x.dev');
-  responder('Quero vender online');
-  return aoConcluir;
+  return aoStatus;
 }
 
-describe('montarPedido', () => {
-  it('junta WhatsApp e e-mail no contato e o checklist e o prazo na mensagem', () => {
-    expect(montarPedido(respostas, 'pt')).toEqual({ nome: 'Ana', empresa: 'Floway', contato: 'WhatsApp: (11) 98765-4321 · E-mail: ana@x.dev', mensagem: 'Preciso de: Site, Outro: Loja virtual\nPrazo: Sem pressa\n\nQuero vender online' });
+describe('projetoDe', () => {
+  it('junta o checklist e o prazo ao projeto', () => {
+    expect(projetoDe(respostas, 'pt')).toBe('Preciso de: Site, Outro: Loja virtual\nPrazo: Sem pressa\n\nQuero vender online');
   });
 });
 
 describe('ConversaGuiada', () => {
-  it('todas obrigatórias, "Outro" com texto, WhatsApp e e-mail separados e validados', () => {
-    const aoConcluir = vi.fn();
-    render(<ConversaGuiada aoConcluir={aoConcluir} />);
-    passar();
-    responder('Ana');
-    expect(screen.getByText('Ana').closest('.guiada-balao')?.classList.contains('voce')).toBe(true);
-    expect(screen.queryByRole('button', { name: 'Pular' })).toBeNull();
-    cleanup();
-    const fim = ateOFim();
-    expect(fim).toHaveBeenCalledWith(montarPedido(respostas, 'pt'));
+  it('abre no vazio com as respostas rápidas; a primeira resposta é o projeto', () => {
+    render(<ConversaGuiada />);
+    screen.getByRole('heading', { name: 'Como podemos ajudar?' });
+    fireEvent.click(screen.getByRole('button', { name: 'Automatizar um processo' }));
+    expect(screen.getByText('Automatizar um processo').closest('.chat-voce')).not.toBeNull();
+    screen.getByText(/qual é o seu nome/i);
   });
 
-  it('recusa WhatsApp e e-mail inválidos sem avançar', () => {
-    render(<ConversaGuiada aoConcluir={vi.fn()} />);
-    passar(); responder('Ana'); responder('Floway');
+  it('todas obrigatórias, "Outro" com texto, e o resumo vira o cartão', () => {
+    const aoStatus = ateOFim();
+    const cartao = screen.getByRole('region', { name: 'Resumo do pedido' });
+    within(cartao).getByText('Ana · Floway');
+    within(cartao).getByText('(11) 98765-4321 · ana@x.dev');
+    expect(within(cartao).getByText('Prazo').nextElementSibling?.textContent).toBe('Sem pressa');
+    expect(aoStatus).toHaveBeenLastCalledWith('resumo');
+  });
+
+  it('recusa WhatsApp e e-mail inválidos sem avançar e sem apagar o que foi digitado', () => {
+    render(<ConversaGuiada />);
+    responder('Um site'); responder('Ana'); responder('Floway');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Site' }));
-    fireEvent.click(screen.getByRole('button', { name: /Continuar/ })); passar();
-    fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' })); passar();
+    fireEvent.click(screen.getByRole('button', { name: /Continuar/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' }));
     responder('1198765');
-    expect(screen.getByRole('alert').textContent).toMatch(/WhatsApp com DDD/);
+    expect(screen.getByText(/WhatsApp com DDD/).closest('.chat-erro')).not.toBeNull();
+    expect(campo().value).toBe('1198765');
+    expect(campo().getAttribute('aria-invalid')).toBe('true');
     responder('11987654321');
     responder('ana@');
-    expect(screen.getByRole('alert').textContent).toMatch(/e-mail válido/);
+    expect(screen.getByText(/e-mail válido/).closest('.chat-erro')).not.toBeNull();
   });
 
-  it('no resumo, editar uma etapa refaz só ela e volta ao resumo', () => {
-    const aoConcluir = ateOFim();
-    const resumo = screen.getByRole('region', { name: 'Resumo do pedido' });
-    fireEvent.click(within(resumo).getByRole('button', { name: 'Editar E-mail' }));
-    passar();
-    expect(screen.queryByRole('region', { name: 'Resumo do pedido' })).toBeNull();
-    responder('outra@x.dev');
-    expect(aoConcluir).toHaveBeenLastCalledWith(montarPedido({ ...respostas, email: 'outra@x.dev' }, 'pt'));
-    expect(within(screen.getByRole('region', { name: 'Resumo do pedido' })).getByText('outra@x.dev')).toBeTruthy();
-    expect(screen.getByRole('region', { name: 'Resumo do pedido' }).textContent).toContain('Quero vender online');
+  it('não aceita resposta acima do limite do servidor', () => {
+    render(<ConversaGuiada />);
+    responder('Um site');
+    expect(campo().maxLength).toBe(200);
   });
 
-  it('não aceita resposta vazia nem acima do limite do servidor', () => {
-    render(<ConversaGuiada aoConcluir={vi.fn()} />);
-    passar();
-    const enviar = screen.getByRole('button', { name: 'Enviar resposta' }) as HTMLButtonElement;
-    fireEvent.change(screen.getByLabelText('Sua resposta'), { target: { value: '   ' } });
-    expect(enviar.disabled).toBe(true);
-    fireEvent.change(screen.getByLabelText('Sua resposta'), { target: { value: 'x'.repeat(201) } });
-    expect(enviar.disabled).toBe(true);
+  it('depois do resumo, o que a pessoa acrescenta entra no projeto do cartão', () => {
+    ateOFim();
+    responder('Tem que ter blog');
+    expect(within(screen.getByRole('region', { name: 'Resumo do pedido' })).getByText(/Tem que ter blog/)).toBeTruthy();
+    screen.getByText('Anotei no resumo. Confira o cartão acima.');
   });
 });
 
-describe('ConversaGuiada bloqueada', () => {
-  it('com o envio em curso, o resumo não oferece mais editar etapas', () => {
-    ateOFim();
-    expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBe(7);
-    tela.rerender(<ConversaGuiada aoConcluir={vi.fn()} bloqueado />);
-    expect(screen.queryAllByRole('button', { name: /^Editar / })).toHaveLength(0);
+describe('ConversaGuiada depois do CONFIRMAR', () => {
+  it('o campo do chat fica desativado e um acréscimo não muda o corpo reenviado', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ ok: false, estado: 'falha', codigo: 'LIMITE_ATINGIDO', repetivel: false }, { status: 503 })));
+    render(<ConversaGuiada servidor={{ versao: 'contato-b.1', intencao: 'token-apenas-teste', chave: 'contato/00000000-0000-4000-8000-000000000001', repetirAte: new Date(Date.now() + 3600000).toISOString(), conversaDisponivel: false, envioDisponivel: true }} />);
+    responder('Quero vender online'); responder('Ana'); responder('Floway');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Site' })); fireEvent.click(screen.getByRole('button', { name: /Continuar/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' }));
+    responder('(11) 98765-4321'); responder('ana@x.dev');
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' })); });
+    await screen.findByRole('button', { name: 'Tentar de novo' });
+    const antes = screen.getByRole('region', { name: 'Resumo do pedido' }).textContent;
+    expect(campo().disabled).toBe(true);
+    fireEvent.change(campo(), { target: { value: 'Mais uma coisa' } });
+    fireEvent.keyDown(campo(), { key: 'Enter' });
+    expect(screen.getByRole('region', { name: 'Resumo do pedido' }).textContent).toBe(antes);
+    expect(screen.queryByText('Anotei no resumo. Confira o cartão acima.')).toBeNull();
+    screen.getByRole('button', { name: 'Tentar de novo' });
   });
 });
 
