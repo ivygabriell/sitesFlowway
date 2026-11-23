@@ -4,6 +4,8 @@ Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Que
 
 **Contrato da API:** [contato B normativo e fluxo legado observado](contrato-api.md). O registro 007 foi aprovado pela pessoa; o contrato B orienta a construção, sem comprovar ativação ou mudar o app por esta adoção documental.
 
+**Versões do contrato:** `contato-b.1` (2026-11-05, registro 007; Referrer-Policy do HTML nativo em 2026-11-06) · emenda 1 de `contato-b.1` (2026-11-23, registro 008): emissão da intenção por Server Action na Início, aditiva, sem mudança no protocolo HTTP.
+
 | # | Decisão | Estado | Data |
 |---|---|---|---|
 | 001 | Dois layouts raiz por língua, com 404 por catch-all | Aceita pela integradora | 2026-10-31 |
@@ -13,6 +15,7 @@ Um registro curto por decisão: contexto, decisão, motivo e o que se perde. Que
 | 005 | Esfera de letras como `THREE.Points` com tudo no shader | Aceita pela integradora | 2026-10-31 |
 | 006 | Avisos do `npm audit`: aceitar com registro | Aceita pela pessoa | 2026-10-31 |
 | 007 | Contato B: conversa, resumo, confirmação e entrega | Aprovada pela pessoa; Resend escolhido | 2026-11-05 |
+| 008 | Intenção do chat emitida por Server Action na Início | Opção B escolhida pela pessoa; desenho aguarda revisão do Security | 2026-11-23 |
 
 ---
 
@@ -185,3 +188,32 @@ A cópia confirmada, a intenção e a chave ficam imutáveis enquanto qualquer t
 **Motivo e fontes.** O diagnóstico fornecido reproduziu `Origin: null` no segundo POST nativo sob `no-referrer`, com 403 correto. A revisão focada da Segurança (`/private/tmp/floway-seguranca-referrer-contato.md`) fundamenta a causa no [Fetch Standard](https://fetch.spec.whatwg.org/#append-a-request-origin-header). Os resultados experimentais fornecidos em `/private/tmp/floway-front41-https-experimento-resultados-{pt,en}.json` registram `422 → 200 → 202 → 409 → 503 → 409 → 200` com `same-origin`, origem HTTPS exata e produto inalterado; não comprovam entrega real.
 
 **Limite e impacto.** Conforme [Referrer Policy: same-origin](https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-same-origin) e [remoção de componentes da URL](https://w3c.github.io/webappsec-referrer-policy/#strip-url), a referência interna pode conter caminho/query; destinos de outra origem não recebem `Referer`. Pedido/intenção/chave continuam fora da URL; cache privado, noindex, escapes, CSP e ausência de terceiros permanecem. Não mudam endpoints, campos, versão, garantias, HMAC, TTL ou provedor. O Front aplicará a propriedade HTML e os testes em despacho próprio após esta norma; este commit é somente documental, sem ativação, chamada real ou autorização de merge/deploy.
+
+---
+
+## 008 · Intenção do chat emitida por Server Action na Início
+
+**Escolha da pessoa em 2026-11-23 (opção B), issue #32.** O desenho e as garantias são do Architect; a revisão do Security vem antes da integração. O texto normativo está na [emenda 1 do contrato](contrato-api.md#emissão-da-intenção-por-server-action-na-início-emenda-1).
+
+**Contexto.** A spec do chat ([2026-11-22](../docs/superpowers/specs/2026-11-22-contato-chat-ia-design.md), critério 1) abre a conversa no fim da Início, sem trocar de página. O envio precisa de uma intenção assinada, e o contrato `contato-b.1` só permitia emiti-la numa página renderizada por requisição e com `no-store`; ele também proibia levar a conversa à Início. A Início é estática, servida pela CDN, e não suporta remontar no cliente (lição de 2026-11-01). Origem: escalada do Frontend no PR 2 da #29.
+
+**Decisão.** Uma Server Action, `emitirContato(idioma)` em `apps/site/src/lib/contato/acao.ts` (lado Back, construída na #29), chamada só no clique em "Iniciar um projeto", valida o idioma (`"pt"` ou `"en"`) e o `Origin` contra a origem configurada e devolve `obterContatoServidor(idioma)`, o `ContatoServidorDTO` atual, sem campo novo. Uma emissão por abertura do chat, DTO só em memória. Sem limite próprio de emissão. Falha, prazo de 10 s ou action de outro build: a tela diz que não foi possível iniciar, oferece nova tentativa e o link para `/contato`. Rotas, protocolo, idempotência e Início estática ficam iguais.
+
+**Opções consideradas.**
+
+| Opção | Consequência | Decisão |
+|---|---|---|
+| A. Início renderizada por requisição, emitindo a intenção no HTML | A página mais pesada do site perde a CDN; cada visita gera uma intenção, mesmo sem abrir o chat | Descartada pela pessoa |
+| **B. Server Action no clique** | Início estática; um POST pequeno só para quem abre o chat; adaptador de poucas linhas, sem peça nova | **Escolhida pela pessoa** |
+| C. Rota nova `GET/POST /api/contato/intencao` | Mesmo efeito de B, mas cria um endpoint público novo no contrato e exige cuidar de método, cache e CORS à mão | Não adotada: B dá o mesmo com menos superfície |
+| D. Chat da Início sem intenção, que manda a pessoa ao `/contato` na hora de enviar | Contraria a spec (conversar e enviar ali mesmo) | Não adotada |
+
+**Motivo.** A Server Action já é POST, sai sem cache (o Next grava `no-store` na resposta) e tem proteção de origem do próprio framework ([Next, segurança de dados](https://nextjs.org/docs/app/guides/data-security)); falta só exigir o `Origin` e compará-lo com a origem fixa, o que a action faz com a regra que as rotas já usam. Nenhum limite de emissão: emitir é um HMAC local sem custo nem efeito, igual ao GET do `/contato`, e o `Map` por instância tem um balde só para todos, então limitar a emissão viraria uma negação de serviço barata contra quem quer conversar. Os limites de custo continuam no envio e no Gemini. O raciocínio de não pôr peça nova sem necessidade do projeto vem do harness (proporcionalidade); o quadro de falhas segue a [análise de modos de falha da Azure](https://learn.microsoft.com/en-us/azure/well-architected/reliability/failure-mode-analysis).
+
+**O que se perde.** O chat da Início passa a depender de mais uma chamada antes de abrir (cerca de um ida e volta), e uma aba aberta de um build anterior não consegue iniciar o chat depois de uma publicação nova (cai no link para `/contato`). A emissão não tem limite próprio: quem quiser pode gerar muitas intenções, o que não amplia envio, Gemini nem a janela de cada chave. O estado de falha da emissão não está nas telas registradas; a Lead confere com a pessoa antes do código.
+
+**Impacto em cada lado.** Back: o arquivo `acao.ts` e o teste dele, na #29, que ganha só esses dois arquivos permitidos. Front: chamada no clique, três estados (disponível, envio indisponível, falha da emissão), prazo de 10 s, DTO só em memória; e2e prova HTML de `/` e `/en` sem intenção, resposta da action com `no-store` e as duas páginas estáticas no build. Security: revisa a emenda e a action. Ops: nada novo agora.
+
+**Custo.** Nenhum: sem chamada externa, sem serviço novo; um HMAC por abertura do chat.
+
+**Verificação documental.** Delta do contrato e deste registro, links e âncoras, comportamento do Next conferido no código instalado (`next@15.5.28`, `dist/server/app-render/action-handler.js`: `no-store`, comparação de `Origin` com `Host`/`X-Forwarded-Host` e passagem sem `Origin`), `git diff --check`. Sem código, suíte, build ou navegador nesta tarefa; a #29 escreve os testes a partir da emenda.
