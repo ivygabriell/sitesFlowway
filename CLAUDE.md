@@ -47,3 +47,7 @@ Aprovada pela pessoa em 2026-11-21 ("pode seguir"). Troca o agente único (Codex
 
 - **Requisitos e telas antes do código**: toda tarefa atende requisitos de `processo/requisitos.md` (R-xx). Com interface, nenhuma tela é codada sem estar aprovada pela pessoa e registrada em `processo/telas/` (captura, link do frame do Figma e `tokens.json`); o código segue a versão registrada. Mudança de tela começa no Figma, é aprovada e registrada, e só então vai para o código. Requisito ou tela nova passa pela pessoa.
 - **Bugs** seguem o "Ciclo de um bug" do método (skill `metodo:consultar`): issue com o formulário de bug, triagem da Lead, teste que falha por causa do bug antes da correção. Bug achado **fora do escopo** da tarefa vira issue nova; não cresça a tarefa.
+
+## Só Claude · 2026-11-22
+
+Decisão da pessoa: "não utilize o codex, use somente o claude". Todas as sessões (Lead, especialistas, Builders e revisores) usam o Claude Code; o Codex não é aberto. Onde este arquivo, o `AGENTS.md` ou os harnesses falam em "revisão da outra ferramenta" ou em passar a Builder para o Codex, vale: revisão por uma sessão Claude de contexto limpo, e a Builder que fica sem cota para e deixa a passagem na issue. Tabela atualizada no `processo/DESENVOLVIMENTO.md`.
