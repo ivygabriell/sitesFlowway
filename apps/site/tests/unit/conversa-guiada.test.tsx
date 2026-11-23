@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversaGuiada, emailValido, projetoDe, whatsappValido } from '@/componentes/contato/ConversaGuiada';
 
@@ -81,6 +81,26 @@ describe('ConversaGuiada', () => {
     responder('Tem que ter blog');
     expect(within(screen.getByRole('region', { name: 'Resumo do pedido' })).getByText(/Tem que ter blog/)).toBeTruthy();
     screen.getByText('Anotei no resumo. Confira o cartão acima.');
+  });
+});
+
+describe('ConversaGuiada depois do CONFIRMAR', () => {
+  it('o campo do chat fica desativado e um acréscimo não muda o corpo reenviado', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ ok: false, estado: 'falha', codigo: 'LIMITE_ATINGIDO', repetivel: false }, { status: 503 })));
+    render(<ConversaGuiada servidor={{ versao: 'contato-b.1', intencao: 'token-apenas-teste', chave: 'contato/00000000-0000-4000-8000-000000000001', repetirAte: new Date(Date.now() + 3600000).toISOString(), conversaDisponivel: false, envioDisponivel: true }} />);
+    responder('Quero vender online'); responder('Ana'); responder('Floway');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Site' })); fireEvent.click(screen.getByRole('button', { name: /Continuar/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sem pressa' }));
+    responder('(11) 98765-4321'); responder('ana@x.dev');
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirmar e enviar' })); });
+    await screen.findByRole('button', { name: 'Tentar de novo' });
+    const antes = screen.getByRole('region', { name: 'Resumo do pedido' }).textContent;
+    expect(campo().disabled).toBe(true);
+    fireEvent.change(campo(), { target: { value: 'Mais uma coisa' } });
+    fireEvent.keyDown(campo(), { key: 'Enter' });
+    expect(screen.getByRole('region', { name: 'Resumo do pedido' }).textContent).toBe(antes);
+    expect(screen.queryByText('Anotei no resumo. Confira o cartão acima.')).toBeNull();
+    screen.getByRole('button', { name: 'Tentar de novo' });
   });
 });
 

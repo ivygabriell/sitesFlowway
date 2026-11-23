@@ -79,4 +79,25 @@ describe('CartaoResumo', () => {
     expect(screen.queryByRole('button', { name: 'Ajustar algo' })).toBeNull();
     expect(screen.queryByRole('heading', { name: /Pedido enviado/ })).toBeNull();
   });
+
+  it('o cartão mostra o texto como vai ser enviado: só os rótulos das fontes viram linha, na ordem do texto', () => {
+    vi.stubGlobal('fetch', vi.fn());
+    render(<CartaoResumo campos={{ ...CAMPOS, projeto: 'Projeto: Site novo\nVeja https://site.com\nObs: tem blog\nPrazo desejado: março' }} aoMudar={vi.fn()} servidor={servidor} />);
+    const rotulos = [...cartao().querySelectorAll('dt')].map(d => d.textContent);
+    expect(rotulos).toEqual(['Nome', 'Projeto', 'Projeto', 'Prazo desejado', 'Contato']);
+    const textos = [...cartao().querySelectorAll('dd')].map(d => d.textContent);
+    expect(textos[2]).toBe('Veja https://site.com\nObs: tem blog');
+  });
+
+  it('cartão acima do limite (projeto > 5000 ou contato > 200) não oferece CONFIRMAR: mostra o erro e "Ajustar algo"', () => {
+    const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
+    render(<CartaoResumo campos={{ ...CAMPOS, projeto: 'x'.repeat(5001) }} aoMudar={vi.fn()} servidor={servidor} />);
+    expect(screen.queryByRole('button', { name: 'Confirmar e enviar' })).toBeNull();
+    within(cartao()).getByText(/Use até 5000 caracteres/);
+    within(cartao()).getByRole('button', { name: 'Ajustar algo' });
+    cleanup();
+    render(<CartaoResumo campos={{ ...CAMPOS, email: `${'a'.repeat(110)}@x.dev`, whatsapp: `(11) 98765-4321${' '.repeat(70)}` }} aoMudar={vi.fn()} servidor={servidor} />);
+    expect(screen.queryByRole('button', { name: 'Confirmar e enviar' })).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });
