@@ -29,7 +29,7 @@ async function largura(page: Page, caixa: Caixa) {
 
 // Emenda 1 do contrato: a Server Action confere o Origin contra a origem configurada (no teste, https://floway.example).
 // O navegador do teste está em localhost; a emissão vai com o Origin e o host da configuração, como no site publicado.
-export async function origemDaConfiguracao(page: Page) {
+async function origemDaConfiguracao(page: Page) {
   await page.route(u => u.pathname === '/' || u.pathname === '/en', async (route, req) => {
     if (req.method() !== 'POST' || !req.headers()['next-action']) return route.fallback();
     await route.continue({ headers: { ...req.headers(), origin: 'https://floway.example', 'x-forwarded-host': 'floway.example' } });

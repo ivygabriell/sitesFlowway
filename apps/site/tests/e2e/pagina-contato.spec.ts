@@ -9,7 +9,9 @@ for (const [caminho, lang, titulo, status] of [['/contato', 'pt-BR', 'Como podem
     await expect(page.locator('html')).toHaveAttribute('lang', lang);
     await expect(page.getByRole('heading', { name: titulo })).toBeVisible();
     await expect(page.locator('.chat-respostas button')).toHaveCount(4);
-    await expect(page.locator('.cabecalho a')).toHaveCount(1);
+    // Issue #29: o menu do registro (©FLOWAY, PT, Trabalhos, Contato) no lugar de só "Voltar ao início".
+    await expect(page.locator('.cabecalho a')).toHaveCount(4);
+    await expect(page.locator('.cabecalho .voltar')).toHaveCount(0);
     await expect(page.locator('.rodape, .circulo-escuro')).toHaveCount(0);
     await expect(page.locator('.contato-globo-status')).toContainText(status);
     const globo = (await page.locator('.contato-globo .esfera').boundingBox())!;
@@ -25,15 +27,26 @@ test('a política de privacidade continua respondendo nas duas línguas', async 
   expect((await page.goto('/en/privacy'))?.status()).toBe(200);
 });
 
+// Issue #29: o botão abre o chat na própria cena da Início, sem trocar de página.
 test('o botão "Iniciar um projeto" da Início chega ao chat', async ({ page }) => {
+  await origemDaConfiguracao(page);
   await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
   await page.goto('/');
   await page.waitForTimeout(2000);
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.locator('.rodape-cta').click();
-  await page.waitForURL('**/contato');
   await expect(page.getByRole('heading', { name: 'Como podemos ajudar?' })).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe('/');
 });
+
+// Emenda 1 do contrato: a Server Action confere o Origin contra a origem configurada (no teste, https://floway.example);
+// o navegador do teste está em localhost, então a emissão vai com o Origin e o host da configuração.
+async function origemDaConfiguracao(page: Page) {
+  await page.route(u => u.pathname === '/' || u.pathname === '/en', async (route, req) => {
+    if (req.method() !== 'POST' || !req.headers()['next-action']) return route.fallback();
+    await route.continue({ headers: { ...req.headers(), origin: 'https://floway.example', 'x-forwarded-host': 'floway.example' } });
+  });
+}
 
 const responder = async (page: Page, texto: string) => {
   const campo = page.getByRole('textbox', { name: 'Sua mensagem' });
