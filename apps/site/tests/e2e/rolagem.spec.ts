@@ -24,7 +24,8 @@ test('voltar do contato devolve ao fundo da Início', async ({ page }) => {
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(2500);
   const antes = await page.evaluate(() => scrollY);
-  await page.locator('.rodape-cta').click();
+  // Issue #29: o CTA do fim abre o chat na cena; quem troca de página é o menu "Contato".
+  await page.locator('.cabecalho nav a[href="/contato"]').click();
   await page.waitForURL('**/contato');
   await page.locator('.chat').waitFor();
   await page.waitForTimeout(500);
@@ -65,7 +66,7 @@ for (const [nome, opcoes] of [
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForTimeout(2500);
     const antes = await page.evaluate(() => scrollY);
-    await page.locator('.rodape-cta').click();
+    await page.locator('.cabecalho nav a[href="/contato"]').click();
     await page.waitForURL('**/contato');
     await page.locator('.chat').waitFor();
     await page.waitForTimeout(500);
