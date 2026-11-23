@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatContato, type MensagemChat } from '@/componentes/contato/ChatContato';
+import { ProvedorIdioma } from '@/lib/useIdioma';
 
 // Componente comum do chat (spec 2026-11-22, frames 02 a 04): a resposta da IA chega palavra por palavra no cliente.
 const RESPOSTA = 'Legal! Vocês já têm um site hoje, ou começamos do zero?';
@@ -157,5 +158,49 @@ describe('ChatContato', () => {
     expect(document.querySelector('.chat-revelando')).toBeNull();
     screen.getByText(RESPOSTA);
     screen.getByRole('button', { name: 'Urgente' });
+  });
+
+  it('aviso curto do celular (M02), nas duas línguas, ao lado do longo do desktop', () => {
+    const { rerender } = render(<Teste />);
+    expect(document.querySelector('.chat-aviso .chat-curto')?.textContent).toBe('A IA pode errar · Você revisa antes de enviar');
+    expect(document.querySelector('.chat-aviso .chat-longo')?.textContent).toMatch(/Google Gemini/);
+    rerender(<ProvedorIdioma idioma="en"><Teste /></ProvedorIdioma>);
+    expect(document.querySelector('.chat-aviso .chat-curto')?.textContent).toBe('The AI can make mistakes · You review before sending');
+  });
+
+  it('celular (M02): subtítulo curto e "Privacidade" curto no aviso', () => {
+    render(<Teste />);
+    expect(document.querySelector('.chat-abertura .chat-curto')?.textContent).toBe('Converse com a IA da Floway sobre o seu projeto.');
+    expect(document.querySelector('.chat-aviso a .chat-curto')?.textContent).toBe('Privacidade');
+    expect(document.querySelector('.chat-aviso a .chat-longo')?.textContent).toBe('Política de Privacidade');
+  });
+
+  it('o topo da conversa só esmaece depois de rolar (frame 03)', () => {
+    render(<Teste inicial={[{ de: 'voce', texto: 'Quero um site' }]} />);
+    const lista = document.querySelector('.chat-lista') as HTMLElement;
+    expect(lista.hasAttribute('data-rolada')).toBe(false);
+    lista.scrollTop = 40;
+    fireEvent.scroll(lista);
+    expect(lista.hasAttribute('data-rolada')).toBe(true);
+    lista.scrollTop = 0;
+    fireEvent.scroll(lista);
+    expect(lista.hasAttribute('data-rolada')).toBe(false);
+  });
+
+  it('com o teclado aberto (visualViewport menor), o campo sobe junto: --teclado é a parte coberta', () => {
+    const ouvintes: Record<string, () => void> = {};
+    const vv = { height: 844, offsetTop: 0, addEventListener: (t: string, f: () => void) => { ouvintes[t] = f; }, removeEventListener: vi.fn() };
+    vi.stubGlobal('visualViewport', vv);
+    vi.stubGlobal('innerHeight', 844);
+    const { unmount } = render(<Teste />);
+    expect(document.documentElement.style.getPropertyValue('--teclado')).toBe('0px');
+    vv.height = 500;
+    act(() => ouvintes.resize());
+    expect(document.documentElement.style.getPropertyValue('--teclado')).toBe('344px');
+    vv.offsetTop = 100;
+    act(() => ouvintes.scroll());
+    expect(document.documentElement.style.getPropertyValue('--teclado')).toBe('244px');
+    unmount();
+    expect(document.documentElement.style.getPropertyValue('--teclado')).toBe('');
   });
 });

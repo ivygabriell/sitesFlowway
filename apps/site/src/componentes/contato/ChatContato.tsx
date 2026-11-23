@@ -2,10 +2,11 @@
 
 import { Fragment, useEffect, useRef, useState, type Dispatch, type FormEvent, type ReactNode, type SetStateAction, type TextareaHTMLAttributes } from 'react';
 import { contato } from '@/conteudo/contato';
-import { t } from '@/conteudo/textos';
+import { t, type Texto } from '@/conteudo/textos';
 import { ehCelular, prefereMenosMovimento } from '@/lib/ambiente';
 import { rota } from '@/lib/idioma';
 import { useIdioma } from '@/lib/useIdioma';
+import type { ContatoServidorDTO } from '@/lib/contato/servidor';
 import type { StatusDoCartao } from './CartaoResumo';
 
 // 'cartao' marca onde o cartão de resumo entra na conversa (frames 05 a 07: depois do "confira", antes do agradecimento).
@@ -76,10 +77,13 @@ type Props = {
   invalido?: boolean;
   aviso?: 'ia' | 'roteiro';
   campo?: Pick<TextareaHTMLAttributes<HTMLTextAreaElement>, 'inputMode' | 'autoComplete' | 'maxLength'>;
+  // Lugar do globo grande no vazio (celular, M02): o globo é desenhado ali até a conversa começar.
+  lugarDoGlobo?: (el: HTMLDivElement | null) => void;
 };
+export type PropsDaFonte = { servidor?: ContatoServidorDTO; aoStatus?: (s: StatusDoGlobo) => void; lugarDoGlobo?: (el: HTMLDivElement | null) => void };
 
 // Chat comum às duas fontes (ConversaIA e ConversaGuiada): mensagens, campo, respostas rápidas e o lugar do cartão.
-export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, aoParar, aoOcupado, placeholder, respostas = [], extra, cartao, travado = false, invalido = false, aviso = 'ia', campo: atributos }: Props) {
+export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, aoParar, aoOcupado, placeholder, respostas = [], extra, cartao, travado = false, invalido = false, aviso = 'ia', campo: atributos, lugarDoGlobo }: Props) {
   const idioma = useIdioma();
   const c = contato.chat;
   const [reduzido] = useState(prefereMenosMovimento);
@@ -112,6 +116,21 @@ export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, a
     return () => ro.disconnect();
   }, [vazio]);
   useEffect(() => { aoOcupado?.(ocupado); }, [ocupado, aoOcupado]);
+  // Celular: a parte da tela coberta pelo teclado (visualViewport); o CSS sobe o chat por ela e o campo fica à vista.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const html = document.documentElement;
+    const medir = () => html.style.setProperty('--teclado', `${Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))}px`);
+    medir();
+    vv.addEventListener('resize', medir);
+    vv.addEventListener('scroll', medir);
+    return () => {
+      vv.removeEventListener('resize', medir);
+      vv.removeEventListener('scroll', medir);
+      html.style.removeProperty('--teclado');
+    };
+  }, []);
   // O foco volta ao campo depois de cada resposta (frame 00, acessibilidade); no vazio do desktop, já começa nele.
   const estava = useRef(ocupado);
   useEffect(() => {
@@ -145,12 +164,14 @@ export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, a
     </div>
   )));
   const rotulo = <span className="chat-rotulo">{t(c.rotulo, idioma)}</span>;
+  // Desktop e celular (M02) têm versões do texto; o CSS mostra uma só (display: none também tira da leitura).
+  const curto = (longo: Texto, breve: Texto) => <><span className="chat-longo">{t(longo, idioma)}</span><span className="chat-curto">{t(breve, idioma)}</span></>;
 
   return (
     <section className={`chat${vazio ? ' chat-vazio' : ''}`} aria-label={t(contato.guiada.titulo, idioma)}>
-      {vazio && <div className="chat-abertura"><h2>{t(c.titulo, idioma)}</h2><p>{t(c.subtitulo, idioma)}</p></div>}
+      {vazio && <div className="chat-abertura">{lugarDoGlobo && <div className="chat-globo-lugar" ref={lugarDoGlobo} aria-hidden="true" />}<h2>{t(c.titulo, idioma)}</h2><p>{curto(c.subtitulo, c.subtituloCurto)}</p></div>}
       {!vazio && (
-        <div className="chat-lista" ref={lista} data-lenis-prevent="">
+        <div className="chat-lista" ref={lista} data-lenis-prevent="" onScroll={e => e.currentTarget.toggleAttribute('data-rolada', e.currentTarget.scrollTop > 0)}>
           <div className="chat-coluna">
             {/* Só as mensagens terminadas ficam na região viva (role=log); o cartão a divide em dois trechos e fica fora,
                 como as pílulas e os links: nada além da mensagem nova é anunciado. */}
@@ -185,8 +206,20 @@ export function ChatContato({ mensagens, pensando, entrada, aoMudar, aoEnviar, a
           ? <button key="parar" type="button" className="chat-botao chat-parar" aria-label={t(c.parar, idioma)} onClick={parar}><span aria-hidden="true" /></button>
           : <button key="enviar" type="submit" className="chat-botao" aria-label={t(c.enviar, idioma)} disabled={travado}><span aria-hidden="true">↑</span></button>}
       </form>
-      <p className="chat-aviso">{t(aviso === 'ia' ? c.avisoIA : c.avisoRoteiro, idioma)}<span aria-hidden="true"> · </span><a href={rota('privacidade', idioma)}>{t(contato.conversa.privacidade, idioma)}</a></p>
+      <p className="chat-aviso">{aviso === 'ia' ? curto(c.avisoIA, c.avisoIACurto) : curto(c.avisoRoteiro, c.avisoRoteiroCurto)}<span aria-hidden="true"> · </span><a href={rota('privacidade', idioma)}>{curto(contato.conversa.privacidade, c.privacidadeCurta)}</a></p>
       {vazio && pilulas}
     </section>
+  );
+}
+
+// O globo do chat e o status em texto embaixo dele (frame 02): o mesmo no /contato e no fim da Início. Sem WebGL, fica o texto.
+export function GloboDoChat({ status, children }: { status: StatusDoGlobo; children: ReactNode }) {
+  const idioma = useIdioma();
+  const c = contato.chat;
+  return (
+    <div className="contato-globo" data-status={status}>
+      {children}
+      <p className="contato-globo-status"><i aria-hidden="true" /><span className="contato-globo-nome">{t(c.rotulo, idioma)}</span> <span>{t(c.status[status], idioma)}</span></p>
+    </div>
   );
 }

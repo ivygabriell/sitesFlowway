@@ -122,6 +122,8 @@ const contato = {
     fechar: { pt: 'Fechar', en: 'Close' },
     titulo: { pt: 'Como podemos ajudar?', en: 'How can we help?' },
     subtitulo: { pt: 'Converse com a IA da Floway sobre o seu projeto. Ela entende o que você precisa e prepara o pedido para a nossa equipe.', en: 'Talk to the Floway AI about your project. It understands what you need and prepares the request for our team.' },
+    subtituloCurto: { pt: 'Converse com a IA da Floway sobre o seu projeto.', en: 'Talk to the Floway AI about your project.' },
+    privacidadeCurta: { pt: 'Privacidade', en: 'Privacy' },
     rotulo: { pt: 'Floway IA', en: 'Floway AI' },
     campo: { pt: 'Sua mensagem', en: 'Your message' },
     escreva: { pt: 'Escreva sua mensagem…', en: 'Write your message…' },
@@ -133,6 +135,9 @@ const contato = {
     respostas: { pt: 'Respostas rápidas', en: 'Quick replies' },
     avisoIA: { pt: 'A IA (Google Gemini) pode errar. Você revisa tudo antes de enviar.', en: 'The AI (Google Gemini) can make mistakes. You review everything before sending.' },
     avisoRoteiro: { pt: 'Você revisa tudo antes de enviar.', en: 'You review everything before sending.' },
+    // Versão curta do celular (M02, M03).
+    avisoIACurto: { pt: 'A IA pode errar · Você revisa antes de enviar', en: 'The AI can make mistakes · You review before sending' },
+    avisoRoteiroCurto: { pt: 'Você revisa antes de enviar', en: 'You review before sending' },
     // O que o globo mostra embaixo dele (frame 00, "Estados do globo").
     status: {
       online: { pt: 'online', en: 'online' },

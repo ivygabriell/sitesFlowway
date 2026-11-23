@@ -9,7 +9,7 @@ import { gsap } from '@/gsap';
 import type { ModoDeExibicao } from '@/movimento/modo';
 import { CURVAS, TEMPOS } from '@/movimento/tokens';
 import { desenharAtlas } from './atlas';
-import { tamanhoDaLetra, type AtributosDaEsfera } from './geometria';
+import { caixaDaEsfera, raioNaCaixa, tamanhoDaLetra, type AtributosDaEsfera } from './geometria';
 import { criarMaterialDaEsfera } from './shader';
 
 // A esfera gira 0.18 rad/s (spec), multiplicado por (1 - uMorf) no shader.
@@ -19,38 +19,37 @@ const GIRO_POR_SEGUNDO = 0.18;
 // a transição usa os tokens tempo-planos e curva-suave.
 const INTERVALO_MORFOSE = 7;
 
-// A div é o palco da esfera, no contato só a área livre entre a frase e o rodapé: a esfera (cerca de 2,15 raios) enche a
-// altura dela sem encostar no texto, e o F (2.3 raios de largura) e o empurrão do cursor cabem na largura.
-const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8, altura / 2.2);
-
 // Quanto o cursor guardado anda até o real, por quadro a 60 qps (o atraso do protótipo).
 const SEGUIR_CURSOR = 0.15;
+const suave = gsap.parseEase(CURVAS['curva-suave']);
+type Caixa = ReturnType<typeof caixaDaEsfera>;
 const LONGE = 1e5;
 
-type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao; formarAlvo?: boolean; respondendo?: boolean };
+// lugar: outro elemento onde o globo deve ser desenhado (o canto do chat); sem ele, a própria div.
+type Props = { track: MutableRefObject<HTMLElement>; atributos: AtributosDaEsfera; modo: ModoDeExibicao; formarAlvo?: boolean; respondendo?: boolean; lugar?: HTMLElement | null };
 
 // fixa: a div.esfera é position: sticky dentro de uma seção mais alta (o contato preso). O ScrollScene posiciona a
 // cena pela posição da div no documento e a faria rolar com a página; o StickyScrollScene acompanha a parte presa.
 // O cursor continua medido pela própria div (o StickyScrollScene passa adiante a seção, não a div).
-export function CenaEsfera({ track, atributos, modo, fixa = false, formarAlvo, respondendo = false }: Props & { fixa?: boolean }) {
+export function CenaEsfera({ track, atributos, modo, fixa = false, formarAlvo, respondendo = false, lugar = null }: Props & { fixa?: boolean }) {
   const estilo = fixa && track.current ? getComputedStyle(track.current) : null;
   // O powerup exige sticky e converte top com parseFloat: auto/NaN faria a cena desaparecer.
   // Sem esse contrato no CSS, a esfera continua acompanhando a própria div com ScrollScene.
   if (estilo?.position === 'sticky' && /^-?(?:\d+\.?\d*|\.\d+)px$/.test(estilo.top) && Number.isFinite(parseFloat(estilo.top))) {
     return (
       <StickyScrollScene track={track} hideOffscreen>
-        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} formarAlvo={formarAlvo} respondendo={respondendo} />}
+        {(p: ScrollSceneChildProps) => <Pontos {...p} track={track} atributos={atributos} modo={modo} formarAlvo={formarAlvo} respondendo={respondendo} lugar={lugar} />}
       </StickyScrollScene>
     );
   }
   return (
     <ScrollScene track={track} hideOffscreen>
-      {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} formarAlvo={formarAlvo} respondendo={respondendo} />}
+      {(p: ScrollSceneChildProps) => <Pontos {...p} atributos={atributos} modo={modo} formarAlvo={formarAlvo} respondendo={respondendo} lugar={lugar} />}
     </ScrollScene>
   );
 }
 
-function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respondendo }: ScrollSceneChildProps & Omit<Props, 'track'>) {
+function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respondendo, lugar }: ScrollSceneChildProps & Omit<Props, 'track'>) {
   const { gl, camera, scene } = useThree();
   const pontos = useRef<THREE.Points>(null);
   const [atlas, setAtlas] = useState<THREE.Texture | null>(null);
@@ -111,13 +110,23 @@ function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respond
     if (atlas && compilado) geometria.setDrawRange(0, Infinity);
   }, [atlas, compilado, geometria]);
 
-  // Tamanho e raio acompanham a div; o dpr vem do renderizador.
+  // Tamanho e raio acompanham a div (ou o lugar, no useFrame); o dpr vem do renderizador.
   useEffect(() => {
     const raio = raioNaCaixa(scale[0], scale[1]);
     material.uniforms.uRaio.value = raio;
     material.uniforms.uTamanho.value = tamanhoDaLetra(n, raio);
     material.uniforms.uDpr.value = gl.getPixelRatio();
   }, [scale, n, gl, material]);
+
+  // Troca de lugar (issue #29): de onde estava até o lugar novo em tempo-cabecalho, com a curva-suave. O destino é medido a
+  // cada quadro, então acompanha o layout; o giro e o cursor seguem durante a viagem.
+  const viagem = useRef<{ de: Caixa | null; agora: Caixa | null; p: number }>({ de: null, agora: null, p: 1 });
+  useEffect(() => {
+    const v = viagem.current;
+    v.de = v.agora;
+    v.p = 0;
+  }, [lugar]);
+  const [deslocamento, cursor] = useMemo(() => [new THREE.Vector2(), new THREE.Vector2()], []);
 
   // Morfose automática no desktop e no celular (não no reduzido): esfera e alvo se alternam a cada INTERVALO_MORFOSE.
   const morfose = useRef<gsap.core.Timeline | null>(null);
@@ -133,7 +142,7 @@ function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respond
     return () => {
       tl.kill();
       morfose.current = null;
-      s.morf = 0;
+      // Sem zerar o morf: quando o chat passa a controlar o F, ele volta à esfera pelo useFrame, sem pular.
     };
   }, [modo, formarAlvo]);
   useEffect(() => void morfose.current?.paused(!inViewport), [modo, inViewport, formarAlvo]);
@@ -176,13 +185,30 @@ function Pontos({ track, scale, inViewport, atributos, modo, formarAlvo, respond
       s.morf = parado ? alvo : alvo > s.morf ? Math.min(alvo, s.morf + passo) : Math.max(alvo, s.morf - passo);
       u.uMorf.value = s.morf;
     }
+    const v = viagem.current;
+    const div = (lugar || v.p < 1) && track.current?.getBoundingClientRect();
+    if (div) {
+      const alvo = caixaDaEsfera(div, lugar?.getBoundingClientRect() ?? null);
+      const de = v.de ?? caixaDaEsfera(div, null);
+      v.p = parado ? 1 : Math.min(1, v.p + delta / TEMPOS['tempo-cabecalho']);
+      const e = suave(v.p);
+      const c = { dx: de.dx + (alvo.dx - de.dx) * e, dy: de.dy + (alvo.dy - de.dy) * e, raio: de.raio + (alvo.raio - de.raio) * e };
+      v.agora = lugar || v.p < 1 ? c : null;
+      u.uRaio.value = c.raio;
+      u.uTamanho.value = tamanhoDaLetra(n, c.raio);
+      pontos.current?.position?.set(c.dx, c.dy, 0);
+      deslocamento.set(c.dx, c.dy);
+    }
     if (parado) return;
     u.uTempo.value += delta;
     u.uGiro.value += delta * GIRO_POR_SEGUNDO * (respondendo ? 4 : 1);
     u.uMorf.value = s.morf;
+    // O cursor é medido em volta da div; com o globo noutro lugar, em volta do lugar.
     const mouse = u.uMouse.value as THREE.Vector2;
-    if (s.mouse.x === LONGE || mouse.x === LONGE) mouse.copy(s.mouse);
-    else mouse.lerp(s.mouse, 1 - Math.pow(1 - SEGUIR_CURSOR, delta * 60));
+    cursor.copy(s.mouse);
+    if (s.mouse.x !== LONGE) cursor.sub(deslocamento);
+    if (s.mouse.x === LONGE || mouse.x === LONGE) mouse.copy(cursor);
+    else mouse.lerp(cursor, 1 - Math.pow(1 - SEGUIR_CURSOR, delta * 60));
   });
 
   return <points ref={pontos} geometry={geometria} material={material} frustumCulled={false} />;

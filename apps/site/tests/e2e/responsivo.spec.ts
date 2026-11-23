@@ -67,10 +67,22 @@ test.describe('390×844, detalhes', () => {
 test.describe('360×640, cabeçalho fora da Início', () => {
   test.use(celular(360, 640));
   test('uma linha só, sem encostar', async ({ page }) => {
-    await page.goto('/contato');
+    await page.goto('/trabalhos');
     const voltar = await page.locator('.cabecalho .voltar .menu-texto').boundingBox();
     expect(voltar!.height).toBeLessThan(20);
     await expect(page.locator('.cabecalho .nome')).toBeHidden();
+  });
+
+  // Issue #29: o /contato tem o menu do registro (©FLOWAY, PT, Trabalhos, Contato) também em 360 px.
+  test('no /contato, o menu do registro numa linha só, sem rolagem lateral', async ({ page }) => {
+    await page.goto('/contato');
+    const caixas = await Promise.all(['.cabecalho .nome', '.cabecalho .idioma .menu-texto', '.cabecalho nav a >> nth=0 >> .menu-texto', '.cabecalho nav a >> nth=1 >> .menu-texto'].map(s => page.locator(s).boundingBox()));
+    for (const c of caixas) expect(c!.height).toBeLessThan(20);
+    const topos = caixas.map(c => Math.round(c!.y + c!.height / 2));
+    expect(Math.max(...topos) - Math.min(...topos)).toBeLessThanOrEqual(3);
+    for (let i = 1; i < caixas.length; i++) expect(caixas[i]!.x).toBeGreaterThanOrEqual(caixas[i - 1]!.x + caixas[i - 1]!.width);
+    expect(caixas[caixas.length - 1]!.x + caixas[caixas.length - 1]!.width).toBeLessThanOrEqual(360);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 });
 

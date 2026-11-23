@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { contato } from '@/conteudo/contato';
 import { t, type Texto } from '@/conteudo/textos';
-import type { ContatoServidorDTO } from '@/lib/contato/servidor';
 import { useIdioma } from '@/lib/useIdioma';
 import { CartaoResumo, type Campos } from './CartaoResumo';
-import { ChatContato, useFimDoChat, type MensagemChat, type StatusDoGlobo } from './ChatContato';
+import { ChatContato, useFimDoChat, type MensagemChat, type PropsDaFonte } from './ChatContato';
 import { emailValido, whatsappValido } from './ConversaGuiada';
 
 // Conversa com o Gemini no visual do chat: 1. a IA qualifica o projeto (rota /api/contato/conversa) até devolver um
@@ -17,7 +16,7 @@ type Fase = 'ia' | 'nome' | 'empresa' | 'whatsapp' | 'email' | 'resumo';
 type Dados = Omit<Campos, 'projeto'>;
 const PERGUNTA_ORCAMENTO = /investimento|orçamento|budget|investment/i;
 
-export function ConversaIA({ servidor, aoStatus }: { servidor?: ContatoServidorDTO; aoStatus?: (s: StatusDoGlobo) => void }) {
+export function ConversaIA({ servidor, aoStatus, lugarDoGlobo }: PropsDaFonte) {
   const idioma = useIdioma();
   const g = contato.guiada, ia = contato.ia, c = contato.chat;
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
@@ -100,7 +99,7 @@ export function ConversaIA({ servidor, aoStatus }: { servidor?: ContatoServidorD
   const placeholder = !mensagens.length ? contato.conversa.convite : fase === 'resumo' ? c.acrescentar : fase === 'ia' ? c.escreva : g.placeholders[fase];
 
   return (
-    <ChatContato mensagens={mensagens} pensando={pensando} entrada={entrada} aoMudar={setEntrada} aoEnviar={responder} aoOcupado={fim.setOcupado}
+    <ChatContato lugarDoGlobo={lugarDoGlobo} mensagens={mensagens} pensando={pensando} entrada={entrada} aoMudar={setEntrada} aoEnviar={responder} aoOcupado={fim.setOcupado}
       aoParar={parar}
       placeholder={t(placeholder, idioma)} respostas={respostas} extra={fim.links} travado={fim.travado} invalido={!!(ultima?.de === 'ia' && ultima.erro)}
       campo={{ maxLength: 2000, inputMode: fase === 'whatsapp' ? 'tel' : fase === 'email' ? 'email' : undefined, autoComplete: ({ nome: 'name', empresa: 'organization', whatsapp: 'tel', email: 'email' } as Record<string, string>)[fase] ?? 'off' }}
