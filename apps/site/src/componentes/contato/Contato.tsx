@@ -13,7 +13,9 @@ import { useIdioma } from '@/lib/useIdioma';
 import { alvoDoSimbolo } from '@/marca/amostrar';
 import { CURVAS, TEMPOS } from '@/movimento/tokens';
 import { ehCliqueSimples } from '@/componentes/transicao/cliqueSimples';
+import { emitirContato } from '@/lib/contato/acao';
 import type { ContatoServidorDTO } from '@/lib/contato/servidor';
+import { rota } from '@/lib/idioma';
 import { GloboDoChat, type StatusDoGlobo } from './ChatContato';
 import { ConversaGuiada } from './ConversaGuiada';
 import { ConversaIA } from './ConversaIA';
@@ -21,6 +23,7 @@ import { Rodape } from './Rodape';
 import './estilo.css';
 
 type Modo = 'desktop' | 'celular' | 'reduzido';
+const PRAZO_EMISSAO = 10_000;
 
 // O círculo escuro encolhe e devolve o claro; atrás dele, a esfera de letras FLOWAY que forma o F do símbolo.
 // A esfera recebe alvoDoSimbolo, a fábrica do módulo (com cache): uma arrow aqui recriaria os 20 mil atributos
@@ -28,7 +31,7 @@ type Modo = 'desktop' | 'celular' | 'reduzido';
 // No desktop a tela e a esfera ficam presas por position: sticky (não pelo pin do GSAP, que a cena da esfera não acompanha).
 // Issue #29: "Iniciar um projeto" abre o chat na própria cena (estado 02): a cena fica presa, frase e rodapé saem, o globo vai
 // ao canto (lugar) e o chat entra de baixo. "Fechar" desfaz, sem desmontar a conversa da sessão.
-export function Contato({ servidor }: { servidor?: ContatoServidorDTO } = {}) {
+export function Contato() {
   const idioma = useIdioma();
   const c = contato.chat;
   const [modo, setModo] = useState<Modo | null>(null);
@@ -39,13 +42,28 @@ export function Contato({ servidor }: { servidor?: ContatoServidorDTO } = {}) {
   const [grande, setGrande] = useState<HTMLDivElement | null>(null);
   const secaoRef = useRef<HTMLElement>(null);
   const { __lenis: lenis } = useScrollbar();
+  // Emenda 1 do contato-b.1 (registro 008): a Início é estática; o DTO (com a intenção) vem da Server Action, uma vez por
+  // abertura, e fica só aqui, em memória. Falha ou 10 s sem resposta: o padrão da tela 07, sem campo para enviar.
+  const [servidor, setServidor] = useState<ContatoServidorDTO | null>(null);
+  const [emissao, setEmissao] = useState<'ociosa' | 'emitindo' | 'falha'>('ociosa');
+  const emitindo = useRef(false);
   const Conversa = servidor?.conversaDisponivel ? ConversaIA : ConversaGuiada;
+  function emitir() {
+    if (emitindo.current) return;
+    emitindo.current = true;
+    setEmissao('emitindo');
+    let prazo: ReturnType<typeof setTimeout> | undefined;
+    Promise.race([emitirContato(idioma), new Promise<never>((_, rejeitar) => { prazo = setTimeout(rejeitar, PRAZO_EMISSAO); })])
+      .then(dto => { setServidor(dto); setEmissao('ociosa'); }, () => setEmissao('falha'))
+      .finally(() => { clearTimeout(prazo); emitindo.current = false; });
+  }
 
   function iniciar(e: MouseEvent<HTMLAnchorElement>) {
     if (!ehCliqueSimples(e)) return;
     e.preventDefault();
     setMontado(true);
     setAberto(true);
+    if (!servidor) emitir();
   }
   function fechar() {
     setAberto(false);
@@ -69,12 +87,26 @@ export function Contato({ servidor }: { servidor?: ContatoServidorDTO } = {}) {
     }
     lenis?.stop();
     html.classList.add('contato-aberto');
-    secao.querySelector<HTMLTextAreaElement>('.contato-chat textarea')?.focus({ preventScroll: true });
     return () => {
       html.classList.remove('contato-aberto');
       lenis?.start();
     };
   }, [aberto, lenis]);
+  // O foco vai ao campo quando o chat aparece (abrir, reabrir, emissão que chega) e ao "Tentar de novo" na falha.
+  useEffect(() => {
+    if (!aberto || emissao === 'emitindo') return;
+    secaoRef.current!.querySelector<HTMLElement>('.contato-chat textarea, .chat-inicio-falha button')?.focus({ preventScroll: true });
+  }, [aberto, emissao, servidor]);
+  // A intenção é emitida por língua: trocar a língua antes de qualquer envio descarta o DTO e a conversa (a próxima abertura
+  // emite na língua nova). Depois de uma tentativa (falha ou enviado), a intenção fica imutável e o corpo já está fixado.
+  const linguaDoDto = useRef(idioma);
+  useEffect(() => {
+    if (linguaDoDto.current === idioma) return;
+    linguaDoDto.current = idioma;
+    if (status === 'falha' || status === 'enviado') return;
+    setServidor(null); setStatus('online'); setEmissao('ociosa'); setMontado(false); setAberto(false);
+  }, [idioma, status]);
+  const statusDoGlobo: StatusDoGlobo = emissao === 'falha' ? 'falha' : emissao === 'emitindo' ? 'pensando' : status;
   // No celular, o globo grande fica no vazio (M02) até a conversa começar; depois, vira o ícone da barra.
   const lugar = !aberto ? null : grande?.getClientRects().length ? grande : canto;
 
@@ -147,13 +179,22 @@ export function Contato({ servidor }: { servidor?: ContatoServidorDTO } = {}) {
               <p className="chat-iniciar">{t(c.iniciar, idioma)}</p>
               <button type="button" className="chat-fechar" onClick={fechar}><span className="chat-fechar-texto">{t(c.fechar, idioma)}</span><span aria-hidden="true">✕</span></button>
             </div>
-            <Conversa servidor={servidor} aoStatus={setStatus} lugarDoGlobo={setGrande} />
-            <GloboDoChat status={status}><div className="contato-globo-lugar" ref={setCanto} /></GloboDoChat>
+            {servidor && <Conversa servidor={servidor} aoStatus={setStatus} lugarDoGlobo={setGrande} />}
+            {emissao === 'falha' && (
+              <section className="chat chat-inicio-falha" aria-label={t(contato.guiada.titulo, idioma)}>
+                <div className="chat-ia chat-erro"><span className="chat-rotulo">{t(c.rotulo, idioma)}</span><p role="alert">{t(c.falhaInicio, idioma)}</p></div>
+                <div className="formulario-acoes">
+                  <button type="button" onClick={emitir}>{t(contato.conversa.repetir, idioma)}</button>
+                  <a href={rota('contato', idioma)}>{t(c.abrirContato, idioma)}</a>
+                </div>
+              </section>
+            )}
+            <GloboDoChat status={statusDoGlobo}><div className="contato-globo-lugar" ref={setCanto} /></GloboDoChat>
           </div>
         )}
       </div>
       {/* Aberto, o globo segue o estado do chat (o F só no sucesso real); fechado, volta à alternância da Início. */}
-      <EsferaDeLetras alvo={alvoDoSimbolo} fixa lugar={lugar} respondendo={aberto && status === 'pensando'} formarAlvo={aberto ? status === 'enviado' : undefined} />
+      <EsferaDeLetras alvo={alvoDoSimbolo} fixa lugar={lugar} respondendo={aberto && statusDoGlobo === 'pensando'} formarAlvo={aberto ? statusDoGlobo === 'enviado' : undefined} />
     </section>
   );
 }

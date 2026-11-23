@@ -301,3 +301,11 @@ html.contato-aberto .selo { opacity: 0; visibility: hidden; }
   .contato-chat .chat:not(.chat-vazio) > .chat-composer, .contato-chat .chat:not(.chat-vazio) > .chat-aviso { animation-delay: var(--intervalo-lista); }
   .contato-chat .contato-globo-status { animation-delay: calc(2 * var(--intervalo-lista)); }
 }
+
+/* Falha ao iniciar o chat na Início (emenda 1; padrão da tela 07): a mensagem em azul, "Tentar de novo" em pílula e, no
+   lugar de "Ajustar algo", o link sublinhado para a página de contato, que emite por requisição. */
+.chat-inicio-falha { justify-content: center; gap: 26px; }
+.chat-inicio-falha .formulario-acoes { justify-content: flex-start; flex-wrap: wrap; gap: 22px; }
+.chat-inicio-falha .formulario-acoes button { padding: 0 22px; border-radius: 22px; background: var(--escuro); color: var(--claro); font-size: 13px; text-decoration: none; }
+.chat-inicio-falha .formulario-acoes a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; font: 400 11px var(--mono); text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; }
+.chat-inicio-falha .formulario-acoes a:focus-visible { outline: 2px solid var(--azul); outline-offset: 4px; }

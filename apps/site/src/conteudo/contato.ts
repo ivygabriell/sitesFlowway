@@ -124,6 +124,9 @@ const contato = {
     subtitulo: { pt: 'Converse com a IA da Floway sobre o seu projeto. Ela entende o que você precisa e prepara o pedido para a nossa equipe.', en: 'Talk to the Floway AI about your project. It understands what you need and prepares the request for our team.' },
     subtituloCurto: { pt: 'Converse com a IA da Floway sobre o seu projeto.', en: 'Talk to the Floway AI about your project.' },
     privacidadeCurta: { pt: 'Privacidade', en: 'Privacy' },
+    // Falha ao iniciar o chat no fim da Início (emenda 1 do contrato; padrão da tela 07, decisão da pessoa na #29).
+    falhaInicio: { pt: 'Não consegui iniciar a conversa agora. Tente de novo ou fale com a gente pela página de contato.', en: 'I could not start the conversation right now. Try again or reach us on the contact page.' },
+    abrirContato: { pt: 'Abrir a página de contato', en: 'Open the contact page' },
     rotulo: { pt: 'Floway IA', en: 'Floway AI' },
     campo: { pt: 'Sua mensagem', en: 'Your message' },
     escreva: { pt: 'Escreva sua mensagem…', en: 'Write your message…' },

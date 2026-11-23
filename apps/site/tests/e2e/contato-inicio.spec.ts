@@ -27,7 +27,17 @@ async function largura(page: Page, caixa: Caixa) {
   return colunas.length ? colunas[colunas.length - 1] - colunas[0] : 0;
 }
 
-async function noFimDaInicio(page: Page) {
+// Emenda 1 do contrato: a Server Action confere o Origin contra a origem configurada (no teste, https://floway.example).
+// O navegador do teste está em localhost; a emissão vai com o Origin e o host da configuração, como no site publicado.
+export async function origemDaConfiguracao(page: Page) {
+  await page.route(u => u.pathname === '/' || u.pathname === '/en', async (route, req) => {
+    if (req.method() !== 'POST' || !req.headers()['next-action']) return route.fallback();
+    await route.continue({ headers: { ...req.headers(), origin: 'https://floway.example', 'x-forwarded-host': 'floway.example' } });
+  });
+}
+
+async function noFimDaInicio(page: Page, comOrigem = true) {
+  if (comOrigem) await origemDaConfiguracao(page);
   await page.addInitScript(semAbertura);
   await page.goto('/');
   await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
@@ -59,7 +69,7 @@ test.describe('desktop 1440×900', () => {
     const a = await page.screenshot({ clip: CANTO });
     await page.waitForTimeout(500);
     expect((await page.screenshot({ clip: CANTO })).equals(a)).toBe(false);
-    await estilo.evaluate(e => e.remove());
+    await estilo.evaluate(e => (e as Element).remove());
     expect(new URL(page.url()).pathname).toBe('/');
     expect(Math.abs((await page.evaluate(() => scrollY)) - y)).toBeLessThan(2);
     // O foco no campo é conferido no teste seguinte (aqui o estilo da medida o escondeu).
@@ -89,6 +99,17 @@ test.describe('desktop 1440×900', () => {
     expect(Math.abs((await page.evaluate(() => scrollY)) - y)).toBeLessThan(2);
     await page.locator('.rodape-cta').click();
     await expect(page.getByText('Quero um site para o estúdio')).toBeVisible();
+  });
+
+  test('falha da emissão (Origin de outro lugar): padrão da tela 07, "Tentar de novo" e o link para /contato, sem campo para enviar', async ({ page }) => {
+    await noFimDaInicio(page, false);
+    await page.locator('.rodape-cta').click();
+    await expect(page.getByText(/Não consegui iniciar a conversa/)).toBeVisible();
+    await expect(page.locator('.contato-chat .contato-globo-status')).toContainText(/não foi desta vez/i);
+    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeFocused();
+    await expect(page.getByRole('textbox', { name: 'Sua mensagem' })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Abrir a página de contato' }).click();
+    await page.waitForURL('**/contato');
   });
 
   test('o menu "Contato" continua indo ao /contato', async ({ page }) => {
@@ -142,6 +163,7 @@ for (const [larguraTela, alturaTela] of [[390, 844], [360, 640]] as const) {
     test.use({ viewport: { width: larguraTela, height: alturaTela }, isMobile: true, hasTouch: true });
     test('o chat abre na própria cena: globo grande no vazio (M02), que vira o ícone de 40 px com a conversa (M03)', async ({ page }) => {
       test.setTimeout(90_000);
+      await origemDaConfiguracao(page);
       await page.goto('/');
       await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
       await expect(page.locator('.rodape-cta')).toBeVisible({ timeout: 10_000 });
@@ -170,3 +192,25 @@ for (const [larguraTela, alturaTela] of [[390, 844], [360, 640]] as const) {
     });
   });
 }
+
+// Ressalva (a) do Security: a Início e /en continuam estáticas, e nenhum token (intenção v1.<payload>.<assinatura> ou chave
+// contato/<uuid>) vai ao HTML, ao RSC do build ou ao __next_f embutido.
+test('/ e /en estáticas no build, sem intenção nem chave no HTML e no RSC', async ({ request }) => {
+  const { readFileSync, existsSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const dist = join(process.cwd(), process.env.NEXT_DIST_DIR || '.next-teste');
+  const rotas = JSON.parse(readFileSync(join(dist, 'prerender-manifest.json'), 'utf8')).routes;
+  expect(rotas['/']).toBeTruthy();
+  expect(rotas['/en']).toBeTruthy();
+  const TOKEN = /v1\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|contato\/[0-9a-f]{8}-[0-9a-f]{4}-/;
+  const arquivos = ['index.html', 'index.rsc', 'en.html', 'en.rsc'].map(a => join(dist, 'server/app', a));
+  for (const a of arquivos) {
+    expect(existsSync(a), a).toBe(true);
+    expect(readFileSync(a, 'utf8'), a).not.toMatch(TOKEN);
+  }
+  for (const caminho of ['/', '/en']) {
+    const html = await (await request.get(caminho)).text();
+    expect(html).toContain('self.__next_f');
+    expect(html).not.toMatch(TOKEN);
+  }
+});
