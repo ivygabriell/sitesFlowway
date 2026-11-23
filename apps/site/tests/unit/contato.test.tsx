@@ -9,6 +9,12 @@ import type { ContatoServidorDTO } from '@/lib/contato/servidor';
 
 // A Server Action da emenda 1 (registro 008) é dublada: o DTO só chega pela promessa, nunca pelo HTML.
 vi.mock('@/lib/contato/acao', () => ({ emitirContato: vi.fn() }));
+// O Lenis do scroll-rig é dublado só onde o teste pede (lenis.atual); fora disso, o padrão (sem Lenis).
+const lenis = vi.hoisted(() => ({ atual: undefined as unknown }));
+vi.mock('@14islands/r3f-scroll-rig', async (original) => {
+  const real = await original<typeof import('@14islands/r3f-scroll-rig')>();
+  return { ...real, useScrollbar: () => ({ ...real.useScrollbar(), __lenis: lenis.atual }) };
+});
 const DTO: ContatoServidorDTO = { versao: 'contato-b.1', intencao: 'token-apenas-teste', chave: 'contato/00000000-0000-4000-8000-000000000001', repetirAte: new Date(Date.now() + 3600000).toISOString(), conversaDisponivel: false, envioDisponivel: true };
 
 // Cada alvo que a esfera recebe fica registrado; a esfera de verdade continua desenhando a div.esfera.
@@ -226,5 +232,15 @@ describe('Contato: chat na cena', () => {
     act(() => { fireEvent.click(screen.getByRole('button', { name: 'trocar' })); });
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: 'Start a project →' })); });
     expect(vi.mocked(emitirContato).mock.calls).toEqual([['pt'], ['en']]);
+  });
+
+  it('abrir leva a cena ao fim da seção na hora e só então trava o Lenis (stop() cancelaria uma rolagem animada)', async () => {
+    const chamadas: string[] = [];
+    lenis.atual = { scrollTo: vi.fn((_y: number, o: { immediate?: boolean }) => chamadas.push(o.immediate ? 'scrollTo imediato' : 'scrollTo animado')), stop: vi.fn(() => chamadas.push('stop')), start: vi.fn() };
+    try {
+      render(<Contato />);
+      await abrir();
+      expect(chamadas).toEqual(['scrollTo imediato', 'stop']);
+    } finally { lenis.atual = undefined; }
   });
 });

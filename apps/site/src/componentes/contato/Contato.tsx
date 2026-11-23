@@ -82,7 +82,9 @@ export function Contato() {
     abriu.current = true;
     const fim = Math.min(secao.offsetTop + secao.offsetHeight - innerHeight, html.scrollHeight - innerHeight);
     if (Math.abs(scrollY - fim) > 1) {
-      if (lenis) lenis.scrollTo(fim, { force: true, immediate: prefereMenosMovimento(), duration: TEMPOS['tempo-cabecalho'] });
+      // Imediato: o stop() logo abaixo cancelaria uma rolagem animada. Dentro do trecho preso a tela não se move; só o
+      // círculo termina de encolher pelo scrub.
+      if (lenis) lenis.scrollTo(fim, { force: true, immediate: true });
       else window.scrollTo(0, fim);
     }
     lenis?.stop();
