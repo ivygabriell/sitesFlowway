@@ -2,39 +2,48 @@
 
 import { useScrollRig } from '@14islands/r3f-scroll-rig';
 import { useEffect, useState } from 'react';
+import { EsferaDeLetras } from '@/compartilhados/esfera/EsferaDeLetras';
+import type { StatusDoGlobo } from '@/componentes/contato/ChatContato';
 import { ConversaGuiada } from '@/componentes/contato/ConversaGuiada';
 import { ConversaIA } from '@/componentes/contato/ConversaIA';
-import type { ContatoServidorDTO } from '@/lib/contato/servidor';
-import type { Pedido } from '@/lib/pedidoDeContato';
 import { Formulario } from '@/componentes/contato/Formulario';
 import { contato } from '@/conteudo/contato';
 import { t } from '@/conteudo/textos';
+import type { ContatoServidorDTO } from '@/lib/contato/servidor';
+import { rota } from '@/lib/idioma';
 import { useIdioma } from '@/lib/useIdioma';
+import { alvoDoSimbolo } from '@/marca/amostrar';
 import '@/componentes/contato/estilo.css';
 
-// A página controla a composição B; a esfera apenas recebe os estados verificados.
+// Estado 02 do contato por chat (spec 2026-11-22): o chat no meio e o globo de letras no canto inferior direito.
+// O globo só recebe os estados verificados: respondendo enquanto a IA pensa; o F (formarAlvo) só no sucesso real do envio.
 export function PaginaContato({ estado, servidor }: { estado?: string; servidor?: ContatoServidorDTO }) {
   const idioma = useIdioma();
-  const [enviado, setEnviado] = useState(false);
-  const [pronto, setPronto] = useState(false);
-  const [bloqueado, setBloqueado] = useState(false);
-  const [pedido, setPedido] = useState<Pedido>({ nome: '', empresa: '', contato: '', mensagem: '' });
+  const c = contato.chat;
+  const [status, setStatus] = useState<StatusDoGlobo>('online');
   const Conversa = servidor?.conversaDisponivel ? ConversaIA : ConversaGuiada;
   const { reflow } = useScrollRig();
-  // O ScrollRig precisa reler a posição da esfera quando a conversa cresce.
-  useEffect(() => reflow(), [pronto, enviado, reflow]);
+  // O ScrollRig precisa reler a posição da esfera quando a página monta e quando o globo forma o F.
+  useEffect(() => reflow(), [status, reflow]);
   void estado;
   return (
     <main className="pagina-contato" data-fundo="claro" id="topo">
       <h1 className="frase-contato">{t(contato.frase, idioma)}</h1>
-      <div className="pagina-contato-corpo contato-guiada-corpo">
-        {/* Com o Gemini configurado, a conversa é com a IA; sem ele, segue o roteiro fixo de perguntas. */}
-        <Conversa aoConcluir={p => { setPedido(p); setPronto(true); }} aoEditar={() => setPronto(false)} bloqueado={bloqueado}>
-          {pronto ? <Formulario key={JSON.stringify(pedido)} servidor={servidor} pedido={pedido} revisarAgora semResumo aoEnviar={() => setEnviado(true)} aoBloquear={setBloqueado} /> : undefined}
-        </Conversa>
-        {/* Sem JavaScript a conversa não anda: o formulário simples só existe para esse caso, nunca atrás da conversa. */}
-        <noscript><Formulario servidor={servidor} /></noscript>
+      <div className="chat-topo">
+        <p className="chat-iniciar">{t(c.iniciar, idioma)}</p>
+        <a className="chat-fechar" href={rota('inicio', idioma)}><span className="chat-fechar-texto">{t(c.fechar, idioma)}</span><span aria-hidden="true">✕</span></a>
       </div>
+      {/* Com o Gemini configurado, a conversa é com a IA; sem ele, segue o roteiro fixo de perguntas. */}
+      <Conversa servidor={servidor} aoStatus={setStatus} />
+      <div className="contato-globo" data-status={status}>
+        <EsferaDeLetras alvo={alvoDoSimbolo} respondendo={status === 'pensando'} formarAlvo={status === 'enviado'} />
+        <p className="contato-globo-status"><i aria-hidden="true" /><span className="contato-globo-nome">{t(c.rotulo, idioma)}</span> <span>{t(c.status[status], idioma)}</span></p>
+      </div>
+      {/* Sem JavaScript a conversa não anda: o formulário simples só existe para esse caso, nunca atrás da conversa. */}
+      <noscript>
+        <style>{'.chat, .contato-globo { display: none; }'}</style>
+        <div className="contato-sem-js"><Formulario servidor={servidor} /></div>
+      </noscript>
     </main>
   );
 }

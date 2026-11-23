@@ -20,38 +20,40 @@ test.beforeEach(async ({ page }) => {
 });
 
 const TEXTOS = {
-  '/contato': { campo: 'Sua resposta', naoSei: 'Ainda não sei', resumo: 'Resumo do pedido', projeto: 'Resumo do projeto', revisar: 'Revisar envio', confirmar: 'Confirmar e enviar', pendente: /Resultado pendente/ },
-  '/en/contact': { campo: 'Your answer', naoSei: 'Not sure yet', resumo: 'Request summary', projeto: 'Project summary', revisar: 'Review submission', confirmar: 'Confirm and send', pendente: /Result pending/ },
+  '/contato': { campo: 'Sua mensagem', naoSei: 'Ainda não sei, quero conversar', resumo: 'Resumo do pedido', confirmar: 'Confirmar e enviar', pendente: /Não consegui confirmar o envio/, enviado: /Pedido enviado/, recebido: /pedido recebido/i, parar: 'Parar' },
+  '/en/contact': { campo: 'Your message', naoSei: 'Not sure yet, let\'s talk', resumo: 'Request summary', confirmar: 'Confirm and send', pendente: /I could not confirm the submission/, enviado: /Request sent/, recebido: /request received/i, parar: 'Stop' },
 };
 
+// Estado 02 → IA (opções em pílula) → dados por perguntas fixas → cartão de resumo.
 async function ateOEnvio(page: Page, caminho: keyof typeof TEXTOS = '/contato') {
   const r = TEXTOS[caminho];
   await page.goto(caminho);
-  const campo = page.getByRole('textbox', { name: r.campo });
-  for (const valor of ['Pessoa de teste', 'Empresa de teste', '(11) 98765-4321', 'pessoa@empresa.dev']) {
-    await expect(campo).toBeEnabled();
-    await campo.fill(valor); await campo.press('Enter');
-  }
   await page.getByRole('button', { name: r.naoSei, exact: true }).click();
   await page.getByRole('button', { name: 'Gerar contatos' }).click();
+  const campo = page.getByRole('textbox', { name: r.campo });
+  for (const valor of ['Pessoa de teste', 'Empresa de teste', '(11) 98765-4321', 'pessoa@empresa.dev']) {
+    await expect(campo).toBeEditable();
+    await campo.fill(valor); await campo.press('Enter');
+  }
   const resumo = page.getByRole('region', { name: r.resumo });
   await expect(resumo).toBeVisible();
-  await page.getByRole('button', { name: r.revisar }).click();
   return resumo;
 }
 
 for (const caminho of Object.keys(TEXTOS) as (keyof typeof TEXTOS)[]) {
-  test(`${caminho}: dados, conversa com opções, resumo preenchido e confirmação pendente`, async ({ page }) => {
+  test(`${caminho}: IA com opções, dados fora da IA, cartão e confirmação pendente com "tentar de novo"`, async ({ page }) => {
     const r = TEXTOS[caminho];
     const conversas: unknown[] = [];
     page.on('request', q => { if (q.url().endsWith('/api/contato/conversa')) conversas.push(q.postDataJSON()); });
     const resumo = await ateOEnvio(page, caminho);
     // Nome, empresa, WhatsApp e e-mail nunca vão para a IA.
     expect(JSON.stringify(conversas)).not.toMatch(/Pessoa de teste|98765|pessoa@empresa/);
-    await expect(resumo.getByLabel(r.projeto)).toHaveValue('Projeto: Site\nObjetivo: Gerar contatos');
+    await expect(resumo).toContainText('Gerar contatos');
+    await expect(resumo).toContainText('(11) 98765-4321 · pessoa@empresa.dev');
     await page.getByRole('button', { name: r.confirmar }).click();
     await expect(page.getByText(r.pendente)).toBeVisible();
-    await expect(resumo.getByLabel(r.projeto)).toBeDisabled();
+    await expect(resumo).toBeVisible();
+    await expect(page.locator('.contato-globo')).toHaveAttribute('data-status', 'falha');
   });
 }
 
@@ -64,27 +66,60 @@ async function aceitar(page: Page) {
   });
 }
 
-for (const [width, height] of [[1440, 900], [1883, 703], [768, 1024], [390, 844], [360, 640]]) {
-  test(`${width}x${height}: do primeiro dado ao aceito sem rolagem lateral nem erro no console`, async ({ page }) => {
+for (const [width, height] of [[1440, 900], [1100, 900], [768, 1024], [390, 844], [360, 640]]) {
+  test(`${width}x${height}: do vazio ao "pedido enviado" sem rolagem lateral nem erro no console; o F só no aceite`, async ({ page }) => {
     const erros: string[] = []; page.on('pageerror', e => erros.push(e.message)); page.on('console', m => { if (m.type() === 'error') erros.push(m.text()); });
     await page.setViewportSize({ width, height }); await aceitar(page);
     await ateOEnvio(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect(page.locator('.contato-globo')).toHaveAttribute('data-status', 'resumo');
     await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
-    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Pedido enviado/ })).toBeVisible();
+    await expect(page.locator('.contato-globo-status')).toContainText(/pedido recebido/i);
+    await expect(page.getByRole('link', { name: 'Ver trabalhos' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(erros).toEqual([]);
   });
 }
 
-test('falha da IA mantém o texto no campo para tentar de novo', async ({ page }) => {
+test('a resposta da IA aparece palavra por palavra com cursor e "pensando"; "parar" mostra a mensagem inteira', async ({ page }) => {
+  const resposta = 'Entendi: um site novo, encontrável no Google e com orçamento online. Para quando vocês precisam dele no ar?';
+  await page.route('**/api/contato/conversa', route => route.fulfill({ status: 200, json: { turnoId: route.request().postDataJSON().turnoId, resposta, mensagemSugerida: null, opcoes: ['Urgente'] } }));
+  await page.goto('/contato');
+  await page.getByRole('button', { name: 'Quero um site novo' }).click();
+  await expect(page.getByText('Quero um site novo').first()).toBeVisible();
+  // Estado intermediário confirmado por condição no navegador: parte do texto visível, cursor azul e "pensando".
+  await page.waitForFunction(t => { const p = document.querySelector('.chat-revelando p'); return !!p && p.textContent!.length > 5 && p.textContent!.length < t.length && !!p.querySelector('.chat-cursor'); }, resposta, { polling: 'raf' });
+  await expect(page.locator('.contato-globo')).toHaveAttribute('data-status', 'pensando');
+  await expect(page.getByRole('button', { name: 'Urgente' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Parar' }).click();
+  await expect(page.locator('.chat-revelando')).toHaveCount(0);
+  await expect(page.getByText(resposta)).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Sua mensagem' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Urgente' })).toBeVisible();
+});
+
+test('"parar" com o pedido no ar aborta a chamada e devolve o texto ao campo', async ({ page }) => {
+  let abortou = false;
+  page.on('requestfailed', q => { if (q.url().endsWith('/api/contato/conversa')) abortou = true; });
+  await page.route('**/api/contato/conversa', async route => { await new Promise(r => setTimeout(r, 6000)); await route.fulfill({ status: 200, json: {} }).catch(() => {}); });
+  await page.goto('/contato');
+  const campo = page.getByRole('textbox', { name: 'Sua mensagem' });
+  await campo.fill('Meu projeto'); await campo.press('Enter');
+  await expect(page.locator('.chat-pensando')).toBeVisible();
+  await page.getByRole('button', { name: 'Parar' }).click();
+  await expect(campo).toHaveValue('Meu projeto');
+  await expect(page.locator('.chat-voce')).toHaveCount(0);
+  await expect.poll(() => abortou).toBe(true);
+});
+
+test('falha da IA vira mensagem em azul e mantém o texto no campo para tentar de novo', async ({ page }) => {
   await page.route('**/api/contato/conversa', route => route.fulfill({ status: 503, json: { erro: { codigo: 'IA_INDISPONIVEL' } } }));
   await page.goto('/contato');
-  const campo = page.getByRole('textbox', { name: 'Sua resposta' });
-  for (const valor of ['Pessoa de teste', 'Empresa de teste', '(11) 98765-4321', 'pessoa@empresa.dev']) { await expect(campo).toBeEnabled(); await campo.fill(valor); await campo.press('Enter'); }
-  await expect(campo).toBeEnabled();
+  const campo = page.getByRole('textbox', { name: 'Sua mensagem' });
   await campo.fill('Meu projeto'); await campo.press('Enter');
-  await expect(page.locator('.guiada-erro')).toBeVisible();
+  await expect(page.locator('.chat-erro')).toContainText('Não consegui responder agora');
+  await expect(page.locator('.chat-erro p')).toHaveCSS('color', 'rgb(0, 47, 167)');
   await expect(campo).toHaveValue('Meu projeto');
 });
 
@@ -104,11 +139,11 @@ for (const status of [429, 503, 409]) {
     await ateOEnvio(page);
     await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
     await expect.poll(() => chamadas).toBeGreaterThanOrEqual(2);
-    await expect(page.getByText(/Resultado pendente/)).toBeVisible();
-    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Repetir o mesmo envio' })).toBeEnabled({ timeout: 15000 });
-    aceitou = true; await page.getByRole('button', { name: 'Repetir o mesmo envio' }).click();
-    await expect(page.getByText('Envio aceito pelo serviço.', { exact: true })).toBeVisible(); expect(mesmoCorpo).toBe(true);
+    await expect(page.getByText(/Não consegui confirmar o envio/)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Pedido enviado/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeEnabled({ timeout: 15000 });
+    aceitou = true; await page.getByRole('button', { name: 'Tentar de novo' }).click();
+    await expect(page.getByRole('heading', { name: /Pedido enviado/ })).toBeVisible(); expect(mesmoCorpo).toBe(true);
   });
 }
 
@@ -122,10 +157,10 @@ test('expiração da pendência conserva a cópia sem renovar', async ({ page })
   });
   const resumo = await ateOEnvio(page);
   await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
-  await expect(page.getByText(/Resultado pendente/)).toBeVisible();
+  await expect(page.getByText(/Não consegui confirmar o envio/)).toBeVisible();
   await page.clock.setFixedTime(new Date(prazo)); await page.clock.runFor(300);
-  await expect(page.getByText(/Prazo de repetição encerrado/)).toBeVisible(); await expect(page.getByRole('button', { name: 'Repetir o mesmo envio' })).toHaveCount(0);
-  await expect(resumo.getByLabel('Resumo do projeto')).toHaveValue('Projeto: Site\nObjetivo: Gerar contatos');
+  await expect(page.getByText(/Prazo de repetição encerrado/)).toBeVisible(); await expect(page.getByRole('button', { name: 'Tentar de novo' })).toHaveCount(0);
+  await expect(resumo).toContainText('Gerar contatos');
   expect(chamadas).toBe(1);
 });
 
