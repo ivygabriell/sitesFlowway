@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EsferaDeLetras } from '@/compartilhados/esfera/EsferaDeLetras';
 import { CenaEsfera } from '@/compartilhados/esfera/CenaEsfera';
 import { desenharAtlas, LETRAS } from '@/compartilhados/esfera/atlas';
-import { atributosDaEsfera, pontosEsfera, QUANTIDADE, tamanhoDaLetra } from '@/compartilhados/esfera/geometria';
+import { atributosDaEsfera, caixaDaEsfera, pontosEsfera, QUANTIDADE, raioNaCaixa, tamanhoDaLetra } from '@/compartilhados/esfera/geometria';
 import { criarMaterialDaEsfera } from '@/compartilhados/esfera/shader';
 import { pontosSimbolo, semente } from '@/marca/amostrar';
 
@@ -244,6 +244,87 @@ describe('morfose controlada', () => {
         });
         expect(material.uniforms.uMorf.value).toBe(1);
       }
+    } finally { cenaControlada.ativa = false; }
+  });
+});
+
+// Issue #29: no chat, o globo vai a outro lugar (o canto no desktop, o vazio ou o ícone no celular) sem parar de girar.
+const caixa = (x: number, y: number, width: number, height: number) => ({ left: x, top: y, width, height });
+describe('globo em outro lugar', () => {
+  it('caixaDaEsfera: deslocamento do centro (y para cima) e o raio da caixa de destino; sem lugar, fica na própria div', () => {
+    const div = caixa(0, 100, 1440, 600);
+    expect(caixaDaEsfera(div, null)).toEqual({ dx: 0, dy: 0, raio: raioNaCaixa(1440, 600) });
+    const canto = caixa(1088, 524, 352, 276);
+    const r = caixaDaEsfera(div, canto);
+    expect(r.dx).toBeCloseTo(1088 + 176 - 720);
+    expect(r.dy).toBeCloseTo(-(524 + 138 - 400));
+    expect(r.raio).toBeCloseTo(raioNaCaixa(352, 276));
+    // Lugar escondido (caixa vazia) conta como sem lugar.
+    expect(caixaDaEsfera(div, caixa(0, 0, 0, 0))).toEqual(caixaDaEsfera(div, null));
+  });
+
+  function montar() {
+    cenaControlada.ativa = true;
+    const material = criarMaterialDaEsfera();
+    vi.spyOn(shader, 'criarMaterialDaEsfera').mockReturnValue(material);
+    vi.mocked(useThree).mockReturnValue({ gl: { compileAsync: () => Promise.resolve(), getPixelRatio: () => 1 }, camera: {}, scene: {} } as unknown as RootState);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const atributos = atributosDaEsfera(10, pontosSimbolo(10, semente(1)), semente(2));
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({ ...caixa(0, 0, 500, 500), x: 0, y: 0, right: 500, bottom: 500, toJSON() {} });
+    const lugar = document.createElement('div');
+    lugar.getBoundingClientRect = () => ({ ...caixa(400, 400, 100, 100), x: 400, y: 400, right: 500, bottom: 500, toJSON() {} });
+    const track = { current: div };
+    const frame = (dt: number) => act(() => { vi.mocked(useFrame).mock.lastCall![0]({} as RootState, dt); });
+    return { material, atributos, track, lugar, frame };
+  }
+
+  it('vai ao lugar em 0,8 s, passando pelo meio (sem pular), e volta quando o lugar sai', () => {
+    const { material, atributos, track, lugar, frame } = montar();
+    try {
+      const { rerender } = render(<CenaEsfera track={track} atributos={atributos} modo="desktop" />);
+      frame(0.016);
+      const grande = raioNaCaixa(500, 500), pequeno = raioNaCaixa(100, 100);
+      expect(material.uniforms.uRaio.value).toBeCloseTo(grande);
+      rerender(<CenaEsfera track={track} atributos={atributos} modo="desktop" lugar={lugar} />);
+      frame(0.4);
+      const meio = material.uniforms.uRaio.value;
+      expect(meio).toBeLessThan(grande - 1);
+      expect(meio).toBeGreaterThan(pequeno + 1);
+      expect(material.uniforms.uTamanho.value).toBeCloseTo(tamanhoDaLetra(10, meio));
+      const giro = material.uniforms.uGiro.value;
+      frame(0.4);
+      expect(material.uniforms.uRaio.value).toBeCloseTo(pequeno);
+      expect(material.uniforms.uGiro.value).toBeGreaterThan(giro); // continua girando
+      rerender(<CenaEsfera track={track} atributos={atributos} modo="desktop" lugar={null} />);
+      frame(0.8);
+      expect(material.uniforms.uRaio.value).toBeCloseTo(grande);
+    } finally { cenaControlada.ativa = false; }
+  });
+
+  it('com movimento reduzido, troca de lugar na hora', () => {
+    const { material, atributos, track, lugar, frame } = montar();
+    try {
+      const { rerender } = render(<CenaEsfera track={track} atributos={atributos} modo="reduzido" />);
+      rerender(<CenaEsfera track={track} atributos={atributos} modo="reduzido" lugar={lugar} />);
+      frame(0.016);
+      expect(material.uniforms.uRaio.value).toBeCloseTo(raioNaCaixa(100, 100));
+    } finally { cenaControlada.ativa = false; }
+  });
+
+  it('passar da alternância da Início ao controle do chat não faz o F pular para a esfera', () => {
+    const timeline = vi.spyOn(gsap, 'timeline');
+    const { material, atributos, track, frame } = montar();
+    try {
+      const { rerender } = render(<CenaEsfera track={track} atributos={atributos} modo="desktop" />);
+      act(() => { timeline.mock.results.at(-1)!.value.time(7); });
+      frame(0);
+      expect(material.uniforms.uMorf.value).toBe(1);
+      rerender(<CenaEsfera track={track} atributos={atributos} modo="desktop" formarAlvo={false} />);
+      frame(0.1);
+      expect(material.uniforms.uMorf.value).toBeGreaterThan(0.5);
+      frame(2);
+      expect(material.uniforms.uMorf.value).toBe(0);
     } finally { cenaControlada.ativa = false; }
   });
 });

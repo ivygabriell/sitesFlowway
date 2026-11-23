@@ -45,7 +45,7 @@ function errosDo(r: Campos, idioma: Idioma) {
     ['projeto', !!projeto, ia.erroResumo],
     ['projeto', projeto.length <= 5000, f.limiteMensagem],
     ['whatsapp', whatsappValido(r.whatsapp), g.erroWhatsapp],
-    ['whatsapp', contatoDe(r).trim().length <= 200, f.limiteCampo],
+    ['whatsapp', contatoDe(r).trim().length <= 200, f.limiteContato],
     ['email', emailValido(r.email) && r.email.trim().length <= 120, g.erroEmail],
   ];
   const erros: Partial<Record<Chave, string>> = {};
@@ -55,7 +55,7 @@ function errosDo(r: Campos, idioma: Idioma) {
 
 // Cartão de resumo dentro do chat (frames 05 a 07). "Ajustar algo" edita no próprio cartão com a validação de sempre;
 // "Confirmar e enviar" é o envio do Formulario (/api/contato, trava contra duplo envio). Depois de começar, a cópia não muda.
-export function CartaoResumo({ campos, aoMudar, servidor, aoStatus }: { campos: Campos; aoMudar: (c: Campos) => void; servidor?: ContatoServidorDTO; aoStatus?: (s: StatusDoCartao) => void }) {
+export function CartaoResumo({ campos, aoMudar, servidor, aoStatus }: { campos: Campos; aoMudar: (c: Campos) => void; servidor?: ContatoServidorDTO; aoStatus?: (s: StatusDoCartao | null) => void }) {
   const idioma = useIdioma();
   const k = contato.chat.cartao;
   const [editando, setEditando] = useState(false);
@@ -68,7 +68,13 @@ export function CartaoResumo({ campos, aoMudar, servidor, aoStatus }: { campos: 
   const [tentativas, setTentativas] = useState(0);
   useEffect(() => { if (tentativas) resumoErros.current?.focus(); }, [tentativas]);
   const temErro = Object.values(erros).some(Boolean);
-  useEffect(() => { if (editando) primeiro.current?.focus(); }, [editando]);
+  // Abrir a edição põe o foco no primeiro campo; fechar com "Revisar pedido" devolve ao cartão (não ao body).
+  const editou = useRef(false);
+  useEffect(() => {
+    if (editando) primeiro.current?.focus();
+    else if (editou.current) titulo.current?.focus();
+    editou.current = editando;
+  }, [editando]);
   useEffect(() => { if (enviadoAs) titulo.current?.focus(); }, [enviadoAs]);
   // Com erro, o padrão do formulário (GOV.UK): resumo com foco e "Erro: " no título enquanto houver erro.
   useEffect(() => {
@@ -85,7 +91,8 @@ export function CartaoResumo({ campos, aoMudar, servidor, aoStatus }: { campos: 
     aoMudar(Object.fromEntries(ORDEM.map(c => [c, rascunho[c].trim()])) as Campos);
     setEditando(false);
   }
-  const ajustar = () => { setRascunho(campos); setErros({}); setEditando(true); };
+  // Ajustar depois de uma falha (envio indisponível, intenção vencida) volta o globo ao "resumo pronto".
+  const ajustar = () => { setRascunho(campos); setErros({}); setEditando(true); aoStatus?.(null); };
 
   const pedido = { nome: campos.nome, empresa: campos.empresa, contato: contatoDe(campos), mensagem: campos.projeto };
   // Fora do limite, nada de CONFIRMAR: o erro e o caminho para ajustar.

@@ -51,6 +51,8 @@ const naoNavegar = (e: MouseEvent) => e.preventDefault();
 // Inverte sozinho com mix-blend-mode. `pagina` nula é um endereço fora do mapa (404).
 export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idioma: Idioma; pagina: Pagina | null }) {
   const naInicio = pagina === 'inicio';
+  // O contato (spec 2026-11-22, frame 02) tem o mesmo cabeçalho da Início, com o relógio REC.
+  const comRelogio = naInicio || pagina === 'contato';
   const outra: Idioma = idioma === 'pt' ? 'en' : 'pt';
   // No toque não há hover: o primeiro toque abre a outra língua embaixo, o segundo troca.
   const [aberto, setAberto] = useState(false);
@@ -68,6 +70,8 @@ export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idiom
   const tocarIdioma = (e: MouseEvent) => {
     e.preventDefault();
     if (!aberto && window.matchMedia('(hover: none)').matches) return setAberto(true);
+    // No contato, a intenção do envio é emitida por língua: troca recarregando, que emite outra.
+    if (pagina === 'contato') return void (location.href = destinoIdioma);
     // Sem recarregar: o texto esmaece, troca de língua no lugar e volta; o endereço muda sem entrada nova no histórico.
     // A página não pode encolher enquanto o lençol remonta (o navegador puxaria a rolagem para cima e o círculo do
     // contato voltaria a crescer): segura a altura, troca, devolve a rolagem e só então mostra.
@@ -93,15 +97,13 @@ export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idiom
   return (
     <>
       <header className={`cabecalho${visivel ? ' visivel' : ''}`} inert={!visivel}>
-        {naInicio ? (
+        {comRelogio ? (
           <Relogio idioma={idioma} />
         ) : (
           <a className="voltar" href={rota('inicio', idioma)}>
             <Giro texto={t(casca.voltar, idioma)} />
           </a>
         )}
-        {/* Na página de contato o cabeçalho fica só com o voltar, para a conversa ser o único foco. */}
-        {pagina !== 'contato' && (<>
         <a className="nome" href={naInicio ? '#topo' : rota('inicio', idioma)}>
           <span>{t(casca.nome, idioma)}</span>
         </a>
@@ -126,9 +128,8 @@ export function Cabecalho({ visivel, idioma, pagina }: { visivel: boolean; idiom
             })}
           </nav>
         </div>
-        </>)}
       </header>
-      {naInicio && <PontoDoRelogio visivel={visivel} />}
+      {comRelogio && <PontoDoRelogio visivel={visivel} />}
     </>
   );
 }

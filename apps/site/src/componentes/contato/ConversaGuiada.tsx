@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import { contato } from '@/conteudo/contato';
 import { t, type Idioma, type Texto } from '@/conteudo/textos';
-import type { ContatoServidorDTO } from '@/lib/contato/servidor';
 import { useIdioma } from '@/lib/useIdioma';
 import { CartaoResumo, type Campos } from './CartaoResumo';
-import { ChatContato, useFimDoChat, type MensagemChat, type StatusDoGlobo } from './ChatContato';
+import { ChatContato, useFimDoChat, type MensagemChat, type PropsDaFonte } from './ChatContato';
 
 // Roteiro fixo, sem IA, no mesmo visual do chat: o vazio recebe o projeto e a Floway pergunta uma coisa por vez,
 // todas obrigatórias. O pedido sai no formato do formulário, pelo envio que já existe. Perguntas de exemplo até a
@@ -31,7 +30,7 @@ export function projetoDe(r: Pick<Respostas, 'necessidades' | 'prazo' | 'descric
   return `${t(g.rotuloNecessidades, idioma)}: ${r.necessidades.join(', ')}\n${t(g.rotuloPrazo, idioma)}: ${r.prazo}\n\n${r.descricao.trim()}`;
 }
 
-export function ConversaGuiada({ servidor, aoStatus }: { servidor?: ContatoServidorDTO; aoStatus?: (s: StatusDoGlobo) => void }) {
+export function ConversaGuiada({ servidor, aoStatus, lugarDoGlobo }: PropsDaFonte) {
   const idioma = useIdioma();
   const g = contato.guiada, c = contato.chat;
   const [mensagens, setMensagens] = useState<MensagemChat[]>([]);
@@ -88,7 +87,7 @@ export function ConversaGuiada({ servidor, aoStatus }: { servidor?: ContatoServi
   const placeholder = atual === 'descricao' ? contato.conversa.convite : atual === 'resumo' ? c.acrescentar : atual === 'nome' || atual === 'empresa' || atual === 'whatsapp' || atual === 'email' ? g.placeholders[atual] : c.escreva;
 
   return (
-    <ChatContato mensagens={mensagens} pensando={false} entrada={entrada} aoMudar={setEntrada} aoEnviar={responder} aoOcupado={fim.setOcupado}
+    <ChatContato lugarDoGlobo={lugarDoGlobo} mensagens={mensagens} pensando={false} entrada={entrada} aoMudar={setEntrada} aoEnviar={responder} aoOcupado={fim.setOcupado}
       placeholder={t(placeholder, idioma)} respostas={opcoes.map(o => t(o, idioma))} extra={fim.links ?? (checklist || undefined)} travado={fim.travado}
       invalido={ultima?.de === 'ia' && !!ultima.erro} aviso="roteiro"
       campo={{ maxLength: LIMITE[atual] ?? 2000, inputMode: atual === 'whatsapp' ? 'tel' : atual === 'email' ? 'email' : undefined, autoComplete: AUTOCOMPLETAR[atual] ?? 'off' }}

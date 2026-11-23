@@ -224,3 +224,59 @@ for (const idioma of ['pt', 'en'] as const) {
     } finally { await contexto.close(); await runner.close(); }
   });
 }
+
+// Emenda 1 do contrato (registro 008): no fim da Início, a intenção vem da Server Action real, só no clique, e o envio do
+// chat usa essa intenção. Ressalvas do Security: resposta no-store e sem Set-Cookie; token fora de storage, cookie e URL.
+test('Início: a Server Action emite no clique, sem cache nem cookie, e o token não vai a storage, cookie nem URL', async ({ page }) => {
+  test.setTimeout(90_000);
+  const respostas: { cabecalhos: Record<string, string>; corpo: string }[] = [];
+  await page.route(u => u.pathname === '/', async (route, req) => {
+    if (req.method() !== 'POST' || !req.headers()['next-action']) return route.fallback();
+    const r = await route.fetch({ headers: { ...req.headers(), origin: 'https://floway.example', 'x-forwarded-host': 'floway.example' } });
+    respostas.push({ cabecalhos: r.headers(), corpo: await r.text() });
+    await route.fulfill({ response: r });
+  });
+  const envios: string[] = [];
+  await page.route('**/api/contato', async route => {
+    envios.push(route.request().postData() ?? '');
+    await route.fulfill({ status: 202, json: { ok: false, estado: 'incerto', codigo: 'RESULTADO_INCERTO' }, headers: { 'Retry-After': '60' } });
+  });
+  await page.addInitScript(() => sessionStorage.setItem('abertura-tocou', '1'));
+  await page.goto('/');
+  await expect(page.locator('.abertura')).toHaveCount(0, { timeout: 8000 });
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  await expect(page.locator('.rodape-cta')).toBeVisible({ timeout: 10_000 });
+  expect(respostas).toHaveLength(0); // nada é emitido antes do clique
+  await page.locator('.rodape-cta').click();
+  const campo = page.getByRole('textbox', { name: 'Sua mensagem' });
+  await expect(campo).toBeFocused();
+  await expect(page.locator('.contato-chat .chat-aviso')).toContainText('Google Gemini');
+  expect(respostas).toHaveLength(1);
+  const [{ cabecalhos, corpo }] = respostas;
+  expect(cabecalhos['cache-control']).toContain('no-store');
+  expect(cabecalhos['set-cookie']).toBeUndefined();
+  const intencao = /v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.exec(corpo)?.[0];
+  const chave = /contato\/[0-9a-f-]{36}/.exec(corpo)?.[0];
+  expect(intencao).toBeTruthy();
+  expect(chave).toBeTruthy();
+  const vestigios = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, sessao: { ...sessionStorage }, cookie: document.cookie, url: location.href }));
+  expect(vestigios).not.toContain(intencao);
+  expect(vestigios).not.toContain(chave);
+  // Fechar e reabrir não emite de novo.
+  await page.getByRole('button', { name: /Fechar/ }).click();
+  await page.locator('.rodape-cta').click();
+  await expect(campo).toBeFocused();
+  expect(respostas).toHaveLength(1);
+  // A conversa segue até o cartão; o envio leva a intenção emitida pela action.
+  await page.getByRole('button', { name: 'Ainda não sei, quero conversar' }).click();
+  await page.getByRole('button', { name: 'Gerar contatos' }).click();
+  for (const resposta of ['Ana', 'Estúdio Norte', '(11) 98765-4321', 'ana@example.com']) {
+    await expect(campo).toBeEditable();
+    await campo.fill(resposta); await campo.press('Enter');
+  }
+  await page.getByRole('button', { name: 'Confirmar e enviar' }).click();
+  await expect.poll(() => envios.length).toBe(1);
+  expect(new URLSearchParams(envios[0]).get('intencao') ?? envios[0]).toContain(intencao!);
+  const depois = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, sessao: { ...sessionStorage }, cookie: document.cookie, url: location.href }));
+  expect(depois).not.toContain(intencao);
+});

@@ -3,7 +3,7 @@
 import { useScrollRig } from '@14islands/r3f-scroll-rig';
 import { useEffect, useState } from 'react';
 import { EsferaDeLetras } from '@/compartilhados/esfera/EsferaDeLetras';
-import type { StatusDoGlobo } from '@/componentes/contato/ChatContato';
+import { GloboDoChat, type StatusDoGlobo } from '@/componentes/contato/ChatContato';
 import { ConversaGuiada } from '@/componentes/contato/ConversaGuiada';
 import { ConversaIA } from '@/componentes/contato/ConversaIA';
 import { Formulario } from '@/componentes/contato/Formulario';
@@ -21,6 +21,8 @@ export function PaginaContato({ estado, servidor }: { estado?: string; servidor?
   const idioma = useIdioma();
   const c = contato.chat;
   const [status, setStatus] = useState<StatusDoGlobo>('online');
+  // Celular (M02): o globo grande no vazio, acima do título; no desktop o lugar fica escondido e o globo, no canto.
+  const [grande, setGrande] = useState<HTMLDivElement | null>(null);
   const Conversa = servidor?.conversaDisponivel ? ConversaIA : ConversaGuiada;
   const { reflow } = useScrollRig();
   // O ScrollRig precisa reler a posição da esfera quando a página monta e quando o globo forma o F.
@@ -34,11 +36,10 @@ export function PaginaContato({ estado, servidor }: { estado?: string; servidor?
         <a className="chat-fechar" href={rota('inicio', idioma)}><span className="chat-fechar-texto">{t(c.fechar, idioma)}</span><span aria-hidden="true">✕</span></a>
       </div>
       {/* Com o Gemini configurado, a conversa é com a IA; sem ele, segue o roteiro fixo de perguntas. */}
-      <Conversa servidor={servidor} aoStatus={setStatus} />
-      <div className="contato-globo" data-status={status}>
-        <EsferaDeLetras alvo={alvoDoSimbolo} respondendo={status === 'pensando'} formarAlvo={status === 'enviado'} />
-        <p className="contato-globo-status"><i aria-hidden="true" /><span className="contato-globo-nome">{t(c.rotulo, idioma)}</span> <span>{t(c.status[status], idioma)}</span></p>
-      </div>
+      <Conversa servidor={servidor} aoStatus={setStatus} lugarDoGlobo={setGrande} />
+      <GloboDoChat status={status}>
+        <EsferaDeLetras alvo={alvoDoSimbolo} respondendo={status === 'pensando'} formarAlvo={status === 'enviado'} lugar={grande} />
+      </GloboDoChat>
       {/* Sem JavaScript a conversa não anda: o formulário simples só existe para esse caso, nunca atrás da conversa. */}
       <noscript>
         <style>{'.chat, .contato-globo { display: none; }'}</style>

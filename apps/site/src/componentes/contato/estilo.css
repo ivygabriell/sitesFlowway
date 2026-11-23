@@ -128,7 +128,7 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
 /* ---------- contato por chat com IA (spec 2026-11-22, telas em processo/telas/contato-chat-ia/) ---------- */
 /* Desktop (frames 02 a 07): uma tela só; a coluna do chat (720 px) no meio e o globo (≈270 px) no canto inferior
    direito. Abaixo de ~1440 px a coluna vai para a esquerda para não passar por baixo do globo. */
-.pagina-contato {
+.pagina-contato, .contato-chat {
   --chat-w: min(720px, calc(100vw - 395px));
   --chat-x: clamp(30px, calc(100vw - 360px - var(--chat-w)), calc((100vw - var(--chat-w)) / 2));
   position: relative; height: 100vh; height: 100svh; overflow: hidden; color: var(--escuro);
@@ -157,10 +157,11 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
 @keyframes chat-entra { from { opacity: 0; transform: translateY(16px); } }
 
 /* Conversa (frame 03): rola por dentro; o topo esmaece para o fundo. */
-.chat-lista { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-bottom: 20px; padding-top: 18px; scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 56px); mask-image: linear-gradient(to bottom, transparent, #000 56px); }
+.chat-lista { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-bottom: 20px; padding-top: 18px; scrollbar-width: none; }
+.chat-lista[data-rolada] { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 56px); mask-image: linear-gradient(to bottom, transparent, #000 56px); }
 .chat-lista::-webkit-scrollbar { display: none; }
-.chat-coluna { display: flex; flex-direction: column; gap: 24px; }
+.chat-coluna, .chat-trecho { display: flex; flex-direction: column; gap: 24px; }
+.chat-trecho:empty { display: none; }
 .chat-rotulo { color: var(--c3); font: 400 10px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
 .chat-ia p { max-width: 640px; margin-top: 8px; font: 400 18px/1.45 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-erro p { color: var(--azul); }
@@ -198,6 +199,7 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
 .chat-parar span { width: 12px; height: 12px; border-radius: 2px; background: var(--claro); }
 .chat-aviso { margin-top: 12px; color: var(--c3); text-align: center; font: 400 10px/1.4 var(--mono); letter-spacing: 0.04em; }
 .chat-aviso a { margin-left: 4px; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.chat-curto { display: none; }
 
 /* Cartão de resumo (frames 05 a 07): branco, borda escura, raio 18. */
 .cartao-resumo { width: min(640px, 100%); padding: 24px 24px 28px; border: 1px solid var(--escuro); border-radius: 18px; background: var(--branco); }
@@ -232,7 +234,8 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
 /* Globo no canto (≈270 px visíveis; a caixa é mais larga porque o F tem 2,3 raios) e o status em texto embaixo.
    Sem WebGL a esfera some (estilo da esfera) e o status fica. */
 .contato-globo { position: absolute; z-index: 1; right: 0; bottom: 64px; width: 352px; pointer-events: none; }
-.pagina-contato .contato-globo .esfera { height: 276px; aspect-ratio: auto; }
+.pagina-contato .contato-globo .esfera, .contato-globo-lugar { height: 276px; aspect-ratio: auto; }
+.chat-globo-lugar { display: none; }
 .contato-globo-status { display: flex; align-items: center; gap: 8px; margin: 22px 0 0 43px; font: 400 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
 .contato-globo-status i { width: 6px; height: 6px; border-radius: 50%; background: var(--escuro); }
 .contato-globo[data-status="pensando"] .contato-globo-status i, .contato-globo[data-status="falha"] .contato-globo-status i { background: var(--azul); }
@@ -245,14 +248,15 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
   .chat-iniciar, .chat-fechar-texto { display: none; }
   .chat-fechar { justify-content: center; width: 44px; font-size: 16px; }
   .contato-globo { z-index: 3; top: 49px; bottom: auto; left: 14px; right: auto; width: auto; display: flex; align-items: center; gap: 10px; }
-  .pagina-contato .contato-globo .esfera { width: 48px; height: 40px; }
+  .pagina-contato .contato-globo .esfera, .contato-globo-lugar { width: 48px; height: 40px; }
   .contato-globo-status { display: grid; grid-template-columns: auto 1fr; gap: 4px 6px; margin: 0; font-size: 10px; }
   .contato-globo-status i { grid-row: 2; }
   .contato-globo-nome, .contato-globo:not([data-status="online"]):not([data-status="resumo"]) .contato-globo-nome { display: block; grid-column: 1 / -1; font: 400 17px/1 var(--sans); text-transform: none; letter-spacing: 0; }
   .contato-globo-nome::after { content: none; }
-  .chat, .contato-sem-js { top: 99px; bottom: 0; left: 12px; width: auto; right: 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  /* Com o teclado aberto, o chat sobe pela parte coberta (--teclado, de ChatContato) e o campo fica à vista. */
+  .chat, .contato-sem-js { top: 99px; bottom: var(--teclado, 0px); left: 12px; width: auto; right: 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
   .contato-sem-js { padding: 16px 6px; }
-  .chat-abertura { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .chat-abertura { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
   .chat-abertura h2 { font-size: 40px; letter-spacing: -1.4px; }
   .chat-abertura p { margin: 16px auto 0; font-size: 16px; }
   .chat-vazio > .chat-respostas { order: -1; margin: 0 0 16px; padding: 0; flex-direction: column; align-items: flex-start; }
@@ -261,14 +265,47 @@ html.js-global-canvas-error .rodape-linha i { font-style: normal; }
   .chat-voce { max-width: 86%; }
   .chat-composer { padding-left: 18px; }
   .chat-composer textarea { font-size: 16px; }
-  .chat-aviso { margin-top: 8px; }
+  .chat-aviso { margin-top: 8px; text-transform: uppercase; }
+  .chat-longo { display: none; }
+  .chat-curto { display: inline; }
+  /* M02: o globo grande no vazio, acima do título; enquanto ele está lá, a barra mostra um globo parado no lugar do ícone. */
+  /* Encolhe em telas baixas (360×640) para o vazio caber; sem altura, o globo volta ao ícone. */
+  .chat-globo-lugar { display: block; flex: 0 1 176px; width: 100%; min-height: 0; margin-bottom: 30px; }
+  .chat-lista { padding: 18px 6px 0; }
+  :is(.pagina-contato, .contato-chat):has(.chat-globo-lugar) .contato-globo::before { content: ''; position: absolute; left: 4px; top: 0; width: 40px; height: 40px; border: 1px solid var(--escuro); border-radius: 50%; background: radial-gradient(circle at 38% 34%, var(--branco) 0 18%, var(--c2) 60%, var(--c3)); }
   .cartao-resumo { padding: 18px 16px 20px; }
   .cartao-resumo dl div { grid-template-columns: 1fr; gap: 2px; }
 }
 @media (min-width: 900px) and (max-height: 760px) {
   .chat-abertura h2 { font-size: 56px; }
   .chat-abertura p { margin: 20px auto 24px; }
-  .pagina-contato .contato-globo .esfera { height: 220px; }
+  .pagina-contato .contato-globo .esfera, .contato-globo-lugar { height: 220px; }
 }
 .chat-demorado { font: 400 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
 .cartao-edicao .formulario-erros { color: var(--azul); }
+
+/* ---------- chat no fim da Início (issue #29, passo 4) ---------- */
+/* "Iniciar um projeto" troca o estado da seção: a cena fica presa (html.contato-aberto, sem rolar a página), a frase e o
+   rodapé saem, o globo vai ao canto (o lugar .contato-globo-lugar, desenhado pela própria esfera) e o chat entra de baixo. */
+html.contato-aberto { overflow: hidden; scrollbar-gutter: stable; }
+html.contato-aberto .selo { opacity: 0; visibility: hidden; }
+.contato-chat { position: absolute; z-index: 4; inset: 0; pointer-events: auto; color: var(--escuro); }
+.contato-chat[hidden] { display: none; }
+.contato-chat .chat-fechar { padding: 0; border: 0; background: none; cursor: pointer; }
+.com-chat .frase-contato, .com-chat .rodape { opacity: 0; visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Saindo, a visibilidade espera o esmaecer; voltando, é imediata (o foco volta ao CTA na hora). */
+  .frase-contato, .rodape { transition: opacity var(--tempo-curto) var(--curva-hover), visibility 0s; }
+  .com-chat .frase-contato, .com-chat .rodape { transition: opacity var(--tempo-curto) var(--curva-hover), visibility 0s linear var(--tempo-curto); }
+  .contato-chat .chat-topo, .contato-chat .chat:not(.chat-vazio) > *, .contato-chat .contato-globo-status { animation: chat-entra var(--tempo-lista) cubic-bezier(0.45, 0, 0.55, 1) both; }
+  .contato-chat .chat:not(.chat-vazio) > .chat-composer, .contato-chat .chat:not(.chat-vazio) > .chat-aviso { animation-delay: var(--intervalo-lista); }
+  .contato-chat .contato-globo-status { animation-delay: calc(2 * var(--intervalo-lista)); }
+}
+
+/* Falha ao iniciar o chat na Início (emenda 1; padrão da tela 07): a mensagem em azul, "Tentar de novo" em pílula e, no
+   lugar de "Ajustar algo", o link sublinhado para a página de contato, que emite por requisição. */
+.chat-inicio-falha { justify-content: center; gap: 26px; }
+.chat-inicio-falha .formulario-acoes { justify-content: flex-start; flex-wrap: wrap; gap: 22px; }
+.chat-inicio-falha .formulario-acoes button { padding: 0 22px; border-radius: 22px; background: var(--escuro); color: var(--claro); font-size: 13px; text-decoration: none; }
+.chat-inicio-falha .formulario-acoes a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; font: 400 11px var(--mono); text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; }
+.chat-inicio-falha .formulario-acoes a:focus-visible { outline: 2px solid var(--azul); outline-offset: 4px; }

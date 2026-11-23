@@ -14,6 +14,22 @@ const K = (LETRA_NO_PROTOTIPO.tamanho * Math.sqrt(LETRA_NO_PROTOTIPO.pontos)) / 
 
 export const tamanhoDaLetra = (n: number, raio: number) => (K * raio) / Math.sqrt(n);
 
+// A div é o palco da esfera, no contato só a área livre entre a frase e o rodapé: a esfera (cerca de 2,15 raios) enche a
+// altura dela sem encostar no texto, e o F (2.3 raios de largura) e o empurrão do cursor cabem na largura.
+export const raioNaCaixa = (largura: number, altura: number) => Math.min(largura / 2.8, altura / 2.2);
+
+type Caixa = { left: number; top: number; width: number; height: number };
+// O globo desenhado noutro lugar (o canto do chat, o vazio ou o ícone do celular): deslocamento do centro da div até o
+// centro do lugar, em pixels com y para cima (a cena), e o raio que cabe no lugar. Lugar escondido conta como nenhum.
+export function caixaDaEsfera(div: Caixa, lugar: Caixa | null) {
+  if (!lugar || !lugar.width || !lugar.height) return { dx: 0, dy: 0, raio: raioNaCaixa(div.width, div.height) };
+  return {
+    dx: lugar.left + lugar.width / 2 - (div.left + div.width / 2),
+    dy: -(lugar.top + lugar.height / 2 - (div.top + div.height / 2)),
+    raio: raioNaCaixa(lugar.width, lugar.height),
+  };
+}
+
 // n pontos numa esfera de raio 1, pela espiral de Fibonacci (3n valores).
 export function pontosEsfera(n: number): Float32Array {
   const p = new Float32Array(3 * n);

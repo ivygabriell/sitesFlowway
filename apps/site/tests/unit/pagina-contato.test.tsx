@@ -55,7 +55,7 @@ it('rodapé da página não oferece CTA para a própria página', () => {
   expect(container.querySelector('.rodape-cta')).toBeNull(); expect(container.querySelector('.rodape.visivel')).not.toBeNull();
 });
 const servidor = { versao: 'contato-b.1', intencao: 'token-apenas-teste', chave: 'contato/00000000-0000-4000-8000-000000000001', repetirAte: new Date(Date.now() + 3600000).toISOString(), conversaDisponivel: false, envioDisponivel: true } as const;
-const ultimaEsfera = () => esfera.mock.calls[esfera.mock.calls.length - 1][0] as { respondendo?: boolean; formarAlvo?: boolean; className?: string };
+const ultimaEsfera = () => esfera.mock.calls[esfera.mock.calls.length - 1][0] as { respondendo?: boolean; formarAlvo?: boolean; className?: string; lugar?: Element | null };
 async function ateOCartao() {
   vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
   const { container } = render(<PaginaContato servidor={servidor} />);
@@ -73,6 +73,15 @@ describe('PaginaContato no chat', () => {
     expect(container.querySelector('.contato-globo-status')?.textContent).toMatch(/Floway IA.*online/);
     expect(ultimaEsfera()).toMatchObject({ respondendo: false, formarAlvo: false });
     expect(container.querySelector('.circulo-escuro')).toBeNull();
+  });
+  it('celular (M02): no vazio o globo grande fica no lugar acima do título; com a conversa, volta ao ícone da barra', () => {
+    const { container } = render(<PaginaContato servidor={servidor} />);
+    const lugar = container.querySelector('.chat-abertura .chat-globo-lugar');
+    expect(lugar).not.toBeNull();
+    expect(ultimaEsfera().lugar).toBe(lugar);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Sua mensagem' }), { target: { value: 'Um site' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar mensagem' }));
+    expect(ultimaEsfera().lugar ?? null).toBeNull();
   });
   it('o F só se forma depois do sucesso real do envio', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => Response.json({ ok: true, estado: 'aceito', requestId: '00000000-0000-4000-8000-000000000001', repetirAte: servidor.repetirAte })));
